@@ -1,6 +1,6 @@
 # 仓库目录规划
 
-状态：下列应用目录是后续初始化目标；当前已存在的技术资料位于 `docs/`。
+状态：前后端、共享包、迁移、脚本、部署和端到端测试目录骨架已建立。应用入口、工作区配置、依赖、流水线和运行配置尚未初始化。
 
 ## 顶层结构
 
@@ -31,7 +31,8 @@ hahaen-radio/
 │           ├── db/           Schema、连接与数据库配置
 │           └── config/       环境变量校验
 ├── packages/
-│   ├── contracts/            共享 DTO、Schema 和错误码
+│   ├── contracts/
+│   │   └── src/              共享 DTO、Schema 和错误码
 │   └── config/               TypeScript、Lint 等共享配置
 ├── migrations/               版本化 SQL 和迁移元数据
 ├── scripts/                  工程和运维脚本
@@ -47,7 +48,9 @@ hahaen-radio/
 └── pnpm-lock.yaml
 ```
 
-具体业务模块名称待需求确定后建立，避免先创建大量没有实际职责的空目录。
+上述目录已通过说明文件或 `.gitkeep` 纳入版本管理。树中的 `Jenkinsfile`、`package.json`、`pnpm-workspace.yaml` 和 `pnpm-lock.yaml` 为后续初始化目标，当前尚未创建。说明文件和占位文件未在树中逐项展开。
+
+`packages/contracts/src` 已预留共享契约源码目录；`packages/config` 的具体配置文件在工具链初始化时创建。具体业务模块名称待需求确定后建立。
 
 ## 包边界
 
