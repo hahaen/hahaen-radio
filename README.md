@@ -4,7 +4,7 @@
 
 本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
 
-工程初始化已完成，已有工作区、前后端入口、共享契约和检查脚本。目录数据、真实播放、完整探索界面和部署配置仍待逐阶段完成；实际状态见[实施进度](docs/product/progress.md)。
+工程初始化与数据库目录阶段已完成，开发库已有真实目录、版本发布和查询 API。真实播放、完整探索界面和部署配置继续逐阶段完成；实际状态见[实施进度](docs/product/progress.md)。
 
 ## 文档入口
 
@@ -56,7 +56,16 @@ pnpm dev
 
 Web：`http://127.0.0.1:5173`；API：`http://127.0.0.1:3001/api/v1/health/live`。开发前端通过 `/api` 代理访问后端。单独开发前端和后端可分别执行 `pnpm dev:web`、`pnpm dev:server`。
 
-服务端可选配置复制 `.env.example` 为被本地排除的 `.env.local`，权限设为 `600`；`dev` 与 `start` 命令显式使用 Node.js `--env-file-if-exists=../../.env.local` 加载。现有进程环境优先于环境文件；修改环境文件后重启进程。当前默认只监听本机，生产环境的公开监听地址应显式配置。
+基础开发入口可以不配置数据库，此时目录明确未就绪。完整目录需要准备 MySQL 8.0.46、正确环境库名和分离身份，再按[迁移流程](docs/data/migrations/workflow.md)及[配置文档](docs/operations/configuration-and-logging.md)设置私有环境文件。API、任务、迁移分别显式加载 `.env.local`、`.env.jobs.local`、`.env.migration.local`；文件须被 Git 排除且权限为 600，进程环境优先，修改后重启。
+
+```bash
+pnpm db:migrate
+pnpm catalog sync
+pnpm catalog status
+pnpm jobs
+```
+
+迁移和同步会写入显式选择的目标库；开发固定 `ha_radio_dev`，不会回退到正式库。隔离数据库验收使用 `NODE_ENV=test`、专用 `ha_radio_test_<suffix>` 及 `pnpm test:mysql`，详见迁移文档。
 
 ```bash
 pnpm check
@@ -65,4 +74,4 @@ pnpm exec playwright install chromium firefox webkit
 pnpm test:e2e
 ```
 
-`pnpm build` 生成各包 `dist/`；后端生产入口为 `pnpm --filter @haen/server start`。此阶段只有基础入口，不代表电台目录与播放已完成。Docker 实测按用户要求延后到实际部署环境执行。
+`pnpm build` 生成各包 `dist/`；后端编译入口为 `pnpm --filter @haen/server start`，任务为 `start:jobs`。前端目前仍是基础入口，真实播放器尚未实现。Docker 实测按用户要求延后到实际部署环境执行。

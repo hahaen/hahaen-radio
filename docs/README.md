@@ -1,6 +1,6 @@
 # 技术文档导航
 
-本目录保存「声屿 HAEN」的产品目标、技术方案、工程约定与部署运维流程。工程初始化已通过本机基础验证；数据库、完整业务与发布配置仍待后续阶段完成，实际验证状态见产品验收矩阵。
+本目录保存「声屿 HAEN」的产品目标、技术方案、工程约定与部署运维流程。工程初始化、数据库与真实目录已通过适用本机验证；播放、完整界面与发布配置继续推进，实际状态见产品验收矩阵。
 
 ## 阅读顺序
 
@@ -18,12 +18,12 @@
 | `overview/` | 项目状态、技术组合 | [总览](overview/README.md)、[技术选型](overview/technology-stack.md) |
 | `architecture/` | 系统、仓库、架构决策 | [架构导航](architecture/README.md)、[系统设计](architecture/system-design.md)、[仓库规划](architecture/repository-layout.md)、[决策记录](architecture/decisions/README.md) |
 | `frontend/` | 设计、应用、渲染、音频、浏览器 | [前端导航](frontend/README.md)、[夜航设计规范](frontend/design/night-voyage.md)、[应用结构与状态](frontend/application/structure-and-state.md)、[Three.js](frontend/rendering/threejs.md)、[音频引擎](frontend/audio/audio-engine.md)、[平台与本地存储](frontend/platform/browser-and-storage.md) |
-| `backend/` | API、服务分层、任务 | [后端导航](backend/README.md)、[API 约定](backend/api/conventions.md)、[服务与外部接入](backend/services/layers-and-integrations.md)、[任务调度](backend/jobs/scheduling.md) |
-| `data/` | 数据库、建表选项、迁移、备份 | [数据导航](data/README.md)、[MySQL 与 Drizzle](data/database/mysql-and-drizzle.md)、[表选项与排序规则](data/database/table-options-and-collations.md)、[迁移流程](data/migrations/workflow.md)、[备份与恢复](data/backup/backup-and-restore.md) |
+| `backend/` | API、服务分层、任务 | [后端导航](backend/README.md)、[API 约定](backend/api/conventions.md)、[目录 API](backend/api/catalog.md)、[服务与外部接入](backend/services/layers-and-integrations.md)、[任务调度](backend/jobs/scheduling.md) |
+| `data/` | 数据库、目录、迁移、备份 | [数据导航](data/README.md)、[目录管线](data/catalog-pipeline.md)、[MySQL 与 Drizzle](data/database/mysql-and-drizzle.md)、[表选项与排序规则](data/database/table-options-and-collations.md)、[迁移流程](data/migrations/workflow.md)、[备份与恢复](data/backup/backup-and-restore.md) |
 | `engineering/` | 环境、依赖、质量、测试 | [工程导航](engineering/README.md)、[环境与依赖](engineering/environment-and-dependencies.md)、[质量与测试](engineering/quality-and-testing.md) |
 | `deployment/` | 容器、Jenkins、发布 | [部署导航](deployment/README.md)、[容器与存储](deployment/containers/topology-and-storage.md)、[Jenkins 流水线](deployment/jenkins/pipeline.md)、[环境与凭据](deployment/jenkins/environment-and-credentials.md)、[发布与回退](deployment/releases/release-and-rollback.md) |
 | `operations/` | 配置、日志、健康检查 | [运维导航](operations/README.md)、[配置与日志](operations/configuration-and-logging.md)、[健康与排障](operations/health-and-troubleshooting.md) |
-| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md) |
+| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md)、[目录管线](iterations/2026-10-17-catalog-pipeline/README.md) |
 
 ## 文档目录树
 
@@ -57,11 +57,14 @@ docs/
 │   └── platform/browser-and-storage.md
 ├── backend/
 │   ├── README.md
-│   ├── api/conventions.md
+│   ├── api/
+│   │   ├── conventions.md
+│   │   └── catalog.md
 │   ├── services/layers-and-integrations.md
 │   └── jobs/scheduling.md
 ├── data/
 │   ├── README.md
+│   ├── catalog-pipeline.md
 │   ├── database/
 │   │   ├── mysql-and-drizzle.md
 │   │   └── table-options-and-collations.md
@@ -94,7 +97,9 @@ docs/
     │   └── README.md
     ├── 2026-10-16-night-voyage-design/
     │   └── README.md
-    └── 2026-10-17-workspace-foundation/
+    ├── 2026-10-17-workspace-foundation/
+    │   └── README.md
+    └── 2026-10-17-catalog-pipeline/
         └── README.md
 ```
 

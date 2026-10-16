@@ -44,8 +44,12 @@ IntelliJ IDEA 会在项目根目录生成 `.idea/`，保存模块映射、版本
 | `pnpm test` | 必要单元、组件和集成测试 |
 | `pnpm test:e2e` | 浏览器端到端测试 |
 | `pnpm build` | 按依赖顺序构建所有产物 |
+| `pnpm db:generate` / `pnpm db:migrate` | 生成和执行受控迁移 |
+| `pnpm catalog sync` / `pnpm catalog status` | 手动同步及目录状态 |
+| `pnpm jobs` | 独立 UTC 调度进程 |
+| `pnpm test:mysql` | 建立独立 MySQL 测试库、迁移升级与仓储验收并清理 |
 
-CI 安装使用 `pnpm install --frozen-lockfile`。数据库生成、迁移、备份命令在脚本实现后补充，生产调用入口与本地明确区分。
+CI 安装使用 `pnpm install --frozen-lockfile`。数据库命令的配置和权限前提见[迁移流程](../data/migrations/workflow.md)，备份命令仍待部署阶段实现。
 
 ## 初始化完成条件
 

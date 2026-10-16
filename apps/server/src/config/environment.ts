@@ -13,6 +13,7 @@ const EnvironmentSchema = z.object({
     z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   ),
   API_DOCS_ENABLED: z.preprocess(optionalValue, z.enum(['true', 'false']).optional()),
+  REMOTE_DNS_MODE: z.preprocess(optionalValue, z.enum(['system', 'https']).default('system')),
 });
 
 export function readEnvironment(input: Record<string, string | undefined> = process.env) {

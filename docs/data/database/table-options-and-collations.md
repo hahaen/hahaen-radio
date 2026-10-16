@@ -59,9 +59,9 @@ ROW_FORMAT = DYNAMIC
 
 ## 验证边界
 
-本次已核对元数据，未验证应用连接池、Drizzle SQL 生成、迁移执行或数据库恢复。独立 Node.js 连接的 TLS 校验尚未通过，本机工具的成功读取不能代替应用连接验收。
+2026-10-16 的原始核对仅覆盖元数据。2026-10-17 已完成应用连接池、Drizzle SQL 生成、隔离迁移及开发库应用；9 张表（含工具历史表）的 InnoDB、utf8mb4_general_ci 和 DYNAMIC 已在隔离验收核对。原生 JSON 字段使用 MySQL JSON 语义，字符列保留明确 ASCII 例外。
 
-当前也未创建开发或正式数据库、运行账户、业务表或迁移 SQL。后续初始化需在明确授权和正确目标环境下执行。
+开发库和分离身份已建立，正式库未创建。验收使用已验证主机密钥的 SSH 隧道，直连服务器的 TLS 仍待部署时配置；备份与恢复尚未演练。具体执行状态见[迁移流程](../migrations/workflow.md)。
 
 参考技术资料：[MySQL 表级字符集](https://dev.mysql.com/doc/refman/8.0/en/charset-table.html)、[排序规则命名](https://dev.mysql.com/doc/refman/8.0/en/charset-collation-names.html)、[二进制与 `_bin` 排序规则](https://dev.mysql.com/doc/refman/8.0/en/charset-binary-collations.html)。
 

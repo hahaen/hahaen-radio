@@ -21,7 +21,12 @@
     "test:e2e": "pnpm --filter @haen/contracts build && playwright test",
     "build": "pnpm -r build",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
-    "docs:check": "node scripts/check-docs.mjs"
+    "docs:check": "node scripts/check-docs.mjs",
+    "db:generate": "pnpm --filter @haen/server db:generate",
+    "db:migrate": "pnpm --filter @haen/server db:migrate",
+    "test:mysql": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server test:mysql",
+    "catalog": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server catalog",
+    "jobs": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server jobs"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

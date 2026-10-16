@@ -1,6 +1,6 @@
 # 后端应用
 
-状态：Fastify API、配置校验、统一错误、健康接口与依赖配置已建立，基础测试及生产构建通过；数据库、后台任务及业务接口待后续阶段完成。
+状态：已实现 Fastify API、MySQL 连接池、目录同步与查询、独立任务和迁移入口。其他业务按产品阶段继续推进。
 
 ## 目录职责
 
@@ -14,7 +14,9 @@
 | `src/db/` | Drizzle Schema、连接和数据库配置 |
 | `src/config/` | 环境变量与运行配置校验 |
 
-API 和后台任务共用工程，使用不同入口。通过 mysql2 连接池和 Drizzle ORM 访问 MySQL 8.0.46，API 与任务不挂载数据库数据卷。迁移由独立 Drizzle Kit 工具入口执行；当前尚未创建连接、配置或迁移 SQL。
+API 和后台任务共用工程，使用不同入口。通过 mysql2 连接池和 Drizzle ORM 访问 MySQL 8.0.46，API 与任务不挂载数据库数据卷。迁移由独立 Drizzle Kit 工具入口执行。入口和权限见[配置文档](../../docs/operations/configuration-and-logging.md)。
+
+根目录命令为 `pnpm db:generate`、`pnpm db:migrate`、`pnpm catalog sync`、`pnpm catalog status`、`pnpm jobs` 和 `pnpm test:mysql`。生产 API 与任务分别运行编译入口 `start` 和 `start:jobs`；迁移镜像仍须包含配置、Schema、SQL 及固定工具依赖。
 
 占位目录由 `.gitkeep` 保留；增加实际文件后可删除相应占位文件。
 

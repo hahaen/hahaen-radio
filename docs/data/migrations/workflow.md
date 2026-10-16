@@ -1,6 +1,33 @@
 # 数据库迁移流程
 
-状态：已确定使用 MySQL 8.0.46 和 Drizzle Kit 管理迁移，当前没有已生成或已执行的业务迁移。
+状态：已生成并审核两条迁移，独立 MySQL 8.0.46 的初始化、升级、数据保留和重复执行已通过；已在开发库 `ha_radio_dev` 执行，正式库未创建、未执行。
+
+## 当前入口与清单
+
+```bash
+pnpm db:generate --name=<change-name>
+pnpm db:generate --custom --name=<change-name>
+pnpm db:migrate
+```
+
+生成入口使用 `apps/server/drizzle.config.ts`，输出至根目录 `migrations/`。迁移入口先校验环境库名、MySQL 版本、连接字符集和 UTC，再启动固定 Drizzle Kit；应用启动不会自动执行迁移。迁移错误可能带 SQL 或连接信息，普通输出只报告状态，失败后先检查目标结构与工具历史表。
+
+| 迁移 | 职责 |
+| --- | --- |
+| `0000_catalog_foundation.sql` | 建立 8 张业务表、外键和索引，机器标识明确采用 ascii_bin |
+| `0001_explicit_table_options.sql` | 自定义迁移，显式补齐 InnoDB、utf8mb4_general_ci、DYNAMIC 及普通文本列配置，保留 ASCII 字段例外 |
+
+首条生成 SQL 与后续表选项迁移必须作为完整初始化序列执行，完成前不启动业务。迁移历史表由 Drizzle Kit 创建，本项目在自定义迁移中约束其表选项；不手工伪造迁移记录。JSON 字段使用 MySQL 原生 JSON 语义，不误当普通 varchar 列转换。
+
+本地迁移专用 `.env.migration.local` 与 API `.env.local`、任务 `.env.jobs.local` 分开，全部须被 Git 排除且权限为 600。部署时由环境注入相同变量，不把本机私有文件打入镜像。变量与身份范围见[配置文档](../../operations/configuration-and-logging.md)。
+
+## 独立 MySQL 验收命令
+
+设置 `NODE_ENV=test`、唯一 `DB_NAME=ha_radio_test_<suffix>` 和具备该测试流程权限的数据库配置后运行 `pnpm test:mysql`。既有进程变量优先于环境文件；测试库名不能使用开发或正式库名。
+
+测试入口拒绝覆盖已存在的库，只创建本次专用库，先应用第一条迁移、写入 Unicode 保留样例，再升级完整序列、重复执行并运行仓储验收。最后仅删除本次创建的测试库。涉及实际建库和 DDL，执行前确认目标实例与身份；不在正式环境运行该命令。
+
+检查覆盖表选项、字符例外、迁移记录、Unicode 保留、重复同步、源失败保留、未发布暂存、租约接管、过期令牌拒绝发布、人工屏蔽、事务回滚、操作超时和连接获取超时后的恢复。普通 `pnpm test` 会跳过这 5 项真实数据库用例，不能以普通测试通过代替本命令。
 
 ## 单一迁移机制
 
@@ -44,7 +71,7 @@ DDL 可能隐式提交，后续语句失败时前面的变更可能已经生效�
 - 已在指定目标环境执行。
 - 已完成应用与数据验收。
 
-工具命令的职责为 `drizzle-kit generate` 生成 SQL，`drizzle-kit migrate` 执行待应用迁移，自定义变更通过锁定版本支持的 `generate --custom` 流程管理。项目脚本、配置路径与首次迁移清单在实现后补充；这些命令名称不代表当前工程已经可以执行。
+工具命令的职责为 `drizzle-kit generate` 生成 SQL，`drizzle-kit migrate` 执行待应用迁移，自定义变更通过锁定版本支持的 `generate --custom` 流程管理。项目包装入口的职责为配置预检和脱敏输出，不引入第二套迁移器。
 
 工具行为见[生成迁移](https://orm.drizzle.team/docs/drizzle-kit-generate)和[执行迁移](https://orm.drizzle.team/docs/drizzle-kit-migrate)。
 

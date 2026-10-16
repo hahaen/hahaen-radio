@@ -10,8 +10,14 @@ import {
 } from 'fastify-type-provider-zod';
 import { HealthResponseSchema, ApiErrorSchema, type ApiError } from '@haen/contracts';
 import type { Environment } from './config/environment.js';
+import { registerCatalogRoutes } from './modules/catalog/routes.js';
+import {
+  CatalogNotFoundError,
+  CatalogUnavailableError,
+  type CatalogService,
+} from './modules/catalog/service.js';
 
-export function buildApp(config: Environment, logging = true) {
+export function buildApp(config: Environment, logging = true, catalog?: CatalogService) {
   const app = Fastify({
     logger: logging
       ? {
@@ -39,14 +45,36 @@ export function buildApp(config: Environment, logging = true) {
   });
   app.setErrorHandler((error, request, reply) => {
     const failure = error as { statusCode?: number; code?: string };
-    const status = failure.statusCode === 413 ? 413 : failure.statusCode === 400 ? 400 : 500;
+    const status =
+      error instanceof CatalogUnavailableError
+        ? 503
+        : error instanceof CatalogNotFoundError
+          ? 404
+          : failure.statusCode === 413
+            ? 413
+            : failure.statusCode === 400
+              ? 400
+              : 500;
     const code: ApiError['code'] =
-      status === 413 ? 'PAYLOAD_TOO_LARGE' : status === 400 ? 'VALIDATION_ERROR' : 'INTERNAL_ERROR';
+      status === 503
+        ? 'SERVICE_UNAVAILABLE'
+        : status === 404
+          ? 'NOT_FOUND'
+          : status === 413
+            ? 'PAYLOAD_TOO_LARGE'
+            : status === 400
+              ? 'VALIDATION_ERROR'
+              : 'INTERNAL_ERROR';
     if (status === 500)
       request.log.error({ event: 'request_failed', errorCode: failure.code }, 'Request failed');
     void reply.code(status).send({
       code,
-      message: status === 500 ? 'Service temporarily unavailable' : 'Invalid request',
+      message:
+        status === 500 || status === 503
+          ? 'Service temporarily unavailable'
+          : status === 404
+            ? 'Resource not found'
+            : 'Invalid request',
       requestId: request.id,
     });
   });
@@ -63,6 +91,7 @@ export function buildApp(config: Environment, logging = true) {
     void app.register(swaggerUi, { routePrefix: '/api/v1/docs' });
   }
   void app.register(async (routes) => {
+    registerCatalogRoutes(routes, catalog);
     routes.withTypeProvider<ZodTypeProvider>().get(
       '/api/v1/health/live',
       {
