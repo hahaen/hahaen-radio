@@ -4,23 +4,38 @@ export class TuningSound {
   private disposed = false;
   private generation = 0;
   private active = false;
+  private suspending: Promise<void> | undefined;
   activate() {
     if (this.disposed || typeof AudioContext !== 'function') return;
     try {
       this.context ??= new AudioContext();
       this.active = true;
-      if (this.context.state !== 'closed') this.resume(this.context);
+      if (this.context.state !== 'running' || this.suspending) void this.resume(this.context);
     } catch {
       /* Optional sound never affects the station. */
     }
   }
-  private resume(context: AudioContext) {
-    return context
-      .resume()
-      .then(() => {
-        if (!this.active && context.state === 'running') return context.suspend();
-      })
-      .catch(() => {});
+  private async resume(context: AudioContext) {
+    try {
+      if (this.suspending) await this.suspending;
+      if (this.disposed || !this.active || context !== this.context || context.state === 'closed')
+        return;
+      await context.resume();
+      if (!this.active && context.state === 'running') await this.suspend(context);
+    } catch {
+      /* A denied optional context does not affect station playback. */
+    }
+  }
+  private suspend(context: AudioContext) {
+    if (this.suspending) return this.suspending;
+    const task = context
+      .suspend()
+      .catch(() => {})
+      .finally(() => {
+        if (this.suspending === task) this.suspending = undefined;
+      });
+    this.suspending = task;
+    return task;
   }
   play(volume: number, muted: boolean) {
     const context = this.context;
@@ -55,7 +70,7 @@ export class TuningSound {
         this.stop();
       }
     };
-    if (context.state === 'running') render();
+    if (context.state === 'running' && !this.suspending) render();
     else
       void this.resume(context)
         .then(render)
@@ -78,7 +93,7 @@ export class TuningSound {
   pause() {
     this.active = false;
     this.stop();
-    if (this.context?.state === 'running') void this.context.suspend().catch(() => {});
+    if (this.context?.state === 'running') void this.suspend(this.context);
   }
   destroy() {
     this.disposed = true;

@@ -172,6 +172,11 @@ test('enters idle immersion only while actually playing and respects editing, di
   await page.clock.fastForward(31000);
   await expect(page.getByRole('main', { name: '沉浸收听', exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: '关于与帮助', exact: true }).click();
+  await page.clock.fastForward(31000);
+  await expect(page.getByRole('dialog', { name: '关于与帮助', exact: true })).toBeVisible();
+  await expect(page.getByRole('main', { name: '沉浸收听', exact: true })).toHaveCount(0);
+  await page.keyboard.press('Escape');
   await page.getByRole('searchbox', { name: '搜索电台', exact: true }).focus();
   await page.clock.fastForward(31000);
   await expect(page.getByRole('main', { name: '沉浸收听', exact: true })).toHaveCount(0);

@@ -20,6 +20,7 @@ import {
   Settings2,
   Timer,
   Disc3,
+  Info,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
@@ -44,6 +45,7 @@ import { useNowPlaying } from '../tracks/use-now-playing';
 import { TrackPanel, TrackSummary } from '../tracks/TrackPanel';
 import { explorationAutoplay } from '../graphics/model';
 import { StationFacts } from './StationFacts';
+import { InformationPanel } from '../information/InformationPanel';
 import styles from './App.module.css';
 
 const EMPTY_STATIONS: StationPreview[] = [];
@@ -107,6 +109,7 @@ export function App() {
   const setDraft = (value: string) => setSearchInput({ base: search, value });
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [trackOpen, setTrackOpen] = useState(false);
+  const [informationOpen, setInformationOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false),
     [immersive, setImmersive] = useState(false);
   const [languageFailed, setLanguageFailed] = useState(false);
@@ -365,7 +368,8 @@ export function App() {
       immersive ||
       libraryOpen ||
       settingsOpen ||
-      trackOpen
+      trackOpen ||
+      informationOpen
     )
       return;
     return connectIdleImmersion(
@@ -378,6 +382,7 @@ export function App() {
     libraryOpen,
     settingsOpen,
     trackOpen,
+    informationOpen,
     enterImmersive,
     player,
   ]);
@@ -437,6 +442,18 @@ export function App() {
           >
             <LibraryIcon size={20} aria-hidden="true" />
             <span>{t('myListening')}</span>
+          </button>
+          <button
+            className={styles.openLibrary}
+            aria-label={t('informationTitle')}
+            onClick={(event) => {
+              event.currentTarget.focus({ preventScroll: true });
+              player.invalidateSelection();
+              setInformationOpen(true);
+            }}
+          >
+            <Info size={20} aria-hidden="true" />
+            <span>{t('informationTitle')}</span>
           </button>
           <div className={styles.languages} role="group" aria-label={t('language')}>
             <button
@@ -800,6 +817,9 @@ export function App() {
           library={library}
           onClose={() => setTrackOpen(false)}
         />
+      )}
+      {informationOpen && (
+        <InformationPanel context={state.playback} onClose={() => setInformationOpen(false)} />
       )}
       {settingsOpen && (
         <SettingsPanel

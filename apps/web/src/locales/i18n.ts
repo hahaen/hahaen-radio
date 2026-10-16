@@ -4,6 +4,95 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   zh: {
     translation: {
+      informationTitle: '关于与帮助',
+      informationTopics: '说明主题',
+      information: {
+        about: '关于声屿',
+        privacy: '隐私说明',
+        credits: '资源署名',
+        help: '使用帮助',
+        feedback: '问题反馈',
+        aboutIntro: '嗯，听听世界。',
+        aboutBody:
+          '声屿 HAEN 是一个免登录的全球电台收听工具。在地球与流派之间探索，听见不同地方此刻的声音。',
+        aboutLive:
+          '节目由电台实时播出；上一站与下一站切换的是电台，不能跳过直播中的歌曲。电台数据与可播放状态可能变化。',
+        aboutLocal:
+          '收藏、最近收听和偏好留在当前浏览器。换设备前，请在“我的收听”中导出收藏，再到新设备导入。',
+        privacyLocalTitle: '保存在这台设备上',
+        privacyLocal:
+          '电台与歌曲收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。电台目录也会缓存到本机，减少重复下载。没有云端收藏或账号同步。',
+        privacyClear:
+          '清除浏览器中的本站数据会删除本地内容。请先导出收藏；导出文件也包含你的收藏，应自行保管。共享设备上的其他使用者可能看到这些内容。',
+        privacyRequestsTitle: '何时会发出请求',
+        privacyRequests:
+          '打开本站会加载站点资源与电台目录。收听时，浏览器直接连接电台或其分发网络；对方可以获得连接所需的 IP 等网络信息，并按其自身规则处理。本站无法控制电台的请求与记录。',
+        privacySongs:
+          '播放时，本站服务器按需读取电台曲目信息。只有点击查询歌词后，歌手与曲名才会由本站服务器提交给 LRCLIB；点击外部搜索会打开所选平台，并携带歌手与曲名。',
+        privacyRecognition:
+          '识曲默认关闭。服务启用后，只有点击识曲才由本站服务器采集当前电台短片段并提交给 AudD；不使用你的麦克风，也不保存音频文件。',
+        privacyOperationsTitle: '运行与排障',
+        privacyOperations:
+          '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。问题说明只在你选择复制后写入剪贴板，不会自动发送。',
+        creditsIntro:
+          '感谢以下数据、服务与资源。电台节目、歌曲和歌词均来自各自提供者；目录与地理信息不保证始终准确或完整。',
+        creditsRadio:
+          '电台目录由 Radio Browser 提供，经本站归一化、筛选并定期同步；播放内容由电台直接提供。',
+        creditsGeo:
+          '附近城市与可确认时区使用 GeoNames cities15000 离线数据，已筛选、归一化并用于匹配。附近城市不代表电台精确地址。',
+        creditsEarth:
+          '地球轮廓使用 Natural Earth 1:110m land 5.1.2 公有领域数据，已简化并生成本地轮廓与点阵。',
+        creditsLyrics:
+          '歌词查询由 LRCLIB 提供。曲目覆盖、匹配与时间戳依赖上游数据；直播位置未知时请手动校时。',
+        creditsRecognition:
+          '可选片段识曲服务为 AudD。服务是否启用取决于站点配置与授权额度，不能保证每次匹配成功。',
+        creditsFonts:
+          'Noto Serif SC、Noto Sans SC 与 IBM Plex Mono 按 SIL Open Font License 1.1 本地分发，中文已制作界面字形子集。',
+        creditsIcons: '界面图标使用 Lucide；完整许可同时保留其所包含的 Feather 图标声明。',
+        creditsNotoSerif: 'Noto Serif SC 许可',
+        creditsNotoSans: 'Noto Sans SC 许可',
+        creditsPlex: 'IBM Plex Mono 许可',
+        creditsLucide: 'Lucide 完整许可',
+        helpStartTitle: '开始探索',
+        helpStart:
+          '点击开始或电台列表后才播放。拖动地球、滚轮或双指缩放；准星稳定约 650 毫秒后选择电台。暂停时移动场景只选台，不恢复声音。',
+        helpScope:
+          '搜索与筛选共同决定探索范围。同一维度的多选取并集，不同维度取交集。当前电台被筛选排除时仍继续播放；下一站使用新范围。没有结果时可清除条件。',
+        helpPin:
+          '固定当前电台后，移动场景不会自动换台；点击列表、搜索选择、上一站与下一站仍可换台。上一站返回访问过的电台，下一站在当前范围内随机探索。',
+        helpAudioTitle: '听不到声音时',
+        helpAudio:
+          '先点击播放并检查音量、静音与网络。浏览器可能要求再次点击才允许播放；电台也可能限制地区、编码或连接。可以重试或换台，本站不会把不可用来源伪装成正常播放。',
+        helpExtras:
+          '没有曲目信息或歌词不影响收听。音量统一只在可读取分析样本时生效。睡眠定时按截止时间暂停；浏览器后台挂起时可能延后，恢复后会重新核对。',
+        helpDataTitle: '收藏与设备迁移',
+        helpData:
+          '在“我的收听”管理收藏和最近收听，导出电台与歌曲收藏为 JSON。导入会校验并合并，文件最大 2MiB，不覆盖已有收藏。历史最多保留 100 个成功收听的电台。',
+        helpKeysTitle: '键盘操作',
+        helpKeysHint: '弹层、输入框与中文输入期间不会触发全局快捷键；手机可使用对应触屏按钮。',
+        keyPlay: '播放或暂停',
+        keyStations: '上一站或下一站',
+        keyView: '切换地球与流派',
+        keySearch: '搜索',
+        keyFavorite: '收藏当前电台',
+        keyPin: '固定或取消固定',
+        keyMute: '静音或取消静音',
+        keyEnter: '进入沉浸收听',
+        keyEscape: '退出沉浸或关闭面板',
+        feedbackIntro:
+          '请记录重现步骤、预期结果、实际结果，以及你使用的浏览器和设备。不要填写密码、令牌、私人音频或带凭据的网址。',
+        feedbackContact:
+          '本站暂未配置在线联系渠道。可以把问题说明复制后转交给提供本站访问地址的人；此面板不会提交到远程服务。',
+        feedbackPreview: '问题说明（仅在本机生成）',
+        feedbackTemplate:
+          '重现步骤：\n预期结果：\n实际结果：\n浏览器与设备：\n\n以下为打开反馈面板时的收听状态：',
+        feedbackCopy: '复制问题说明',
+        feedbackCopying: '正在复制…',
+        feedbackCopied: '已复制。请补充问题描述后自行转交。',
+        feedbackManual: '无法自动复制，请选择下方文本手动复制。',
+        feedbackNotice:
+          '说明只包含时间、界面语言、电台与线路标识和播放状态，不包含音源地址、完整页面网址、收藏或浏览历史。关闭面板后丢弃。',
+      },
       trackDetails: '曲目与歌词',
       trackLoading: '正在读取电台曲目信息…',
       trackUnknown: '暂无曲目信息',
@@ -307,6 +396,98 @@ const resources = {
   },
   en: {
     translation: {
+      informationTitle: 'About and help',
+      informationTopics: 'Information topics',
+      information: {
+        about: 'About HAEN',
+        privacy: 'Privacy',
+        credits: 'Credits',
+        help: 'Help',
+        feedback: 'Feedback',
+        aboutIntro: 'Listen to the world.',
+        aboutBody:
+          'HAEN is an account-free way to listen to radio around the world. Explore the globe or browse genres to hear what is playing elsewhere right now.',
+        aboutLive:
+          'Programs are broadcast live by each station. Previous and next switch stations; they cannot skip a song within a live broadcast. Directory details and stream availability can change.',
+        aboutLocal:
+          'Your favorites, recent listening, and preferences stay in this browser. Before changing devices, export favorites from My listening and import the file on the new device.',
+        privacyLocalTitle: 'Stored on this device',
+        privacyLocal:
+          'Station and song favorites, recent listening, filters, interface language, and listening settings are stored in this browser. A local directory cache reduces repeated downloads. There are no cloud favorites or account sync.',
+        privacyClear:
+          'Clearing this site’s browser data removes local content. Export favorites first and keep the file private. Other people using the same browser may be able to see this content.',
+        privacyRequestsTitle: 'When requests are made',
+        privacyRequests:
+          'Opening HAEN loads site resources and the station directory. During playback, your browser connects directly to the station or its distribution network. They receive network information needed for the connection, including your IP address, and apply their own practices. HAEN cannot control their requests or records.',
+        privacySongs:
+          'While you listen, our server reads station track metadata on demand. Only when you request lyrics does it send the artist and title to LRCLIB. External search opens your chosen platform with the artist and title in the search query.',
+        privacyRecognition:
+          'Song identification is off by default. When enabled, only a click asks our server to capture a short station sample and send it to AudD. Your microphone is never used and audio files are not saved.',
+        privacyOperationsTitle: 'Operation and troubleshooting',
+        privacyOperations:
+          'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio. Feedback notes are written to your clipboard only when you choose to copy them and are never sent automatically.',
+        creditsIntro:
+          'Thanks to the following data, services, and resources. Programs, songs, and lyrics come from their respective providers. Directory and geographic information may be incomplete or out of date.',
+        creditsRadio:
+          'The station directory is provided by Radio Browser, normalized, filtered, and periodically synchronized by HAEN. Stations provide the actual broadcasts.',
+        creditsGeo:
+          'Nearby cities and confirmed time zones use the offline GeoNames cities15000 dataset, filtered and normalized for matching. A nearby city is not an exact station address.',
+        creditsEarth:
+          'Globe outlines use Natural Earth 1:110m land 5.1.2 public domain data, simplified into local outlines and points.',
+        creditsLyrics:
+          'Lyrics queries are provided by LRCLIB. Coverage, matching, and timestamps depend on upstream data. Calibrate lyrics manually when the live position is unknown.',
+        creditsRecognition:
+          'Optional sample identification is provided by AudD. Availability depends on site configuration and an authorized allowance. A match is not guaranteed.',
+        creditsFonts:
+          'Noto Serif SC, Noto Sans SC, and IBM Plex Mono are served locally under SIL Open Font License 1.1. Chinese fonts are subsetted for the interface.',
+        creditsIcons:
+          'Interface icons use Lucide. The complete license also preserves the included Feather icon notices.',
+        creditsNotoSerif: 'Noto Serif SC license',
+        creditsNotoSans: 'Noto Sans SC license',
+        creditsPlex: 'IBM Plex Mono license',
+        creditsLucide: 'Complete Lucide license',
+        helpStartTitle: 'Start exploring',
+        helpStart:
+          'Click start or a station to begin playback. Drag the globe and zoom with a wheel or pinch. A steady crosshair selects a station after about 650 milliseconds. Exploring while paused selects without resuming audio.',
+        helpScope:
+          'Search and filters define your exploration range. Choices within a filter are combined; different filters intersect. A station excluded by new filters keeps playing, while next uses the new range. Clear conditions if there are no results.',
+        helpPin:
+          'Pinning prevents scene movement from changing stations. Explicit list or search selections, previous, and next still work. Previous returns to visited stations; next randomly explores the current range.',
+        helpAudioTitle: 'If you cannot hear anything',
+        helpAudio:
+          'Click play and check volume, mute, and your connection. Your browser may require another click to allow playback. Stations can also restrict regions, codecs, or connections. Retry or choose another station; an unavailable stream is never presented as working playback.',
+        helpExtras:
+          'Missing track metadata or lyrics does not stop listening. Volume normalization only works when an analysis sample is readable. Sleep uses a deadline; a suspended background browser may pause late and checks again on return.',
+        helpDataTitle: 'Favorites and device changes',
+        helpData:
+          'Use My listening to manage favorites and recent listening. Export station and song favorites as JSON. Import validates and merges files up to 2MiB without replacing existing favorites. Recent listening holds at most 100 successfully played stations.',
+        helpKeysTitle: 'Keyboard controls',
+        helpKeysHint:
+          'Global shortcuts are inactive in dialogs, form fields, and input composition. Phones have corresponding touch controls.',
+        keyPlay: 'Play or pause',
+        keyStations: 'Previous or next station',
+        keyView: 'Switch globe and genres',
+        keySearch: 'Search',
+        keyFavorite: 'Favorite the current station',
+        keyPin: 'Pin or unpin',
+        keyMute: 'Mute or unmute',
+        keyEnter: 'Enter immersive listening',
+        keyEscape: 'Exit immersion or close a panel',
+        feedbackIntro:
+          'Describe the steps, expected result, actual result, and your browser and device. Do not include passwords, tokens, private audio, or credential-bearing URLs.',
+        feedbackContact:
+          'No online contact channel is configured for this site yet. Copy the note and pass it to the person who gave you this site’s address. This panel does not submit to a remote service.',
+        feedbackPreview: 'Feedback note (generated on this device only)',
+        feedbackTemplate:
+          'Steps to reproduce:\nExpected result:\nActual result:\nBrowser and device:\n\nListening state when the feedback panel opened:',
+        feedbackCopy: 'Copy feedback note',
+        feedbackCopying: 'Copying…',
+        feedbackCopied: 'Copied. Add your description and share it yourself.',
+        feedbackManual:
+          'Automatic copy is unavailable. Select the text below and copy it manually.',
+        feedbackNotice:
+          'The note contains only the time, interface language, station and stream IDs, and playback state. It includes no stream URL, full page URL, favorites, or browsing history. It is discarded when this panel closes.',
+      },
       trackDetails: 'Track and lyrics',
       trackLoading: 'Reading station metadata…',
       trackUnknown: 'No track information',

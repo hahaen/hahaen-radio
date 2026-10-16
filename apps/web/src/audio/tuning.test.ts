@@ -110,3 +110,71 @@ it('suspends a deferred resume and discards its tone after pause', async () => {
   expect(oscillator).not.toHaveBeenCalled();
   sound.destroy();
 });
+
+it('plays the next station tone after overlapping suspension completes instead of leaving the resumed graph pending', async () => {
+  const waiting: (() => void)[] = [];
+  let suspending = 0;
+  const start = vi.fn();
+  const parameter = {
+    setValueAtTime() {},
+    linearRampToValueAtTime() {},
+    exponentialRampToValueAtTime() {},
+  };
+  const context = {
+    state: 'running' as AudioContextState,
+    currentTime: 0,
+    destination: {},
+    resume: () => {
+      // A resume during the observed unfinished graph suspension can remain pending.
+      if (suspending) return new Promise<void>(() => {});
+      context.state = 'running';
+      return Promise.resolve();
+    },
+    suspend: () => {
+      suspending++;
+      return new Promise<void>((resolve) =>
+        waiting.push(() => {
+          context.state = 'suspended';
+          suspending--;
+          resolve();
+        }),
+      );
+    },
+    close: async () => {
+      context.state = 'closed';
+    },
+    createOscillator: () => ({
+      frequency: parameter,
+      connect() {},
+      disconnect() {},
+      start,
+      stop() {},
+      onended: null,
+      type: 'sine',
+    }),
+    createGain: () => ({ gain: parameter, connect() {}, disconnect() {} }),
+  };
+  vi.stubGlobal(
+    'AudioContext',
+    class {
+      constructor() {
+        return context;
+      }
+    },
+  );
+  const sound = new TuningSound();
+  try {
+    sound.activate();
+    sound.pause();
+    await Promise.resolve();
+    await Promise.resolve();
+    waiting.shift()!();
+    sound.activate();
+    sound.play(0.2, false);
+    waiting.splice(0).forEach((finish) => finish());
+    await vi.waitFor(() => expect(start).toHaveBeenCalledOnce(), { timeout: 200 });
+    expect(context.state).toBe('running');
+  } finally {
+    sound.destroy();
+  }
+});

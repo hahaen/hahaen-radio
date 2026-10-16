@@ -1,0 +1,125 @@
+.topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+.topics button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  background: transparent;
+  line-height: 1.5;
+}
+.topics button[aria-pressed='true'] {
+  border-color: var(--color-secondary);
+  color: var(--color-text);
+}
+.content {
+  padding-block: 8px 16px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+}
+.content h3 {
+  font: 400 24px / 1.5 var(--font-display);
+  margin-block: 24px;
+}
+.content h4 {
+  margin-block: 28px 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.content p {
+  margin-block: 12px;
+}
+.content .intro {
+  font: 400 28px / 1.6 var(--font-display);
+  margin-block: 24px;
+}
+.secondary {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.content a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--color-text);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+.content a:hover {
+  color: var(--color-accent);
+}
+.credits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.credits li {
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+}
+.shortcuts {
+  margin-block: 20px;
+}
+.shortcuts div {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(0, 2fr);
+  gap: 12px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+.shortcuts dd {
+  margin: 0;
+}
+.shortcuts kbd {
+  font: 14px var(--font-mono);
+}
+.preview {
+  display: block;
+  margin-block: 24px 16px;
+}
+.preview textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  padding: 16px;
+  margin-top: 12px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  font: 14px / 1.8 var(--font-mono);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+  line-height: 1.5;
+}
+.copy:disabled {
+  opacity: 0.5;
+}
+@media (width < 480px) {
+  .shortcuts div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+}
