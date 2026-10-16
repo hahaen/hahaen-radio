@@ -5,16 +5,27 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setLanguage } from '../locales/i18n';
+import { testStation } from '../testing/stations';
 import { App } from './App';
 
 beforeEach(async () => {
   await setLanguage('zh');
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function (
+    this: HTMLMediaElement,
+  ) {
+    this.dispatchEvent(new Event('playing'));
+    return Promise.resolve();
+  });
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(() => {});
 });
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
-
+const response = () =>
+  new Response(JSON.stringify({ items: [testStation(1)], total: 1, offset: 0, limit: 30 }));
 function mount(strict = false) {
   const client = new QueryClient({ defaultOptions: { queries: { gcTime: 0 } } });
   const app = (
@@ -24,17 +35,16 @@ function mount(strict = false) {
   );
   render(strict ? <StrictMode>{app}</StrictMode> : app);
 }
-
-describe('application entry', () => {
-  it('survives strict lifecycle replay and persists the user language', async () => {
+describe('radio application entry', () => {
+  it('survives strict lifecycle replay, loads stations without autoplay and preserves language', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(JSON.stringify({ status: 'ok', service: 'haen-api' }))),
+      vi.fn(async () => response()),
     );
     mount(true);
-    await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent('连接已就绪');
-    });
+    await screen.findByRole('button', { name: '收听 Test radio 1' });
+    expect(screen.getByRole('status')).toHaveTextContent('尚未播放');
+    expect(document.querySelectorAll('audio')).toHaveLength(0);
     await userEvent.click(screen.getByRole('button', { name: 'EN' }));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'A wider world. A closer listen.',
@@ -42,22 +52,48 @@ describe('application entry', () => {
     expect(document.documentElement.lang).toBe('en');
     expect(document.title).toBe('HAEN · Listen to the world.');
     expect(localStorage.getItem('haen:language:v1')).toBe('en');
+    expect(screen.getByRole('searchbox')).toHaveAttribute(
+      'placeholder',
+      'Station, country or region',
+    );
   });
-
-  it('offers an accessible retry and recovers from a failed connection', async () => {
+  it('offers an accessible retry and recovers from a failed directory request', async () => {
     vi.stubGlobal(
       'fetch',
       vi
         .fn()
         .mockRejectedValueOnce(new TypeError('Network unavailable'))
         .mockRejectedValueOnce(new TypeError('Network unavailable'))
-        .mockResolvedValueOnce(new Response(JSON.stringify({ status: 'ok', service: 'haen-api' }))),
+        .mockImplementation(async () => response()),
     );
     mount();
     const retry = await screen.findByRole('button', { name: '重试' }, { timeout: 3000 });
     await userEvent.click(retry);
-    await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent('连接已就绪');
-    });
+    await screen.findByRole('button', { name: '收听 Test radio 1' });
+  });
+  it('selects a station, displays actual media events and pauses through the player', async () => {
+    const fetcher = vi.fn(async (input: string | URL | Request) =>
+      String(input).includes('/stations?')
+        ? response()
+        : new Response(JSON.stringify(testStation(1))),
+    );
+    vi.stubGlobal('fetch', fetcher);
+    mount();
+    await userEvent.click(await screen.findByRole('button', { name: '收听 Test radio 1' }));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('正在收听'));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Test radio 1');
+    expect(document.querySelectorAll('audio')).toHaveLength(1);
+    await userEvent.click(screen.getByRole('button', { name: '暂停' }));
+    expect(screen.getByRole('status')).toHaveTextContent('已暂停');
+    await userEvent.click(screen.getByRole('button', { name: '静音' }));
+    expect(screen.getByRole('button', { name: '取消静音' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await userEvent.click(screen.getByRole('button', { name: '固定当前电台' }));
+    expect(screen.getByRole('button', { name: '取消固定' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
   });
 });

@@ -12,7 +12,9 @@ test('Chinese and English UI remain usable and preserve language', async ({ page
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('把世界，听近一点。');
-  await expect(page.getByRole('status')).toHaveText('连接已就绪');
+  await expect(page.getByRole('status')).toHaveText('尚未播放');
+  await expect(page.getByRole('searchbox', { name: '搜索电台' })).toBeVisible();
+  await expect(page.locator('audio')).toHaveCount(0);
   await page.getByRole('button', { name: 'EN', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(
     'A wider world. A closer listen.',

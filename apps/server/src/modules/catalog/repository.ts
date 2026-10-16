@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { and, desc, eq, gt, inArray, or, sql } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, notInArray, or, sql } from 'drizzle-orm';
 import {
   CatalogManifestSchema,
   StationDetailSchema,
@@ -333,6 +333,14 @@ export function createCatalogRepository(database: Database): CatalogRepository {
           );
         if (input.search) {
           const query = input.search;
+          if (query.excludeIds.length)
+            filters.push(notInArray(catalogEntries.stationId, query.excludeIds));
+          if (query.playableOnly)
+            filters.push(
+              sql`JSON_UNQUOTE(JSON_EXTRACT(${catalogEntries.payload}, '$.availability')) = 'available'`,
+              sql`JSON_LENGTH(JSON_EXTRACT(${catalogEntries.payload}, '$.streams')) > 0`,
+              sql`NOT EXISTS (SELECT 1 FROM station_overrides o WHERE o.station_id = ${catalogEntries.stationId} AND o.blocked = 1)`,
+            );
           if (query.genres) filters.push(inArray(jsonText('genre'), query.genres));
           if (query.languages)
             filters.push(

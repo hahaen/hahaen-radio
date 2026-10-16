@@ -46,6 +46,12 @@ export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
                   return false;
                 const query = input.search;
                 if (!query) return true;
+                if (query.excludeIds.includes(station.id)) return false;
+                if (
+                  query.playableOnly &&
+                  (station.availability !== 'available' || !station.streams.length)
+                )
+                  return false;
                 return (
                   fold(query.q)
                     .split(/\s+/)

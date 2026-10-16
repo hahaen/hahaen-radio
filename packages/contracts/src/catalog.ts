@@ -91,6 +91,14 @@ export const StationSearchSchema = z.object({
     .number()
     .pipe(z.union([z.literal(0), z.literal(128), z.literal(192), z.literal(320)]))
     .default(0),
+  playableOnly: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  excludeIds: commaList
+    .pipe(z.array(StationIdSchema).max(32))
+    .optional()
+    .transform((value) => value ?? []),
   offset: z.coerce.number().int().min(0).max(200000).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(30),
 });

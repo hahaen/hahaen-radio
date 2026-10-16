@@ -7,3 +7,4 @@ test-results/
 AGENTS.override.md
 .env*
 pnpm-lock.yaml
+tests/fixtures/audio/*.ts

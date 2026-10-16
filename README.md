@@ -4,7 +4,7 @@
 
 本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
 
-工程初始化与数据库目录阶段已完成，开发库已有真实目录、版本发布和查询 API。真实播放、完整探索界面和部署配置继续逐阶段完成；实际状态见[实施进度](docs/product/progress.md)。
+已完成工程初始化、真实目录管线和基础播放闭环，可搜索电台并播放 MP3/AAC/HLS。地球探索、个人收听工具、曲目与部署配置继续逐阶段推进；实际状态见[实施进度](docs/product/progress.md)。
 
 ## 文档入口
 
@@ -74,4 +74,4 @@ pnpm exec playwright install chromium firefox webkit
 pnpm test:e2e
 ```
 
-`pnpm build` 生成各包 `dist/`；后端编译入口为 `pnpm --filter @haen/server start`，任务为 `start:jobs`。前端目前仍是基础入口，真实播放器尚未实现。Docker 实测按用户要求延后到实际部署环境执行。
+`pnpm build` 生成各包 `dist/`；后端编译入口为 `pnpm --filter @haen/server start`，任务为 `start:jobs`。前端已有真实列表、搜索和播放器，完整探索界面继续推进。Docker 实测按用户要求延后到实际部署环境执行。

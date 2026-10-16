@@ -87,6 +87,9 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
     ).toBe(1);
     expect((await service.search(StationSearchSchema.parse({ q: '法国' }))).total).toBe(1);
     expect((await service.search(StationSearchSchema.parse({ genres: '' }))).total).toBe(0);
+    expect(
+      (await service.search(StationSearchSchema.parse({ excludeIds: stations[0]!.id }))).total,
+    ).toBe(0);
     expect((await service.chunk(current!, 0)).items[0]?.name).toBe('Café 数据库测试 🌊');
     await expect(
       synchronizeCatalog(repository, {
@@ -115,6 +118,13 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
     await repository.renew(replacement!);
     await repository.finish(replacement!, 'TEST_FINISHED');
     await repository.setBlocked(stations[0]!.id, true, '人工屏蔽验证');
+    expect(
+      (
+        await createCatalogService(repository).search(
+          StationSearchSchema.parse({ playableOnly: 'true' }),
+        )
+      ).total,
+    ).toBe(0);
     expect(await createCatalogService(repository).station(stations[0]!.id)).toMatchObject({
       availability: 'blocked',
       streams: [],
