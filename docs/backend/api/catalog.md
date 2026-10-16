@@ -40,4 +40,9 @@
 
 后续曲目、歌词、识曲和故障诊断接口另行实现，不将本页列出的目录接口当作完整产品接口已完成。
 
+
+## 场景精简接口
+
+新增 `GET /catalog/scene` 与 `GET /catalog/scene/:version/chunks/:index`，返回格式号 1、规则摘要与定序数组，字段及缓存一致性见[探索目录](../../frontend/rendering/exploration-data.md)。旧目录与电台接口保持兼容，无新增迁移；需要先更新 API 再更新 Web。
+
 返回[后端导航](../README.md)。

@@ -1,0 +1,342 @@
+.exploration {
+  min-width: 0;
+  position: relative;
+}
+.modeTabs {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding-block: 8px;
+}
+.modeTabs button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.modeTabs button[aria-pressed='true'] {
+  color: var(--color-text);
+  border-color: var(--color-secondary);
+  background: var(--color-selected-bg);
+}
+.globePanel {
+  position: relative;
+}
+.globeStage {
+  position: relative;
+  aspect-ratio: 1.15;
+  min-height: 260px;
+  max-height: 640px;
+}
+.globePanel[hidden] {
+  display: none;
+}
+.canvasHost {
+  position: absolute;
+  inset: 0;
+}
+.canvasHost canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  border-radius: 12px;
+}
+.reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0.65;
+  border: 1px solid var(--color-accent);
+  border-radius: 50%;
+}
+.reticle::before,
+.reticle::after {
+  content: '';
+  position: absolute;
+  background: var(--color-accent);
+}
+.reticle::before {
+  width: 1px;
+  height: 36px;
+  top: -7px;
+  left: 10px;
+}
+.reticle::after {
+  width: 36px;
+  height: 1px;
+  left: -7px;
+  top: 10px;
+}
+.mapControls {
+  position: absolute;
+  right: 8px;
+  top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mapControls button {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.mapControls button:disabled {
+  opacity: 0.35;
+}
+.mapControls button:hover:not(:disabled) {
+  border-color: var(--color-secondary);
+}
+.preview {
+  margin: 16px 12px 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  text-align: center;
+  line-height: 1.6;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.preview span:first-child {
+  color: var(--color-text);
+}
+.help {
+  margin: 8px 12px 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.fallback {
+  position: absolute;
+  inset: 0 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+.fallback img {
+  position: absolute;
+  width: 100%;
+  max-height: 80%;
+  opacity: 0.25;
+  pointer-events: none;
+}
+.fallback p,
+.fallback button {
+  position: relative;
+}
+.fallback p {
+  max-width: 32ch;
+  line-height: 1.8;
+}
+.fallback button,
+.dataState button {
+  min-height: 44px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+.dataState {
+  text-align: center;
+  line-height: 1.7;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  min-height: 36px;
+  margin-top: 12px;
+}
+.mapSource {
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  margin: 4px 0;
+}
+.genreAtlas {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px 8px;
+  padding: 28px 0;
+}
+.genreCluster {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  padding: 0 4px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 12px;
+  color: var(--color-text);
+}
+.genreCluster svg {
+  width: 100%;
+  max-width: 140px;
+  fill: var(--color-secondary);
+}
+.genreCluster small {
+  color: var(--color-text-muted);
+  line-height: 1.8;
+  margin-top: 4px;
+}
+.genreCluster:hover:not(:disabled) svg {
+  fill: var(--color-accent);
+}
+.genreCluster:disabled {
+  opacity: 0.35;
+}
+.genreNote {
+  grid-column: 1/-1;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.groupList {
+  max-width: 620px;
+  margin: 24px auto 0;
+  padding: 20px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+.groupHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 12px;
+}
+.groupHeading h3 {
+  margin: 4px 0;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  overflow-wrap: anywhere;
+}
+.groupHeading button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.groupList p {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.groupList ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.groupList li + li {
+  border-top: 1px solid var(--color-border);
+}
+.groupList li button {
+  width: 100%;
+  min-height: 48px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  padding: 12px 4px;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.groupList li button:hover,
+.groupList li button[aria-current='true'] {
+  color: var(--color-accent);
+}
+.groupList nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+}
+.groupList nav button,
+.nearbyNext {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+}
+.groupList nav button:disabled {
+  opacity: 0.35;
+}
+.nearbyNext {
+  margin-top: 16px;
+}
+@media (width<768px) {
+  .globeStage {
+    min-height: 260px;
+    aspect-ratio: 1;
+    max-height: 400px;
+  }
+  .mapControls {
+    top: 12px;
+    right: 0;
+    gap: 6px;
+  }
+  .modeTabs {
+    justify-content: start;
+  }
+  .genreAtlas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .genreCluster svg {
+    max-width: 110px;
+  }
+  .genreCluster span {
+    font-size: 14px;
+  }
+  .groupList {
+    padding: 16px;
+  }
+}
+@media (width<390px) {
+  .genreAtlas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .help {
+    font-size: 11px;
+    inset-inline: 0;
+  }
+}
+
+.groupHeading h3 {
+  scroll-margin-block: 24px calc(var(--player-height, 140px) + 24px);
+}
+
+.genreCluster span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.canvasHost canvas,
+.genreCluster {
+  scroll-margin-block: 24px calc(var(--player-height, 140px) + 24px);
+}

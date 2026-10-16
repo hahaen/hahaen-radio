@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+import { encodeSceneEntry } from '@haen/contracts';
 import type { CatalogManifest, StationDetail, StationSearch } from '@haen/contracts';
 import type { CatalogRepository } from './repository.js';
 import { CATALOG_CHUNK_SIZE, summaryOf } from './snapshot.js';
@@ -29,14 +31,18 @@ export function createCatalogService(repository: CatalogRepository) {
       });
     await pending;
   }
+  const revision = (rules: ReadonlySet<string> = blocked) =>
+    createHash('sha256')
+      .update([...rules].sort().join('\n'))
+      .digest('hex');
   async function currentVersion() {
     const version = await repository.currentVersion();
     if (!version) throw new CatalogUnavailableError();
     await refreshOverrides();
     return version;
   }
-  const apply = (station: StationDetail): StationDetail =>
-    blocked.has(station.id)
+  const apply = (station: StationDetail, rules: ReadonlySet<string> = blocked): StationDetail =>
+    rules.has(station.id)
       ? { ...station, availability: 'blocked', streams: [], homepage: null }
       : station;
   async function stationById(id: string) {
@@ -49,6 +55,24 @@ export function createCatalogService(repository: CatalogRepository) {
     });
     if (!items[0]) throw new CatalogNotFoundError();
     return apply(items[0]);
+  }
+  async function readChunk(version: string, index: number) {
+    version = version.toLowerCase();
+    if (!(await repository.hasVersion(version))) throw new CatalogNotFoundError();
+    await refreshOverrides();
+    const rules = new Set(blocked);
+    const data = await repository.query({
+      version,
+      offset: index * CATALOG_CHUNK_SIZE,
+      limit: CATALOG_CHUNK_SIZE,
+    });
+    if (!data.items.length) throw new CatalogNotFoundError();
+    return {
+      version,
+      index,
+      restrictionsRevision: revision(rules),
+      items: data.items.map((station) => summaryOf(apply(station, rules))),
+    };
   }
   return {
     async readiness() {
@@ -69,17 +93,32 @@ export function createCatalogService(repository: CatalogRepository) {
       if (!manifest) throw new CatalogUnavailableError();
       return manifest;
     },
-    async chunk(version: string, index: number) {
-      version = version.toLowerCase();
-      if (!(await repository.hasVersion(version))) throw new CatalogNotFoundError();
+    async sceneManifest() {
+      const manifest = await this.manifest();
       await refreshOverrides();
-      const data = await repository.query({
+      return { ...manifest, format: 1 as const, restrictionsRevision: revision() };
+    },
+    async sceneChunk(version: string, index: number) {
+      version = version.toLowerCase();
+      await refreshOverrides();
+      const rules = new Set(blocked);
+      const items = await repository.sceneChunk(version, index);
+      if (!items.length) throw new CatalogNotFoundError();
+      return {
+        format: 1 as const,
         version,
-        offset: index * CATALOG_CHUNK_SIZE,
-        limit: CATALOG_CHUNK_SIZE,
-      });
-      if (!data.items.length) throw new CatalogNotFoundError();
-      return { version, index, items: data.items.map((station) => summaryOf(apply(station))) };
+        index,
+        restrictionsRevision: revision(rules),
+        entries: items.map((station) =>
+          encodeSceneEntry(
+            rules.has(station.id) ? { ...station, availability: 'blocked' } : station,
+          ),
+        ),
+      };
+    },
+    async chunk(version: string, index: number) {
+      const chunk = await readChunk(version, index);
+      return { version: chunk.version, index: chunk.index, items: chunk.items };
     },
     async search(query: StationSearch) {
       const version = await currentVersion();

@@ -4,6 +4,8 @@
 
 已提供 `generate-audio-fixtures.mjs` 生成自制测试音，以及 `prepare-land.mjs` 从固定摘要的 Natural Earth 输入生成本地大陆资源。后者步骤见[离线地理](../docs/data/offline-geography.md)。
 
+已提供 `prepare-fonts.mjs` 生成三种本地字体子集、许可、摘要与 CSS，手动执行 `node scripts/prepare-fonts.mjs`，具体前提见[字体说明](../docs/frontend/design/fonts.md)。常规构建不联网生成字体。
+
 按实际任务加入开发辅助、数据检查、备份和发布辅助脚本。脚本应具有明确输入、失败退出状态与环境边界，不内嵌凭据或默认访问生产数据。
 
 只有脚本实现并验证后，才在文档和流水线中声明对应命令可用。

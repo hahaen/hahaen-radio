@@ -15,11 +15,18 @@ import {
   X,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { StationSummary } from '@haen/contracts';
+import type { StationPreview } from '@haen/contracts';
 import { setLanguage } from '../locales/i18n';
 import { createPlayerController, type PlayerState } from '../audio/controller';
 import { randomStation, searchStations } from '../services/catalog';
+import { loadSceneCatalog } from '../catalog/load';
+import { createStationCollection, pickStation } from '../catalog/collection';
+import { Exploration } from '../graphics/Exploration';
+import { explorationAutoplay } from '../graphics/model';
+import { StationFacts } from './StationFacts';
 import styles from './App.module.css';
+
+const EMPTY_STATIONS: StationPreview[] = [];
 
 function usePlayback() {
   const [controller] = useState(() => createPlayerController());
@@ -75,10 +82,33 @@ export function App() {
   const [search, setSearch] = useState('');
   const [offset, setOffset] = useState(0);
   const filters = useMemo(() => ({ q: search }), [search]);
+  const [progress, setProgress] = useState({ loaded: 0, total: 0 });
+  const scene = useQuery({
+    queryKey: ['scene-catalog'],
+    queryFn: ({ signal }) =>
+      loadSceneCatalog(signal, (loaded, total) => setProgress({ loaded, total })),
+    retry: 0,
+    staleTime: 60000,
+    refetchInterval: 300000,
+  });
+  const collection = useMemo(
+    () => (scene.data ? createStationCollection(scene.data.stations) : undefined),
+    [scene.data],
+  );
+  const candidates = useMemo(() => collection?.filter(filters), [collection, filters]);
+  const candidatesRef = useRef<StationPreview[] | undefined>(undefined);
+  useEffect(() => {
+    candidatesRef.current = candidates;
+  }, [candidates]);
+
   const pageRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    player.setExplorer((signal, exclude) => randomStation(filters, signal, exclude));
+    player.setExplorer(async (signal, exclude) =>
+      candidatesRef.current
+        ? pickStation(candidatesRef.current, exclude)
+        : await randomStation(filters, signal, exclude),
+    );
   }, [player, filters]);
   useEffect(() => {
     const page = pageRef.current;
@@ -97,17 +127,37 @@ export function App() {
       page.style.removeProperty('--player-height');
     };
   }, []);
-  const stations = useQuery({
+  const remoteStations = useQuery({
     queryKey: ['stations', search, offset],
+    enabled: candidates === undefined,
     queryFn: ({ signal }) => searchStations(filters, offset, 30, signal),
     retry: 1,
     staleTime: 30000,
   });
+  const stations = {
+    data: candidates
+      ? {
+          items: candidates.slice(offset, offset + 30),
+          total: candidates.length,
+          offset,
+          limit: 30,
+        }
+      : remoteStations.data,
+    isPending: candidates === undefined && remoteStations.isPending,
+    isError: candidates === undefined && remoteStations.isError,
+    isFetching: candidates === undefined && remoteStations.isFetching,
+    refetch: remoteStations.refetch,
+  };
+  const outsideFilter = !!(
+    state.station &&
+    candidates &&
+    !candidates.some((station) => station.id === state.station!.id)
+  );
   const countryNames = useMemo(
     () => new Intl.DisplayNames([i18n.language === 'en' ? 'en' : 'zh-CN'], { type: 'region' }),
     [i18n.language],
   );
-  const location = (station: StationSummary) =>
+  const location = (station: StationPreview) =>
     [
       station.city ??
         (station.nearbyCity ? t('nearby', { city: station.nearbyCity }) : station.region),
@@ -127,6 +177,7 @@ export function App() {
     else player.play();
   };
   const reset = () => {
+    player.invalidateSelection();
     setDraft('');
     setSearch('');
     setOffset(0);
@@ -139,9 +190,16 @@ export function App() {
         {t('skip')}
       </a>
       <header className={styles.header}>
-        <a className={styles.brand} href="/" aria-label="声屿 HAEN">
+        <a className={styles.brand} href="#main" aria-label="声屿 HAEN">
           {t('brand')} <span>HAEN</span>
         </a>
+        <button
+          className={styles.findStation}
+          onClick={() => document.getElementById('station-search')?.focus()}
+        >
+          <Search size={18} aria-hidden="true" />
+          {t('findStation')}
+        </button>
         <div className={styles.languages} role="group" aria-label={t('language')}>
           <button
             lang="zh-CN"
@@ -180,6 +238,7 @@ export function App() {
                     : t('unknownBitrate')}
                 </span>
               </p>
+              <StationFacts station={state.station} detail={state.detail} />
             </>
           ) : (
             <p className={styles.description}>{t('chooseStation')}</p>
@@ -200,19 +259,53 @@ export function App() {
             </p>
           )}
           {state.pinned && <p className={styles.note}>{t('pinHint')}</p>}
+          {outsideFilter && <p className={styles.note}>{t('outsideFilter')}</p>}
           {failed && (
             <button className={styles.textButton} onClick={() => player.retry()}>
               {t('retry')}
             </button>
           )}
         </section>
+        <div className={styles.scene}>
+          <Exploration
+            stations={candidates ?? EMPTY_STATIONS}
+            station={state.station}
+            pinned={state.pinned}
+            selectionVersion={state.selectionVersion}
+            loading={scene.isPending}
+            error={scene.isError && !scene.data}
+            stale={scene.data?.stale ?? false}
+            progress={progress}
+            onRetry={() => {
+              void scene.refetch();
+            }}
+            onSelect={(station, reason, expected) => {
+              const current = player.store.getState();
+              const autoplay = explorationAutoplay(
+                reason,
+                {
+                  stationId: current.station?.id ?? null,
+                  selectionVersion: current.selectionVersion,
+                  intent: current.intent,
+                  pinned: current.pinned,
+                  resolving: current.resolving,
+                },
+                expected,
+              );
+              if (autoplay !== null) void player.select(station, autoplay);
+            }}
+          />
+        </div>
         <section className={styles.directory} aria-labelledby="directory-title">
-          <h2 id="directory-title">{t('explore')}</h2>
+          <h2 id="directory-title" tabIndex={-1}>
+            {t('explore')}
+          </h2>
           <form
             className={styles.search}
             role="search"
             onSubmit={(event) => {
               event.preventDefault();
+              player.invalidateSelection();
               setSearch(draft.trim());
               setOffset(0);
             }}
@@ -220,6 +313,7 @@ export function App() {
             <Search aria-hidden="true" size={20} />
             <input
               type="search"
+              id="station-search"
               aria-label={t('search')}
               placeholder={t('searchPlaceholder')}
               value={draft}
@@ -250,18 +344,23 @@ export function App() {
                   {t('retry')}
                 </button>
               </>
-            ) : (
+            ) : stations.data ? (
               t('directoryCount', { count: stations.data.total })
+            ) : (
+              t('directoryLoading')
             )}
           </div>
-          {!stations.isPending && !stations.isError && stations.data.items.length === 0 && (
-            <div className={styles.empty}>
-              <p>{t('noResults')}</p>
-              <button className={styles.textButton} onClick={reset}>
-                {t('resetSearch')}
-              </button>
-            </div>
-          )}
+          {!stations.isPending &&
+            !stations.isError &&
+            stations.data &&
+            stations.data.items.length === 0 && (
+              <div className={styles.empty}>
+                <p>{t('noResults')}</p>
+                <button className={styles.textButton} onClick={reset}>
+                  {t('resetSearch')}
+                </button>
+              </div>
+            )}
           <ul
             className={styles.stationList}
             aria-label={t('stationList')}

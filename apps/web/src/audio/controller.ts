@@ -1,11 +1,12 @@
 import { createStore } from 'zustand/vanilla';
-import type { StationDetail, StationSummary } from '@haen/contracts';
+import type { StationDetail, StationPreview } from '@haen/contracts';
 import { AudioEngine, type PlaybackSnapshot } from './engine';
 import { getStation } from '../services/catalog';
 import { HttpError } from '../services/http';
 
 export interface PlayerState {
-  station: StationSummary | null;
+  selectionVersion: number;
+  station: StationPreview | null;
   detail: StationDetail | null;
   playback: PlaybackSnapshot;
   resolving: boolean;
@@ -18,7 +19,7 @@ export interface PlayerState {
 type Explorer = (
   signal: AbortSignal,
   excludeIds: readonly string[],
-) => Promise<StationSummary | null>;
+) => Promise<StationPreview | null>;
 export function createPlayerController(
   options: {
     createEngine?: () => AudioEngine;
@@ -36,6 +37,7 @@ export function createPlayerController(
     volumeControllable: true,
   };
   const store = createStore<PlayerState>(() => ({
+    selectionVersion: 0,
     station: null,
     detail: null,
     playback: emptyPlayback,
@@ -56,11 +58,14 @@ export function createPlayerController(
   let exploring = false;
   let automaticExploration = false;
   const failedStations = new Set<string>();
-  const visits: StationSummary[] = [];
+  const visits: StationPreview[] = [];
   let cursor = -1;
   const canGoBack = (id = store.getState().station?.id) =>
     cursor >= 0 && (visits[cursor]?.id !== id || cursor > 0);
+  const invalidateSelection = () =>
+    store.setState((state) => ({ selectionVersion: state.selectionVersion + 1 }));
   const cancel = () => {
+    invalidateSelection();
     token++;
     request?.abort();
     request = undefined;
@@ -108,7 +113,7 @@ export function createPlayerController(
       });
     }
   };
-  async function select(station: StationSummary, autoplay = true, automatic = false) {
+  async function select(station: StationPreview, autoplay = true, automatic = false) {
     if (!engine) return;
     cancel();
     if (!automatic) failedStations.clear();
@@ -220,12 +225,14 @@ export function createPlayerController(
     },
     setExplorer(value: Explorer) {
       explorer = value;
+      invalidateSelection();
       if (exploring) {
         cancel();
         store.setState({ resolving: false });
       }
     },
     select,
+    invalidateSelection,
     next: () => explore(wantsPlayback || !store.getState().station),
     start: () => explore(true),
     previous() {
@@ -237,6 +244,7 @@ export function createPlayerController(
       void select(station, wantsPlayback);
     },
     play() {
+      invalidateSelection();
       if (!networkOnline) {
         store.setState({ requestFailure: 'offline' });
         return;
@@ -250,6 +258,7 @@ export function createPlayerController(
       else engine?.play();
     },
     pause() {
+      invalidateSelection();
       wantsPlayback = false;
       store.setState({ intent: false });
       engine?.pause();
@@ -260,6 +269,7 @@ export function createPlayerController(
       else void explore(true);
     },
     setPinned(pinned: boolean) {
+      invalidateSelection();
       store.setState({ pinned });
       if (pinned && automaticExploration) {
         cancel();

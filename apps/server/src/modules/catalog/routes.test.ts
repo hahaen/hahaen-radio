@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { StationSearchSchema } from '@haen/contracts';
+import { SceneChunkSchema, SceneManifestSchema, StationSearchSchema } from '@haen/contracts';
 import { buildApp } from '../../app.js';
 import { readEnvironment } from '../../config/environment.js';
 import { normalizeStation } from './normalize.js';
@@ -42,6 +42,16 @@ describe('catalogue API contracts with an in-memory test repository', () => {
       expect(manifest.json()).toMatchObject({ stationCount: 2, playableCount: 2 });
       const chunk = await app.inject(`/api/v1/catalog/${snapshot.manifest.version}/chunks/0`);
       expect(chunk.json().items[0].streams).toBeUndefined();
+      const sceneManifest = SceneManifestSchema.parse(
+        (await app.inject('/api/v1/catalog/scene')).json(),
+      );
+      const scene = SceneChunkSchema.parse(
+        (await app.inject(`/api/v1/catalog/scene/${sceneManifest.version}/chunks/0`)).json(),
+      );
+      expect(scene.entries).toHaveLength(2);
+      expect(scene.restrictionsRevision).toBe(sceneManifest.restrictionsRevision);
+      expect(scene.entries[0]).toHaveLength(13);
+      expect(JSON.stringify(scene)).not.toContain('https://radio.example/');
       const search = await app.inject(
         '/api/v1/stations?q=cafe&genres=jazz,news&languages=fr&minBitrate=192',
       );
@@ -63,6 +73,35 @@ describe('catalogue API contracts with an in-memory test repository', () => {
     } finally {
       await app.close();
     }
+  });
+  it('keeps each compact chunk tied to the exact restrictions used to build its entries', async () => {
+    vi.useFakeTimers();
+    const repository = testRepository(snapshot);
+    vi.mocked(repository.overrides).mockResolvedValue(new Set([first.id]));
+    const service = createCatalogService(repository);
+    const initial = await service.sceneManifest();
+    let ready: () => void = () => {},
+      finish: () => void = () => {};
+    const waiting = new Promise<void>((resolve) => {
+      ready = resolve;
+    });
+    vi.mocked(repository.sceneChunk).mockImplementation(async () => {
+      ready();
+      await new Promise<void>((resolve) => {
+        finish = resolve;
+      });
+      return [first, second];
+    });
+    const loading = service.sceneChunk(snapshot.manifest.version, 0);
+    await waiting;
+    vi.mocked(repository.overrides).mockResolvedValue(new Set());
+    await vi.advanceTimersByTimeAsync(5001);
+    const updated = await service.sceneManifest();
+    finish();
+    const chunk = await loading;
+    expect(chunk.restrictionsRevision).toBe(initial.restrictionsRevision);
+    expect(chunk.entries[0]?.[12]).toBe('blocked');
+    expect(updated.restrictionsRevision).not.toBe(initial.restrictionsRevision);
   });
   it('returns truthful not-ready states and does not expose a fake catalogue', async () => {
     const app = buildApp(readEnvironment({}), false);

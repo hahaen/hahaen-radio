@@ -31,6 +31,11 @@ export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
     read: vi.fn(async (version: string) =>
       snapshot?.manifest.version === version ? snapshot : null,
     ),
+    sceneChunk: vi.fn(async (version, index) =>
+      snapshot && snapshot.manifest.version === version
+        ? snapshot.entries.slice(index * 1000, (index + 1) * 1000).map(({ station }) => station)
+        : [],
+    ),
     hasVersion: vi.fn(async (version: string) => snapshot?.manifest.version === version),
     query: vi.fn(async (input) => {
       const fold = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();

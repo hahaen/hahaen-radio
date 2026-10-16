@@ -1,0 +1,35 @@
+[
+  {
+    "family": "Noto Serif SC",
+    "file": "noto-serif-sc-ui.woff2",
+    "weight": "400",
+    "glyphs": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°·—…−、。一上下不与世个中主乐也乡于些仍他件会位作你使供保信候停入全关其典内再冲准减击分列到刻前加动化区双取受变古可台合同名后向听哈响嗯嘻器回固国图在地坐城基增士声处备复大失始子存宗定家容小尚尝就展屿已开式当录影态性恢息或手找把拖择指按换探接提搜摇播操收放教数料断新方旋无时显景暂有未机村条查标样次正此民没法派流浏消清源滚点爵片状率球用由电界留的目看知码示离移稍站第筛簇索线络继绪续综缓缩网能自节获行表要视览言设词试话语请读调谈谣败资超路跳转轮载过近这连选通部重量键闭间闻附除随需静靠面音页",
+    "bytes": 58872,
+    "sha256": "69bd8e64752338bfe098b54a6b4d4f1324a91a118c25957b09cf068406794756",
+    "license": "SIL Open Font License 1.1",
+    "licenseUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/notoserifsc/OFL.txt",
+    "source": "https://fonts.googleapis.com/css2"
+  },
+  {
+    "family": "Noto Sans SC",
+    "file": "noto-sans-sc-ui.woff2",
+    "weight": "300 600",
+    "glyphs": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°·—…−、。一上下不与世个中主乐也乡于些仍他件会位作你使供保信候停入全关其典内再冲准减击分列到刻前加动化区双取受变古可台合同名后向听哈响嗯嘻器回固国图在地坐城基增士声处备复大失始子存宗定家容小尚尝就展屿已开式当录影态性恢息或手找把拖择指按换探接提搜摇播操收放教数料断新方旋无时显景暂有未机村条查标样次正此民没法派流浏消清源滚点爵片状率球用由电界留的目看知码示离移稍站第筛簇索线络继绪续综缓缩网能自节获行表要视览言设词试话语请读调谈谣败资超路跳转轮载过近这连选通部重量键闭间闻附除随需静靠面音页",
+    "bytes": 86812,
+    "sha256": "0fdb0209218f04a88a53cb8d133064930c94af5b8bcdf054c4b94e85dd502b6a",
+    "license": "SIL Open Font License 1.1",
+    "licenseUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/notosanssc/OFL.txt",
+    "source": "https://fonts.googleapis.com/css2"
+  },
+  {
+    "family": "IBM Plex Mono",
+    "file": "ibm-plex-mono-ui.woff2",
+    "weight": "400",
+    "glyphs": " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~°−",
+    "bytes": 5884,
+    "sha256": "808a75407e8c2da9972f93428e7a7dfc3583098f9d38f38156ad50b2f0505ae2",
+    "license": "SIL Open Font License 1.1",
+    "licenseUrl": "https://raw.githubusercontent.com/google/fonts/main/ofl/ibmplexmono/OFL.txt",
+    "source": "https://fonts.googleapis.com/css2"
+  }
+]

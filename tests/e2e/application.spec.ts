@@ -9,6 +9,12 @@ test('same-origin API is served with its documented prefix', async ({ request })
   expect((await missing.json()).code).toBe('NOT_FOUND');
 });
 test('Chinese and English UI remain usable and preserve language', async ({ page }) => {
+  await page.route('**/api/v1/catalog/scene**', (route) =>
+    route.fulfill({
+      status: 503,
+      json: { code: 'SERVICE_UNAVAILABLE', message: 'List fallback fixture', requestId: 'fixture' },
+    }),
+  );
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('把世界，听近一点。');

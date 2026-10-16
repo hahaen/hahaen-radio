@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { eq, sql } from 'drizzle-orm';
-import { StationSearchSchema } from '@haen/contracts';
+import { encodeSceneEntry, StationSearchSchema } from '@haen/contracts';
 import { readDatabaseConfig } from '../config/database.js';
 import { createCatalogRepository } from '../modules/catalog/repository.js';
 import { createCatalogService } from '../modules/catalog/service.js';
@@ -92,6 +92,11 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
       (await service.search(StationSearchSchema.parse({ excludeIds: stations[0]!.id }))).total,
     ).toBe(0);
     expect((await service.chunk(current!, 0)).items[0]?.name).toBe('Café 数据库测试 🌊');
+    expect((await service.sceneChunk(current!, 0)).entries).toEqual(stations.map(encodeSceneEntry));
+    await expect(repository.sceneChunk('00000000-0000-4000-8000-000000000099', 0)).resolves.toEqual(
+      [],
+    );
+    await expect(repository.sceneChunk(current!, 1)).resolves.toEqual([]);
     await expect(
       synchronizeCatalog(repository, {
         load: async () => {
@@ -105,6 +110,7 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
     expect(await repository.acquire()).toBeNull();
     const unfinished = prepareSnapshot(stations, []);
     await repository.stage(token!, unfinished, 1);
+    expect(await repository.sceneChunk(unfinished.manifest.version, 0)).toEqual([]);
     expect(await repository.currentVersion()).toBe(current);
     await database.run(async (session) => {
       await session

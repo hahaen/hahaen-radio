@@ -5,6 +5,8 @@ import {
   ApiErrorSchema,
   CatalogChunkSchema,
   CatalogManifestSchema,
+  SceneManifestSchema,
+  SceneChunkSchema,
   ReadinessSchema,
   StationDetailSchema,
   StationIdSchema,
@@ -46,6 +48,24 @@ export function registerCatalogRoutes(app: FastifyInstance, service?: CatalogSer
     '/api/v1/catalog',
     { schema: { tags: ['catalog'], response: { 200: CatalogManifestSchema, ...errors } } },
     () => available().manifest(),
+  );
+  routes.get(
+    '/api/v1/catalog/scene',
+    {
+      schema: { tags: ['catalog'], response: { 200: SceneManifestSchema, ...errors } },
+    },
+    () => available().sceneManifest(),
+  );
+  routes.get(
+    '/api/v1/catalog/scene/:version/chunks/:index',
+    {
+      schema: {
+        tags: ['catalog'],
+        params: z.object({ version: z.uuid(), index: z.coerce.number().int().min(0).max(199) }),
+        response: { 200: SceneChunkSchema, ...errors },
+      },
+    },
+    (request) => available().sceneChunk(request.params.version, request.params.index),
   );
   routes.get(
     '/api/v1/catalog/:version/chunks/:index',

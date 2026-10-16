@@ -68,3 +68,7 @@ pnpm 配置集中在 `pnpm-workspace.yaml`，启用严格引擎与 Peer 检查�
 ## 播放器依赖
 
 阶段 3 固定 hls.js 1.7.3、Zustand 5.0.15 和 lucide-react 1.57.0，使用已发布超过冷却期的正式版本。HLS 在原生支持时不加载 JavaScript 实现，其他浏览器按需动态加载；测试媒体已随仓库提供，不把 FFmpeg 二进制作为产品依赖。
+
+## 探索界面依赖
+
+阶段 4 固定 three 0.186.1、@types/three 0.186.0 和 idb 8.0.4。Three.js 仅在图形场景初始化时加载，HLS 保持独立按需加载；较大的图形与 HLS 分块仍有 Vite 500kB 原始大小提示，保留提示并继续在性能阶段测量。字体随静态资源本地分发，日常安装与构建不下载字体；更新步骤见[字体说明](../frontend/design/fonts.md)。

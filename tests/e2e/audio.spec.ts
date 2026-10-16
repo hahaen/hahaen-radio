@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
-import { testStation } from '../../apps/web/src/testing/stations.js';
+import { testStation, testScene } from '../../apps/web/src/testing/stations.js';
 type StationDetail = ReturnType<typeof testStation>;
 
 const origin = 'https://media.haen.test/';
@@ -24,8 +24,27 @@ async function install(
   stations: StationDetail[],
   delayedId?: string,
   delayedMedia?: string,
+  scene = false,
 ) {
   const requests: string[] = [];
+  await page.route('**/api/v1/catalog/scene**', async (route) => {
+    requests.push(route.request().url().endsWith('/scene') ? 'scene-manifest' : 'scene-chunk');
+    const data = testScene(stations);
+    await route
+      .fulfill(
+        scene
+          ? { json: route.request().url().endsWith('/scene') ? data.manifest : data.chunk }
+          : {
+              status: 503,
+              json: {
+                code: 'SERVICE_UNAVAILABLE',
+                message: 'Scene intentionally disabled for list fallback fixture',
+                requestId: 'fixture',
+              },
+            },
+      )
+      .catch(() => {});
+  });
   await page.route('**/api/v1/stations**', async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname === '/api/v1/stations') {
@@ -192,4 +211,275 @@ test('continues explicit playback when switching from playing audio to a slow st
   expect(
     await page.locator('audio').evaluate((element) => (element as HTMLAudioElement).currentSrc),
   ).toContain('tone.aac');
+});
+
+test('keeps actual audio playing across globe and genre views', async ({ page }) => {
+  const station = {
+    ...fixture(1, 'mp3'),
+    latitude: 25,
+    longitude: 80,
+    locationPrecision: 'coordinates' as const,
+  };
+  await install(page, [station], undefined, undefined, true);
+  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await expectPlaying(page);
+  await page.getByRole('button', { name: '流派', exact: true }).click();
+  await expectPlaying(page);
+  await expect(page.getByRole('button', { name: /爵士.*1 台/ })).toBeVisible();
+  await page.getByRole('button', { name: '地球', exact: true }).click();
+  await expectPlaying(page);
+});
+test('reuses the complete scene index from IndexedDB after reload', async ({ page }) => {
+  const station = {
+    ...fixture(1, 'mp3'),
+    latitude: 25,
+    longitude: 80,
+    locationPrecision: 'coordinates' as const,
+  };
+  const requests = await install(page, [station], undefined, undefined, true);
+  await expect(page.getByText('1 / 1 个候选电台有坐标', { exact: true })).toBeVisible();
+  const chunks = requests.filter((value) => value === 'scene-chunk').length;
+  expect(chunks).toBeGreaterThan(0);
+  await page.reload();
+  await expect(page.getByText('1 / 1 个候选电台有坐标', { exact: true })).toBeVisible();
+  expect(requests.filter((value) => value === 'scene-chunk')).toHaveLength(chunks);
+});
+test('retains list playback when WebGL initialization is unavailable', async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = HTMLCanvasElement.prototype.getContext;
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      value: function (this: HTMLCanvasElement, kind: string, ...args: unknown[]) {
+        return kind.startsWith('webgl') ? null : Reflect.apply(original, this, [kind, ...args]);
+      },
+    });
+  });
+  const station = fixture(1, 'mp3');
+  await install(page, [station], undefined, undefined, true);
+  await expect(
+    page.getByText('此设备暂时无法显示地球，仍可通过列表收听。', { exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await expectPlaying(page);
+});
+test('pins automatic selection and preserves paused intent after a globe dwell', async ({
+  page,
+}) => {
+  const first = {
+    ...fixture(1, 'mp3'),
+    name: '测试音源 初始位置',
+    latitude: 25,
+    longitude: 80,
+    locationPrecision: 'coordinates' as const,
+  };
+  const second = {
+    ...fixture(2, 'aac'),
+    name: '测试音源 稳定位置',
+    latitude: 25,
+    longitude: 60,
+    locationPrecision: 'coordinates' as const,
+  };
+  await install(page, [first, second], undefined, undefined, true);
+  const panel = page.getByTestId('globe-panel');
+  await expect(panel).toHaveAttribute('data-state', /ready|unavailable/, { timeout: 15000 });
+  const supported = await page.evaluate(() => {
+    const probe = document.createElement('canvas'),
+      gl = probe.getContext('webgl2');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    return !!gl;
+  });
+  test.skip(
+    !supported,
+    'The browser has no native WebGL 2 context; list fallback is tested separately.',
+  );
+  await expect(panel).toHaveAttribute('data-state', 'ready');
+  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await expectPlaying(page);
+  const canvas = panel.locator('canvas');
+  const focus = async () => {
+    await canvas.scrollIntoViewIfNeeded();
+    await page.getByRole('button', { name: '定位当前电台', exact: true }).click();
+    await page.waitForTimeout(700);
+  };
+  const drag = async () => {
+    const bounds = await canvas.boundingBox();
+    expect(bounds).not.toBeNull();
+    const b = bounds!;
+    await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width / 2 + b.height / 18, b.y + b.height / 2, { steps: 8 });
+    await page.mouse.up();
+  };
+  await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
+  await focus();
+  await drag();
+  await page.waitForTimeout(2500);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(first.name);
+  await page.getByRole('button', { name: '取消固定', exact: true }).click();
+  await focus();
+  await page.getByRole('button', { name: '暂停', exact: true }).click();
+  await drag();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name, { timeout: 7000 });
+  await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
+  await expect(page.locator('audio')).toHaveCount(0);
+});
+
+test('restores a lost globe context without restarting current audio', async ({ page }) => {
+  const station = {
+    ...fixture(1, 'mp3'),
+    latitude: 25,
+    longitude: 80,
+    locationPrecision: 'coordinates' as const,
+  };
+  await install(page, [station], undefined, undefined, true);
+  const panel = page.getByTestId('globe-panel');
+  await expect(panel).toHaveAttribute('data-state', /ready|unavailable/, { timeout: 15000 });
+  const supported = await page.evaluate(() => {
+    const probe = document.createElement('canvas'),
+      gl = probe.getContext('webgl2');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    return !!gl;
+  });
+  test.skip(
+    !supported,
+    'The browser has no native WebGL 2 context; list fallback is tested separately.',
+  );
+  await expect(panel).toHaveAttribute('data-state', 'ready');
+  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await expectPlaying(page);
+  const lost = await panel.locator('canvas').evaluate((canvas) => {
+    const gl = (canvas as HTMLCanvasElement).getContext('webgl2'),
+      extension = gl?.getExtension('WEBGL_lose_context');
+    if (!extension) return false;
+    Reflect.set(canvas, Symbol.for('haen:test:context-loss'), extension);
+    extension.loseContext();
+    return true;
+  });
+  test.skip(!lost, 'The native context does not expose the optional loss simulation extension.');
+  await expect(panel).toHaveAttribute('data-state', 'lost');
+  await panel.locator('canvas').evaluate((canvas) => canvas.focus());
+  await expect(panel.locator('canvas')).not.toBeFocused();
+  await expectPlaying(page);
+  await panel.locator('canvas').evaluate((canvas) => {
+    const extension = Reflect.get(canvas, Symbol.for('haen:test:context-loss')) as
+      WEBGL_lose_context | undefined;
+    extension?.restoreContext();
+    Reflect.deleteProperty(canvas, Symbol.for('haen:test:context-loss'));
+  });
+  await expect(panel).toHaveAttribute('data-state', 'ready', { timeout: 10000 });
+  await panel.locator('canvas').focus();
+  await expect(panel.locator('canvas')).toBeFocused();
+  await expectPlaying(page);
+  await expect(panel.locator('canvas')).toHaveCount(1);
+});
+
+test('expands a known-city cluster and cycles its actual stations', async ({ page }) => {
+  const first = {
+    ...fixture(1, 'mp3'),
+    name: '测试同城 甲',
+    city: '测试城市',
+    latitude: 25,
+    longitude: 80,
+    locationPrecision: 'coordinates' as const,
+  };
+  const second = {
+    ...fixture(2, 'aac'),
+    name: '测试同城 乙',
+    city: '测试城市',
+    latitude: 25.001,
+    longitude: 80.001,
+    locationPrecision: 'coordinates' as const,
+  };
+  await install(page, [first, second], undefined, undefined, true);
+  const panel = page.getByTestId('globe-panel');
+  await expect(panel).toHaveAttribute('data-state', /ready|unavailable/, { timeout: 15000 });
+  const supported = await page.evaluate(() => {
+    const probe = document.createElement('canvas'),
+      gl = probe.getContext('webgl2');
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    return !!gl;
+  });
+  test.skip(!supported, 'No native WebGL 2 context. List fallback is tested separately.');
+  await expect(panel).toHaveAttribute('data-state', 'ready');
+  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await expectPlaying(page);
+  const canvas = panel.locator('canvas');
+  await canvas.scrollIntoViewIfNeeded();
+  await page.getByRole('button', { name: '定位当前电台', exact: true }).click();
+  await page.waitForTimeout(700);
+  const bounds = await canvas.boundingBox();
+  expect(bounds).not.toBeNull();
+  await canvas.click({ position: { x: bounds!.width / 2, y: bounds!.height / 2 } });
+  const list = page.getByRole('region', { name: '测试城市', exact: true });
+  await expect(list).toBeVisible();
+  await list.getByRole('button', { name: '同城下一站', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
+  await expectPlaying(page);
+  await list.getByRole('button', { name: '关闭地点列表', exact: true }).click();
+  await expect(list).toHaveCount(0);
+  await expect(canvas).toBeFocused();
+});
+test('rotates with a touch and zooms with a two-finger pinch on the mobile viewport', async ({
+  page,
+  browserName,
+  isMobile,
+}) => {
+  test.skip(
+    browserName !== 'chromium' || !isMobile,
+    'Trusted touch synthesis is specific to the mobile Chromium project.',
+  );
+  const station = {
+    ...fixture(1, 'mp3'),
+    latitude: 25,
+    longitude: 80,
+    locationPrecision: 'coordinates' as const,
+  };
+  await install(page, [station], undefined, undefined, true);
+  const panel = page.getByTestId('globe-panel');
+  await expect(panel).toHaveAttribute('data-state', 'ready', { timeout: 15000 });
+  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await expectPlaying(page);
+  await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
+  const canvas = panel.locator('canvas');
+  await canvas.scrollIntoViewIfNeeded();
+  const bounds = await canvas.boundingBox();
+  expect(bounds).not.toBeNull();
+  const b = bounds!,
+    x = b.x + b.width / 2,
+    y = b.y + b.height / 2;
+  const session = await page.context().newCDPSession(page);
+  const before = await canvas.screenshot();
+  const scroll = await page.evaluate(() => scrollY);
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [{ x, y, id: 1 }],
+  });
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchMove',
+    touchPoints: [{ x: x + 40, y, id: 1 }],
+  });
+  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.waitForTimeout(700);
+  const rotated = await canvas.screenshot();
+  expect(rotated.equals(before)).toBe(false);
+  expect(await page.evaluate(() => scrollY)).toBe(scroll);
+  await session.send('Input.dispatchTouchEvent', {
+    type: 'touchStart',
+    touchPoints: [
+      { x: x - 40, y, id: 1 },
+      { x: x + 40, y, id: 2 },
+    ],
+  });
+  for (let step = 1; step <= 6; step++)
+    await session.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [
+        { x: x - 40 - step * 5, y, id: 1 },
+        { x: x + 40 + step * 5, y, id: 2 },
+      ],
+    });
+  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await page.waitForTimeout(700);
+  expect((await canvas.screenshot()).equals(rotated)).toBe(false);
+  await expectPlaying(page);
+  await session.detach();
 });

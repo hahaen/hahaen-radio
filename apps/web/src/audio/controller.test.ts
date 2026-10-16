@@ -34,6 +34,24 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('playback coordination', () => {
+  it('invalidates old scene choices for explicit commands but preserves them across volume changes', async () => {
+    const { controller } = harness();
+    const start = controller.store.getState().selectionVersion;
+    await controller.select(testStation(1));
+    let previous = controller.store.getState().selectionVersion;
+    expect(previous).toBeGreaterThan(start);
+    controller.setVolume(0.4);
+    expect(controller.store.getState().selectionVersion).toBe(previous);
+    for (const action of [
+      () => controller.pause(),
+      () => controller.play(),
+      () => controller.setPinned(true),
+    ]) {
+      action();
+      expect(controller.store.getState().selectionVersion).toBeGreaterThan(previous);
+      previous = controller.store.getState().selectionVersion;
+    }
+  });
   it('ignores a cancelled station response after another selection wins', async () => {
     let finish: (value: StationDetail) => void = () => {};
     const { controller } = harness(async (id) =>

@@ -2,6 +2,9 @@ import { randomUUID } from 'node:crypto';
 import { and, desc, eq, gt, inArray, notInArray, or, sql } from 'drizzle-orm';
 import {
   CatalogManifestSchema,
+  SceneEntrySchema,
+  decodeSceneEntry,
+  type StationPreview,
   StationDetailSchema,
   type CatalogManifest,
   type StationDetail,
@@ -63,6 +66,7 @@ export interface CatalogRepository {
   currentVersion(): Promise<string | null>;
   manifest(): Promise<CatalogManifest | null>;
   hasVersion(version: string): Promise<boolean>;
+  sceneChunk(version: string, index: number): Promise<StationPreview[]>;
   query(input: CatalogQuery): Promise<{ items: StationDetail[]; total: number }>;
   read(version: string): Promise<CatalogSnapshot | null>;
   overrides(): Promise<Set<string>>;
@@ -334,6 +338,38 @@ export function createCatalogRepository(database: Database): CatalogRepository {
               .limit(1)
           ).length === 1,
       ),
+    sceneChunk: (version, index) =>
+      database.run(async (session) => {
+        const fields = [
+          'id',
+          'name',
+          'countryCode',
+          'region',
+          'city',
+          'nearbyCity',
+          'latitude',
+          'longitude',
+          'locationPrecision',
+          'genre',
+          'languages',
+          'bitrate',
+          'availability',
+        ];
+        const values = fields.map(
+          (field) => sql`JSON_EXTRACT(${catalogEntries.payload}, ${`$.${field}`})`,
+        );
+        const rows = await session
+          .select({ entry: sql<unknown>`JSON_ARRAY(${sql.join(values, sql`, `)})` })
+          .from(catalogEntries)
+          .innerJoin(catalogVersions, eq(catalogEntries.versionId, catalogVersions.id))
+          .where(
+            and(eq(catalogEntries.versionId, version), eq(catalogVersions.status, 'published')),
+          )
+          .orderBy(catalogEntries.stationId)
+          .offset(index * 1000)
+          .limit(1000);
+        return rows.map((row) => decodeSceneEntry(SceneEntrySchema.parse(row.entry)));
+      }),
     query: (input) =>
       database.run(async (session) => {
         const filters = [eq(catalogEntries.versionId, input.version)];

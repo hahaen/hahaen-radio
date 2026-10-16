@@ -1,6 +1,6 @@
 # 前端应用
 
-状态：React、Vite、双语基础入口和依赖配置已建立，基础类型检查与生产构建通过；电台探索与播放业务待后续阶段完成。
+状态：已实现双语列表、搜索、真实播放、地球、流派与完整目录缓存；个人工具、曲目和完整交付继续推进。验证边界见产品验收矩阵。
 
 ## 目录职责
 
@@ -9,8 +9,9 @@
 | `src/app/` | 应用入口、路由和全局 Provider |
 | `src/components/` | 共用界面组件 |
 | `src/features/` | 后续按业务模块组织的代码 |
-| `src/engines/graphics/` | Three.js 场景、渲染与资源生命周期 |
-| `src/engines/audio/` | 音频播放、HLS 和音频处理 |
+| `src/graphics/` | 已实现的 Three.js 地球、流派、交互与资源生命周期 |
+| `src/catalog/` | 完整场景目录、IndexedDB 缓存与共享候选集合 |
+| `src/audio/` | 已实现的音频引擎、HLS 和播放协调 |
 | `src/services/` | HTTP 客户端和数据查询 |
 | `src/stores/` | Zustand 客户端共享状态 |
 | `src/workers/` | 浏览器计算任务 |

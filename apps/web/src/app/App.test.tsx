@@ -1,12 +1,29 @@
 import '@testing-library/jest-dom/vitest';
 import { StrictMode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setLanguage } from '../locales/i18n';
 import { testStation } from '../testing/stations';
 import { App } from './App';
+
+vi.mock('../graphics/GlobePanel', () => ({ GlobePanel: () => null }));
+function withoutScene(fetcher: (input: string | URL | Request) => Promise<Response>) {
+  return (input: string | URL | Request) =>
+    String(input).includes('/catalog/scene')
+      ? Promise.resolve(
+          new Response(
+            JSON.stringify({
+              code: 'SERVICE_UNAVAILABLE',
+              message: 'Fixture intentionally uses list fallback',
+              requestId: 'fixture',
+            }),
+            { status: 503 },
+          ),
+        )
+      : fetcher(input);
+}
 
 beforeEach(async () => {
   await setLanguage('zh');
@@ -37,10 +54,7 @@ function mount(strict = false) {
 }
 describe('radio application entry', () => {
   it('survives strict lifecycle replay, loads stations without autoplay and preserves language', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => response()),
-    );
+    vi.stubGlobal('fetch', withoutScene(vi.fn(async () => response())));
     mount(true);
     await screen.findByRole('button', { name: '收听 Test radio 1' });
     expect(screen.getByRole('status')).toHaveTextContent('尚未播放');
@@ -64,14 +78,20 @@ describe('radio application entry', () => {
   it('offers an accessible retry and recovers from a failed directory request', async () => {
     vi.stubGlobal(
       'fetch',
-      vi
-        .fn()
-        .mockRejectedValueOnce(new TypeError('Network unavailable'))
-        .mockRejectedValueOnce(new TypeError('Network unavailable'))
-        .mockImplementation(async () => response()),
+      withoutScene(
+        vi
+          .fn()
+          .mockRejectedValueOnce(new TypeError('Network unavailable'))
+          .mockRejectedValueOnce(new TypeError('Network unavailable'))
+          .mockImplementation(async () => response()),
+      ),
     );
     mount();
-    const retry = await screen.findByRole('button', { name: '重试' }, { timeout: 3000 });
+    const retry = await within(screen.getByRole('region', { name: '探索电台' })).findByRole(
+      'button',
+      { name: '重试' },
+      { timeout: 3000 },
+    );
     await userEvent.click(retry);
     await screen.findByRole('button', { name: '收听 Test radio 1' });
   });
@@ -81,7 +101,7 @@ describe('radio application entry', () => {
         ? response()
         : new Response(JSON.stringify(testStation(1))),
     );
-    vi.stubGlobal('fetch', fetcher);
+    vi.stubGlobal('fetch', withoutScene(fetcher));
     mount();
     await userEvent.click(await screen.findByRole('button', { name: '收听 Test radio 1' }));
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('正在收听'));

@@ -1,3 +1,4 @@
+import { encodeSceneEntry } from '@haen/contracts';
 import type { StationDetail } from '@haen/contracts';
 export function testStation(index: number): StationDetail {
   return {
@@ -29,4 +30,27 @@ export function testStation(index: number): StationDetail {
       },
     ],
   };
+}
+
+export function testScene(stations: StationDetail[]) {
+  const manifest = {
+    format: 1 as const,
+    version: '90000000-0000-4000-8000-000000000001',
+    restrictionsRevision: 'a'.repeat(64),
+    createdAt: '2026-10-17T00:00:00.000Z',
+    stationCount: stations.length,
+    playableCount: stations.filter((station) => station.availability === 'available').length,
+    countryCount: new Set(stations.map((station) => station.countryCode).filter(Boolean)).size,
+    genres: [],
+    languages: [],
+    chunks: [{ index: 0, count: stations.length }],
+  };
+  const chunk = {
+    format: 1 as const,
+    version: manifest.version,
+    index: 0,
+    restrictionsRevision: manifest.restrictionsRevision,
+    entries: stations.map(encodeSceneEntry),
+  };
+  return { manifest, chunk };
 }
