@@ -278,6 +278,22 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
       write(LIBRARY_PREFIX + 'last', null);
       publish();
     },
+    toggleSong(song: { artist: string; title: string }, now = Date.now()) {
+      const value = SavedSongSchema.parse({ ...song, savedAt: now });
+      const id = songKey(value),
+        key = keyOf('song', id);
+      refresh(key);
+      if (songs.has(id)) write(key, null);
+      else {
+        if (songs.size >= MAX_LIBRARY_ITEMS) throw new LibraryError('capacity');
+        write(key, value);
+      }
+      publish('song');
+    },
+    removeSong(song: { artist: string; title: string }) {
+      write(keyOf('song', songKey(song)), null);
+      publish('song');
+    },
     importFavorites(transfer: FavoritesTransfer) {
       // Validate the whole transfer before any mutation, including non-file callers.
       const items = TransferSchema.parse(transfer);

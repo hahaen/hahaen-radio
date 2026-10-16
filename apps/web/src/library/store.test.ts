@@ -197,3 +197,18 @@ describe('local personal library', () => {
     ).toThrow('format');
   });
 });
+it('saves and removes canonical song identities without overwriting station favorites or imported songs', () => {
+  const library = createLibrary(environment());
+  library.toggleFavorite(testStation(1));
+  library.importFavorites(
+    parseTransfer(exportFavorites([], [{ artist: 'Existing', title: 'Imported', savedAt: 1 }])[0]!),
+  );
+  library.toggleSong({ artist: '海风', title: 'Night Harbor' });
+  expect(library.store.getState().songs).toHaveLength(2);
+  library.toggleSong({ artist: '海风', title: ' night   harbor ' });
+  expect(library.store.getState().songs).toHaveLength(1);
+  library.toggleSong({ artist: 'Other', title: 'Second' });
+  library.removeSong({ artist: 'other', title: 'second' });
+  expect(library.store.getState().songs.map((song) => song.title)).toEqual(['Imported']);
+  expect(library.store.getState().favorites).toHaveLength(1);
+});

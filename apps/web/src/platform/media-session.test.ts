@@ -59,3 +59,50 @@ it('keeps basic playback independent when the optional system surface is absent'
     )(),
   ).not.toThrow();
 });
+it('uses only metadata belonging to the actual station and stream and drops it during a pending switch', () => {
+  const player = createPlayerController(),
+    station = testStation(1);
+  player.store.setState({
+    station,
+    intent: true,
+    playback: {
+      ...player.store.getState().playback,
+      stationId: station.id,
+      streamId: 'a'.repeat(24),
+      status: 'playing',
+    },
+  });
+  const session = {
+    metadata: null,
+    playbackState: 'none',
+    setActionHandler: () => {},
+  } as unknown as MediaSession;
+  const Metadata = class {
+    constructor(value: MediaMetadataInit) {
+      Object.assign(this, value);
+    }
+  } as unknown as typeof MediaMetadata;
+  const off = connectMediaSession(
+    player,
+    {
+      brand: 'HAEN',
+      genre: () => 'Jazz',
+      track: {
+        stationId: station.id,
+        streamId: 'a'.repeat(24),
+        source: 'station-icy',
+        observedAt: new Date().toISOString(),
+        status: 'available',
+        rawTitle: 'Artist - Song',
+        song: { artist: 'Artist', title: 'Song' },
+        timing: 'unknown',
+        retryAfter: 15,
+      },
+    },
+    { session, metadata: Metadata },
+  );
+  expect(session.metadata?.title).toBe('Song');
+  player.store.setState({ station: testStation(2), resolving: true });
+  expect(session.metadata?.title).toBe(testStation(2).name);
+  off();
+});

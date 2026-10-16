@@ -17,13 +17,13 @@
 | `product/` | 产品目标、阶段进度与验收 | [产品目标](product/README.md)、[实施进度](product/progress.md)、[验收矩阵](product/acceptance.md) |
 | `overview/` | 项目状态、技术组合 | [总览](overview/README.md)、[技术选型](overview/technology-stack.md) |
 | `architecture/` | 系统、仓库、架构决策 | [架构导航](architecture/README.md)、[系统设计](architecture/system-design.md)、[仓库规划](architecture/repository-layout.md)、[决策记录](architecture/decisions/README.md) |
-| `frontend/` | 设计、应用、渲染、音频、浏览器 | [前端导航](frontend/README.md)、[夜航设计规范](frontend/design/night-voyage.md)、[本地字体](frontend/design/fonts.md)、[应用结构与状态](frontend/application/structure-and-state.md)、[收听入口](frontend/application/player-flow.md)、[探索界面](frontend/application/exploration.md)、[个人收听工具](frontend/application/listening-tools.md)、[收听设置](frontend/application/listening-controls.md)、[探索目录](frontend/rendering/exploration-data.md)、[Three.js](frontend/rendering/threejs.md)、[音频引擎](frontend/audio/audio-engine.md)、[平台与本地存储](frontend/platform/browser-and-storage.md) |
-| `backend/` | API、服务分层、任务 | [后端导航](backend/README.md)、[API 约定](backend/api/conventions.md)、[目录 API](backend/api/catalog.md)、[服务与外部接入](backend/services/layers-and-integrations.md)、[任务调度](backend/jobs/scheduling.md) |
+| `frontend/` | 设计、应用、渲染、音频、浏览器 | [前端导航](frontend/README.md)、[夜航设计规范](frontend/design/night-voyage.md)、[本地字体](frontend/design/fonts.md)、[应用结构与状态](frontend/application/structure-and-state.md)、[收听入口](frontend/application/player-flow.md)、[探索界面](frontend/application/exploration.md)、[个人收听工具](frontend/application/listening-tools.md)、[收听设置](frontend/application/listening-controls.md)、[曲目与歌词](frontend/application/tracks-and-lyrics.md)、[探索目录](frontend/rendering/exploration-data.md)、[Three.js](frontend/rendering/threejs.md)、[音频引擎](frontend/audio/audio-engine.md)、[平台与本地存储](frontend/platform/browser-and-storage.md) |
+| `backend/` | API、服务分层、任务 | [后端导航](backend/README.md)、[API 约定](backend/api/conventions.md)、[目录 API](backend/api/catalog.md)、[曲目 API](backend/api/tracks.md)、[服务与外部接入](backend/services/layers-and-integrations.md)、[任务调度](backend/jobs/scheduling.md) |
 | `data/` | 数据库、目录、迁移、备份 | [数据导航](data/README.md)、[目录管线](data/catalog-pipeline.md)、[离线地理](data/offline-geography.md)、[MySQL 与 Drizzle](data/database/mysql-and-drizzle.md)、[表选项与排序规则](data/database/table-options-and-collations.md)、[迁移流程](data/migrations/workflow.md)、[备份与恢复](data/backup/backup-and-restore.md) |
 | `engineering/` | 环境、依赖、质量、测试 | [工程导航](engineering/README.md)、[环境与依赖](engineering/environment-and-dependencies.md)、[质量与测试](engineering/quality-and-testing.md) |
 | `deployment/` | 容器、Jenkins、发布 | [部署导航](deployment/README.md)、[容器与存储](deployment/containers/topology-and-storage.md)、[Jenkins 流水线](deployment/jenkins/pipeline.md)、[环境与凭据](deployment/jenkins/environment-and-credentials.md)、[发布与回退](deployment/releases/release-and-rollback.md) |
 | `operations/` | 配置、日志、健康检查 | [运维导航](operations/README.md)、[配置与日志](operations/configuration-and-logging.md)、[健康与排障](operations/health-and-troubleshooting.md) |
-| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md)、[目录管线](iterations/2026-10-17-catalog-pipeline/README.md)、[真实播放](iterations/2026-10-17-real-playback/README.md)、[离线地理](iterations/2026-10-17-offline-geography/README.md)、[探索界面](iterations/2026-10-17-exploration-interface/README.md)、[本地收听清单](iterations/2026-10-17-personal-library/README.md)、[收听控制](iterations/2026-10-17-listening-controls/README.md) |
+| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md)、[目录管线](iterations/2026-10-17-catalog-pipeline/README.md)、[真实播放](iterations/2026-10-17-real-playback/README.md)、[离线地理](iterations/2026-10-17-offline-geography/README.md)、[探索界面](iterations/2026-10-17-exploration-interface/README.md)、[本地收听清单](iterations/2026-10-17-personal-library/README.md)、[收听控制](iterations/2026-10-17-listening-controls/README.md)、[曲目与歌词](iterations/2026-10-17-track-and-lyrics/README.md) |
 
 ## 文档目录树
 
@@ -57,7 +57,8 @@ docs/
 │   │   ├── player-flow.md
 │   │   ├── exploration.md
 │   │   ├── listening-tools.md
-│   │   └── listening-controls.md
+│   │   ├── listening-controls.md
+│   │   └── tracks-and-lyrics.md
 │   ├── rendering/
 │   │   ├── threejs.md
 │   │   └── exploration-data.md
@@ -67,7 +68,8 @@ docs/
 │   ├── README.md
 │   ├── api/
 │   │   ├── conventions.md
-│   │   └── catalog.md
+│   │   ├── catalog.md
+│   │   └── tracks.md
 │   ├── services/layers-and-integrations.md
 │   └── jobs/scheduling.md
 ├── data/
@@ -112,6 +114,13 @@ docs/
     │   └── README.md
     ├── 2026-10-17-offline-geography/
     │   └── README.md
+    ├── 2026-10-17-track-and-lyrics/
+    │   ├── README.md
+    │   └── assets/
+    │       ├── desktop.png
+    │       ├── mobile.png
+    │       ├── mobile-text200-en.png
+    │       └── mobile-lyrics-text200-en.png
     ├── 2026-10-17-listening-controls/
     │   ├── README.md
     │   └── assets/

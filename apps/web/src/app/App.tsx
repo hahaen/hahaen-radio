@@ -40,6 +40,8 @@ import { connectShortcuts } from '../platform/shortcuts';
 import { connectIdleImmersion } from '../platform/idle';
 import { SettingsPanel } from './SettingsPanel';
 import { Immersive } from './Immersive';
+import { useNowPlaying } from '../tracks/use-now-playing';
+import { TrackPanel, TrackSummary } from '../tracks/TrackPanel';
 import { explorationAutoplay } from '../graphics/model';
 import { StationFacts } from './StationFacts';
 import styles from './App.module.css';
@@ -96,6 +98,7 @@ export function App() {
   const { t, i18n } = useTranslation();
   const player = usePlayback();
   const state = useStore(player.store);
+  const track = useNowPlaying(state);
   const library = useListeningLibrary(player);
   const personal = useStore(library.store);
   const search = personal.filters.q;
@@ -103,20 +106,25 @@ export function App() {
   const draft = searchInput.base === search ? searchInput.value : search;
   const setDraft = (value: string) => setSearchInput({ base: search, value });
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [trackOpen, setTrackOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false),
     [immersive, setImmersive] = useState(false);
   const [languageFailed, setLanguageFailed] = useState(false);
   const exploration = useRef<ExplorationHandle>(null);
   const searchAfterExit = useRef(false);
   const immersionOrigin = useRef<HTMLElement | null>(null);
+  const immersionScroll = useRef({ x: 0, y: 0 });
   useLayoutEffect(() => {
+    if (immersive) window.scrollTo(0, 0);
     if (!immersive && searchAfterExit.current) {
       searchAfterExit.current = false;
       document.getElementById('station-search')?.focus();
       immersionOrigin.current = null;
     } else if (!immersive && immersionOrigin.current) {
-      if (immersionOrigin.current.isConnected)
+      if (immersionOrigin.current.isConnected) {
+        window.scrollTo(immersionScroll.current.x, immersionScroll.current.y);
         immersionOrigin.current.focus({ preventScroll: true });
+      }
       immersionOrigin.current = null;
     }
   }, [immersive]);
@@ -125,8 +133,13 @@ export function App() {
   useEffect(() => sleepController.attach(), [sleepController]);
   useEffect(() => observeLanguage(), []);
   useEffect(
-    () => connectMediaSession(player, { brand: '声屿 HAEN', genre: (id) => t('genre.' + id) }),
-    [player, t, i18n.language],
+    () =>
+      connectMediaSession(player, {
+        brand: '声屿 HAEN',
+        genre: (id) => t('genre.' + id),
+        ...(track.active && !track.isError && track.data ? { track: track.data } : {}),
+      }),
+    [player, t, i18n.language, track.active, track.data, track.isError],
   );
   const chooseLanguage = (value: 'zh' | 'en') => {
     void setLanguage(value).then((saved) => setLanguageFailed(!saved));
@@ -135,6 +148,7 @@ export function App() {
     if (immersive || !player.store.getState().station) return;
     if (document.activeElement instanceof HTMLElement)
       immersionOrigin.current = document.activeElement;
+    immersionScroll.current = { x: window.scrollX, y: window.scrollY };
     player.invalidateSelection();
     setImmersive(true);
   }, [player, immersive]);
@@ -346,7 +360,14 @@ export function App() {
     [player, library, favoriteCurrent, enterImmersive, immersive],
   );
   useEffect(() => {
-    if (!personal.preferences.idleImmersive || immersive || libraryOpen || settingsOpen) return;
+    if (
+      !personal.preferences.idleImmersive ||
+      immersive ||
+      libraryOpen ||
+      settingsOpen ||
+      trackOpen
+    )
+      return;
     return connectIdleImmersion(
       enterImmersive,
       () => player.store.getState().playback.status === 'playing',
@@ -356,6 +377,7 @@ export function App() {
     immersive,
     libraryOpen,
     settingsOpen,
+    trackOpen,
     enterImmersive,
     player,
   ]);
@@ -371,6 +393,20 @@ export function App() {
     setDraft(value.q);
     setOffset(0);
   };
+  const openTrack = () => {
+    player.invalidateSelection();
+    setTrackOpen(true);
+  };
+  const trackSummary = (compact = false) => (
+    <TrackSummary
+      value={track.data}
+      active={track.active}
+      loading={track.isPending}
+      failed={track.isError}
+      onOpen={openTrack}
+      compact={compact}
+    />
+  );
   const shortStatus =
     'playback' + state.playback.status[0]!.toUpperCase() + state.playback.status.slice(1);
   return (
@@ -447,6 +483,7 @@ export function App() {
                   </span>
                 </p>
                 <StationFacts station={state.station} detail={state.detail} />
+                {trackSummary()}
                 <div className={styles.stationActions}>
                   <button
                     aria-label={t(
@@ -728,6 +765,7 @@ export function App() {
           favorite={!!state.station && favoriteIds.has(state.station.id)}
           onFavorite={favoriteCurrent}
           onExit={() => setImmersive(false)}
+          track={trackSummary(true)}
         />
       )}
       {libraryOpen && (
@@ -744,6 +782,16 @@ export function App() {
             setLibraryOpen(false);
           }}
           onClose={() => setLibraryOpen(false)}
+        />
+      )}
+      {trackOpen && (
+        <TrackPanel
+          value={track.data}
+          active={track.active}
+          loading={track.isPending}
+          failed={track.isError}
+          library={library}
+          onClose={() => setTrackOpen(false)}
         />
       )}
       {settingsOpen && (

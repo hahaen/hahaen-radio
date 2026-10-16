@@ -83,6 +83,8 @@ export interface PublicRequestOptions {
   allowedUrl?: (url: URL) => boolean;
   resolver?: AddressResolver;
   accept?: string;
+  icyMetadata?: boolean;
+  userAgent?: string;
 }
 const trust = [...getCACertificates('default'), ...getCACertificates('system')];
 export async function openPublicResponse(
@@ -127,7 +129,8 @@ export async function openPublicResponse(
             lookup: (_hostname, _lookupOptions, callback) =>
               callback(null, resolved.address.address, resolved.address.family),
             headers: {
-              'user-agent': 'HAEN/0.1',
+              'user-agent': options.userAgent ?? 'HAEN/0.1',
+              ...(options.icyMetadata ? { 'icy-metadata': '1' } : {}),
               accept: options.accept ?? 'application/json, text/plain, */*',
               'accept-encoding': 'identity',
             },

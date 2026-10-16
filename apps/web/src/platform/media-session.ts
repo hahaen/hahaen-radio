@@ -1,8 +1,9 @@
+import type { NowPlaying } from '@haen/contracts';
 import type { PlayerController } from '../audio/controller';
 
 export function connectMediaSession(
   player: PlayerController,
-  labels: { brand: string; genre(id: string): string },
+  labels: { brand: string; genre(id: string): string; track?: NowPlaying },
   platform: {
     session?: MediaSession;
     metadata?: typeof MediaMetadata;
@@ -41,9 +42,16 @@ export function connectMediaSession(
   let signature: string | null = null;
   const update = () => {
     const state = player.store.getState();
+    const song =
+      labels.track?.stationId === state.station?.id &&
+      labels.track?.streamId === state.playback.streamId &&
+      !state.resolving &&
+      state.intent
+        ? labels.track?.song
+        : undefined;
     try {
       const next = state.station
-        ? JSON.stringify([state.station.id, state.station.name, state.station.genre])
+        ? JSON.stringify([state.station.id, state.station.name, state.station.genre, song])
         : '';
       if (signature !== next) {
         signature = next;
@@ -52,9 +60,9 @@ export function connectMediaSession(
         activeSession.metadata =
           state.station && Metadata
             ? new Metadata({
-                title: state.station.name,
-                artist: labels.genre(state.station.genre),
-                album: labels.brand,
+                title: song?.title ?? state.station.name,
+                artist: song?.artist ?? labels.genre(state.station.genre),
+                album: song ? state.station.name + ' · ' + labels.brand : labels.brand,
               })
             : null;
       }

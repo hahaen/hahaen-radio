@@ -22,3 +22,5 @@ export type ApiError = z.infer<typeof ApiErrorSchema>;
 export * from './catalog.js';
 
 export * from './scene.js';
+
+export * from './tracks.js';

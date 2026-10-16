@@ -3,6 +3,7 @@ import { useStore } from 'zustand';
 import { Star, Play, Trash2, Download, Upload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationDetail } from '@haen/contracts';
+import { SongLibrary } from '../tracks/SongLibrary';
 import { Modal } from '../app/Modal';
 import { exportFavorites, readTransfer, LibraryError, type SavedStation } from './model';
 import type { Library } from './store';
@@ -32,7 +33,7 @@ export function LibraryPanel({
 }) {
   const { t, i18n } = useTranslation();
   const state = useStore(library.store);
-  const [view, setView] = useState<'favorites' | 'history'>('favorites');
+  const [view, setView] = useState<'favorites' | 'history' | 'songs'>('favorites');
   const [page, setPage] = useState(0),
     [confirm, setConfirm] = useState<'cleanup' | 'history' | null>(null);
   const [message, setMessage] = useState(''),
@@ -95,126 +96,142 @@ export function LibraryPanel({
         >
           {t('recentStations', { count: state.history.length })}
         </button>
+        <button
+          aria-pressed={view === 'songs'}
+          onClick={() => {
+            setView('songs');
+            setPage(0);
+            setConfirm(null);
+          }}
+        >
+          {t('favoriteSongs', { count: state.songs.length })}
+        </button>
       </div>
       {state.storageProblem && (
         <p className={styles.warning}>{t('storage.' + state.storageProblem)}</p>
       )}
-      <div className={styles.actions}>
-        {view === 'favorites' ? (
-          <>
-            <button onClick={onRefresh} disabled={checking || !state.favorites.length}>
-              {t(checking ? 'checkingFavorites' : 'refreshFavorites')}
-            </button>
-            <button
-              onClick={() => setConfirm('cleanup')}
-              disabled={!canClean || !unavailable.length}
-            >
-              <Trash2 size={16} aria-hidden="true" />
-              {t('cleanFavorites', { count: canClean ? unavailable.length : 0 })}
-            </button>
-          </>
-        ) : (
-          <button onClick={() => setConfirm('history')} disabled={!rows.length}>
-            <Trash2 size={16} aria-hidden="true" />
-            {t('clearHistory')}
-          </button>
-        )}
-      </div>
-      {lookupError && view === 'favorites' && (
-        <p className={styles.hint}>{t('favoriteCheckError')}</p>
-      )}
-      {confirm && (
-        <div className={styles.confirm}>
-          <p>
-            {t(confirm === 'cleanup' ? 'confirmCleanFavorites' : 'confirmClearHistory', {
-              count: unavailable.length,
-            })}
-          </p>
-          <button
-            disabled={confirm === 'cleanup' && !canClean}
-            onClick={() => {
-              if (confirm === 'cleanup')
-                library.removeFavorites(unavailable.map((item) => item.id));
-              else library.clearHistory();
-              setConfirm(null);
-            }}
-          >
-            {t('confirmRemove')}
-          </button>
-          <button onClick={() => setConfirm(null)}>{t('cancel')}</button>
-        </div>
-      )}
-      {rows.length ? (
-        <ul className={styles.savedList}>
-          {rows.slice(offset, offset + 30).map((item) => {
-            const detail = known.get(item.id),
-              gone = missing.has(item.id),
-              blocked = detail?.availability === 'blocked',
-              displayName = detail?.name ?? item.name;
-            const unavailable = gone || definitelyUnavailable(detail);
-            return (
-              <li key={item.id}>
-                <div className={styles.savedText}>
-                  <strong>{displayName}</strong>
-                  <span>
-                    {unavailable
-                      ? t(blocked ? 'savedBlocked' : gone ? 'savedMissing' : 'savedUnavailable')
-                      : view === 'history'
-                        ? new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-GB' : 'zh-CN', {
-                            dateStyle: 'medium',
-                            timeStyle: 'short',
-                          }).format(item.savedAt)
-                        : t(
-                            detail?.availability === 'available'
-                              ? 'savedAvailable'
-                              : 'savedUnknown',
-                          )}
-                  </span>
-                </div>
-                <button
-                  aria-label={t('listenStation', { name: displayName })}
-                  disabled={!!unavailable}
-                  onClick={() => onOpen(item.id)}
-                >
-                  <Play size={20} aria-hidden="true" />
-                </button>
-                <button
-                  aria-label={t(
-                    favoriteIds.has(item.id) ? 'unfavoriteStation' : 'favoriteStation',
-                    { name: displayName },
-                  )}
-                  aria-pressed={favoriteIds.has(item.id)}
-                  onClick={() => toggle(item)}
-                >
-                  <Star
-                    size={20}
-                    fill={favoriteIds.has(item.id) ? 'currentColor' : 'none'}
-                    aria-hidden="true"
-                  />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      {view === 'songs' ? (
+        <SongLibrary library={library} />
       ) : (
-        <p className={styles.empty}>{t(view === 'favorites' ? 'noFavorites' : 'noHistory')}</p>
-      )}
-      {rows.length > 30 && (
-        <nav className={styles.pagination} aria-label={t('listeningLists')}>
-          <button
-            disabled={offset === 0}
-            onClick={() => setPage(Math.max(0, Math.floor(offset / 30) - 1))}
-          >
-            {t('earlier')}
-          </button>
-          <span>{t('pageNumber', { page: Math.floor(offset / 30) + 1 })}</span>
-          <button
-            disabled={offset + 30 >= rows.length}
-            onClick={() => setPage(Math.floor(offset / 30) + 1)}
-          >
-            {t('later')}
-          </button>
-        </nav>
+        <>
+          <div className={styles.actions}>
+            {view === 'favorites' ? (
+              <>
+                <button onClick={onRefresh} disabled={checking || !state.favorites.length}>
+                  {t(checking ? 'checkingFavorites' : 'refreshFavorites')}
+                </button>
+                <button
+                  onClick={() => setConfirm('cleanup')}
+                  disabled={!canClean || !unavailable.length}
+                >
+                  <Trash2 size={16} aria-hidden="true" />
+                  {t('cleanFavorites', { count: canClean ? unavailable.length : 0 })}
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setConfirm('history')} disabled={!rows.length}>
+                <Trash2 size={16} aria-hidden="true" />
+                {t('clearHistory')}
+              </button>
+            )}
+          </div>
+          {lookupError && view === 'favorites' && (
+            <p className={styles.hint}>{t('favoriteCheckError')}</p>
+          )}
+          {confirm && (
+            <div className={styles.confirm}>
+              <p>
+                {t(confirm === 'cleanup' ? 'confirmCleanFavorites' : 'confirmClearHistory', {
+                  count: unavailable.length,
+                })}
+              </p>
+              <button
+                disabled={confirm === 'cleanup' && !canClean}
+                onClick={() => {
+                  if (confirm === 'cleanup')
+                    library.removeFavorites(unavailable.map((item) => item.id));
+                  else library.clearHistory();
+                  setConfirm(null);
+                }}
+              >
+                {t('confirmRemove')}
+              </button>
+              <button onClick={() => setConfirm(null)}>{t('cancel')}</button>
+            </div>
+          )}
+          {rows.length ? (
+            <ul className={styles.savedList}>
+              {rows.slice(offset, offset + 30).map((item) => {
+                const detail = known.get(item.id),
+                  gone = missing.has(item.id),
+                  blocked = detail?.availability === 'blocked',
+                  displayName = detail?.name ?? item.name;
+                const unavailable = gone || definitelyUnavailable(detail);
+                return (
+                  <li key={item.id}>
+                    <div className={styles.savedText}>
+                      <strong>{displayName}</strong>
+                      <span>
+                        {unavailable
+                          ? t(blocked ? 'savedBlocked' : gone ? 'savedMissing' : 'savedUnavailable')
+                          : view === 'history'
+                            ? new Intl.DateTimeFormat(i18n.language === 'en' ? 'en-GB' : 'zh-CN', {
+                                dateStyle: 'medium',
+                                timeStyle: 'short',
+                              }).format(item.savedAt)
+                            : t(
+                                detail?.availability === 'available'
+                                  ? 'savedAvailable'
+                                  : 'savedUnknown',
+                              )}
+                      </span>
+                    </div>
+                    <button
+                      aria-label={t('listenStation', { name: displayName })}
+                      disabled={!!unavailable}
+                      onClick={() => onOpen(item.id)}
+                    >
+                      <Play size={20} aria-hidden="true" />
+                    </button>
+                    <button
+                      aria-label={t(
+                        favoriteIds.has(item.id) ? 'unfavoriteStation' : 'favoriteStation',
+                        { name: displayName },
+                      )}
+                      aria-pressed={favoriteIds.has(item.id)}
+                      onClick={() => toggle(item)}
+                    >
+                      <Star
+                        size={20}
+                        fill={favoriteIds.has(item.id) ? 'currentColor' : 'none'}
+                        aria-hidden="true"
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className={styles.empty}>{t(view === 'favorites' ? 'noFavorites' : 'noHistory')}</p>
+          )}
+          {rows.length > 30 && (
+            <nav className={styles.pagination} aria-label={t('listeningLists')}>
+              <button
+                disabled={offset === 0}
+                onClick={() => setPage(Math.max(0, Math.floor(offset / 30) - 1))}
+              >
+                {t('earlier')}
+              </button>
+              <span>{t('pageNumber', { page: Math.floor(offset / 30) + 1 })}</span>
+              <button
+                disabled={offset + 30 >= rows.length}
+                onClick={() => setPage(Math.floor(offset / 30) + 1)}
+              >
+                {t('later')}
+              </button>
+            </nav>
+          )}
+        </>
       )}
       <section className={styles.transfer} aria-labelledby="transfer-heading">
         <h3 id="transfer-heading">{t('transferFavorites')}</h3>

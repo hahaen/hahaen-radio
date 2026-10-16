@@ -52,7 +52,7 @@ hahaen-radio/
 
 `packages/contracts/src` 已预留共享契约源码目录；`packages/config` 的具体配置文件在工具链初始化时创建。具体业务模块名称待需求确定后建立。
 
-当前前端实际业务位于 `src/graphics`、`src/audio`、`src/catalog` 和 `src/library`，系统媒体、快捷键、睡眠与闲置的生命周期位于 `src/platform`；树中的 `engines`、`features` 等为规划职责，不能视为已有实现入口。
+当前前端实际业务位于 `src/graphics`、`src/audio`、`src/catalog` 和 `src/library`，曲目、歌词与歌曲工具位于 `src/tracks`，系统媒体、快捷键、睡眠与闲置的生命周期位于 `src/platform`；树中的 `engines`、`features` 等为规划职责，不能视为已有实现入口。
 
 ## 包边界
 

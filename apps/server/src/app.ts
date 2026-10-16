@@ -10,6 +10,9 @@ import {
 } from 'fastify-type-provider-zod';
 import { HealthResponseSchema, ApiErrorSchema, type ApiError } from '@haen/contracts';
 import type { Environment } from './config/environment.js';
+import { registerTrackRoutes } from './modules/tracks/routes.js';
+import type { NowPlayingService } from './modules/tracks/now-playing.js';
+import type { LyricsService } from './modules/tracks/lyrics.js';
 import { registerCatalogRoutes } from './modules/catalog/routes.js';
 import {
   CatalogNotFoundError,
@@ -17,7 +20,12 @@ import {
   type CatalogService,
 } from './modules/catalog/service.js';
 
-export function buildApp(config: Environment, logging = true, catalog?: CatalogService) {
+export function buildApp(
+  config: Environment,
+  logging = true,
+  catalog?: CatalogService,
+  tracks?: { nowPlaying?: NowPlayingService; lyrics?: LyricsService },
+) {
   const app = Fastify({
     logger: logging
       ? {
@@ -92,6 +100,7 @@ export function buildApp(config: Environment, logging = true, catalog?: CatalogS
   }
   void app.register(async (routes) => {
     registerCatalogRoutes(routes, catalog);
+    registerTrackRoutes(routes, catalog, tracks);
     routes.withTypeProvider<ZodTypeProvider>().get(
       '/api/v1/health/live',
       {

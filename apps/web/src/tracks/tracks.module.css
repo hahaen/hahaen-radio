@@ -1,0 +1,199 @@
+.summary {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  line-height: 1.7;
+}
+.summary p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--color-secondary);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.actionButton,
+.actions button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 44px;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--color-text);
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  background: transparent;
+}
+.actionButton[aria-pressed='true'] {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.trackPanel {
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.trackPanel h3 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  margin-block: 20px 8px;
+}
+.hint,
+.observation {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.observation,
+.clock,
+.lyricsScroll time {
+  font-family: var(--font-mono);
+}
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-block: 20px;
+}
+.links a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 14px;
+}
+.lyrics {
+  margin-top: 28px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 16px;
+}
+.clock {
+  font-size: 13px;
+  color: var(--color-secondary);
+}
+.version {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-block: 20px;
+}
+.version select {
+  color: var(--color-text);
+  background: var(--color-bg);
+  border: 1px solid var(--color-secondary);
+  padding: 8px;
+  max-width: 100%;
+  min-height: 44px;
+}
+.lyricsScroll {
+  max-height: 45svh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin-block: 20px;
+  border-block: 1px solid var(--color-border);
+}
+.lyricsScroll button {
+  display: grid;
+  grid-template-columns: 3.5em minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  min-height: 48px;
+  padding: 12px 8px;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 0;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.lyricsScroll button[aria-current='true'] {
+  color: var(--color-accent);
+  background: var(--color-selected-bg);
+}
+.lyricsScroll time {
+  font-size: 12px;
+}
+.plainLyrics {
+  white-space: pre-wrap;
+  line-height: 2;
+}
+.songLibrary {
+  margin-block: 24px;
+}
+.songList {
+  list-style: none;
+  padding: 0;
+}
+.songList li {
+  border-top: 1px solid var(--color-border);
+  padding-block: 20px;
+  overflow-wrap: anywhere;
+}
+.songHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 20px;
+}
+.songHeading > div {
+  min-width: 0;
+}
+.songHeading > button {
+  flex-shrink: 0;
+}
+.songHeading p {
+  color: var(--color-text-muted);
+}
+.songList summary {
+  min-height: 44px;
+  padding-block: 8px;
+  cursor: pointer;
+}
+.manualCopy {
+  display: block;
+  line-height: 1.8;
+}
+.manualCopy textarea {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 12px;
+  border: 1px solid var(--color-secondary);
+  font: inherit;
+  margin-block: 12px;
+}
+@media (width < 768px) {
+  .summary {
+    text-align: left;
+  }
+  .lyricsScroll button {
+    gap: 8px;
+  }
+}
+
+.summary[data-compact='true'] {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.summary[data-compact='true'] p {
+  margin: 4px 0;
+}
+
+.retained {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-block: 4px;
+}

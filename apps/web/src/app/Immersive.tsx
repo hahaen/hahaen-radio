@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from 'react';
+import { useLayoutEffect, useRef, type ReactNode } from 'react';
 import { ArrowLeft, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
@@ -12,6 +12,7 @@ export function Immersive({
   favorite,
   onFavorite,
   onExit,
+  track,
 }: {
   station: StationPreview | null;
   location: string;
@@ -20,6 +21,7 @@ export function Immersive({
   favorite: boolean;
   onFavorite(): void;
   onExit(): void;
+  track?: ReactNode;
 }) {
   const { t } = useTranslation(),
     exit = useRef<HTMLButtonElement>(null);
@@ -51,6 +53,7 @@ export function Immersive({
           {t(favorite ? 'favorited' : 'favorite')}
         </button>
       )}
+      {track && <div className={styles.trackSummary}>{track}</div>}
     </main>
   );
 }
