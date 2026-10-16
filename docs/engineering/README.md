@@ -2,7 +2,7 @@
 
 本目录定义可复现开发环境、依赖管理、检查和测试要求。
 
-- [环境与依赖](environment-and-dependencies.md)：运行时、版本冻结、共享包与脚本约定。
+- [环境与依赖](environment-and-dependencies.md)：运行时、版本冻结、本地 IDE 配置、共享包与脚本约定。
 - [质量与测试](quality-and-testing.md)：静态检查、分层测试与验收证据。
 
 当前应用尚未初始化，文档中的目标命令需在工程创建时实现。返回[文档导航](../README.md)。
