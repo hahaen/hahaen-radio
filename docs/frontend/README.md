@@ -4,6 +4,7 @@
 
 | 子目录 | 文档 | 负责范围 |
 | --- | --- | --- |
+| `design/` | [夜航设计规范](design/night-voyage.md) | 已确认概念图、设计变量、构图与双端视觉验收 |
 | `application/` | [应用结构与状态](application/structure-and-state.md) | React、路由、查询、状态和样式 |
 | `rendering/` | [Three.js 渲染](rendering/threejs.md) | 场景、帧循环、交互与资源 |
 | `audio/` | [音频引擎](audio/audio-engine.md) | 播放、HLS、音频处理与状态 |

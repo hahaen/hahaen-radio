@@ -11,6 +11,7 @@
 - 当前状态应以实际仓库和运行环境为准；实现推进后及时更新相关文档。
 - 总导航：[docs/README.md](docs/README.md)。
 - 技术基线：[docs/overview/technology-stack.md](docs/overview/technology-stack.md)。
+- 视觉基线：[夜航设计规范](docs/frontend/design/night-voyage.md)与[已确认概念图](docs/frontend/design/assets/night-voyage-concept.png)。
 - 系统设计：[docs/architecture/system-design.md](docs/architecture/system-design.md)。
 - 工程目录：[docs/architecture/repository-layout.md](docs/architecture/repository-layout.md)。
 - 架构决策：[docs/architecture/decisions/README.md](docs/architecture/decisions/README.md)。
@@ -122,6 +123,16 @@
 - 电脑端支持鼠标和键盘，手机端支持触屏操作；核心功能不能仅依赖悬停，点击目标、拖动和缩放交互需适合对应输入方式。
 - 图形渲染、动画和音频能力按实际设备检测与验证，手机端根据性能提供适当降级，保持核心浏览与播放流程可用。
 - 涉及界面的任务必须分别验证电脑端和手机端，记录视口、浏览器、设备及检查范围；尚未完成的双端验证应明确标注。
+
+### 4.5 视觉风格：夜航（已确认）
+
+- 所有新增或修改的界面必须先阅读[夜航设计规范](docs/frontend/design/night-voyage.md)，以其中的设计变量和已确认概念图作为视觉基线；不得自行切换视觉方向。
+- 统一采用深海墨色背景、暖白文字、低饱和青灰辅助色与少量琥珀强调色，保持安静、沉浸、有留白的听觉探索氛围。
+- 立体地球是探索界面的视觉中心，使用克制的点阵大陆、细线和柔和边缘光；避免霓虹、密集星空、重玻璃效果及装饰性仪表堆叠。
+- 大标题使用衬线字形，操作界面使用清晰无衬线字形，坐标与时间使用等宽字形；列表、弹层和播放器沿用同一套颜色、间距、圆角及图标规则。
+- 电脑端采用文字与电台信息配合大地球的非对称构图；手机端重新组织为地球、当前电台与触屏控制的纵向布局，不直接缩小桌面画面。
+- 概念图确认的是视觉风格，不代表图中账号入口、按钮、示例文案或电台数据已列入功能范围。实际交互由后续确认的功能规格决定；文字规则及可访问性要求优先于图中的生成细节。
+- 界面 Review 同时检查风格一致性、可读性和双端布局。改变主配色、字体角色或核心构图前，先取得用户对新概念图的确认，再同步本规范与设计文档。
 
 ## 5. 数据库与迁移规则
 
