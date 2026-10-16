@@ -22,7 +22,7 @@
 | 前端 | React 19、TypeScript、Vite 8 |
 | 图形与音频 | Three.js、WebGL 2、Web Audio、HTMLAudioElement、hls.js |
 | 后端 | Node.js 24 LTS、Fastify 5、TypeScript |
-| 数据 | MySQL 8.4 LTS、mysql2、Drizzle ORM、Drizzle Kit |
+| 数据 | MySQL 8.0.46、mysql2、Drizzle ORM、Drizzle Kit |
 | 工程 | pnpm Workspace、ESLint、Prettier、Vitest、Playwright |
 | 发布 | Jenkins、Docker、Docker Compose、Caddy 2 |
 

@@ -22,7 +22,7 @@ flowchart TD
     Browser[浏览器] --> Caddy[Caddy：HTTPS 和路由]
     Caddy --> Static[前端静态资源]
     Caddy --> API[Fastify API]
-    API --> DB[(MySQL 8.4 服务)]
+    API --> DB[(MySQL 8.0.46 服务)]
     Jobs[后台任务进程] --> DB
     Jobs --> External[外部数据服务]
     Browser --> Audio[电台音频服务]
@@ -47,7 +47,7 @@ flowchart TD
 
 ## 部署边界
 
-应用基线为一台 Linux 服务器，API 一个实例、任务进程一个实例，通过各自的 mysql2 连接池访问同一个 MySQL 8.4 数据库。数据库可以是现有服务或独立容器，具体目标尚未确认。
+应用基线为一台 Linux 服务器，API 一个实例、任务进程一个实例。当前数据库目标是已提供的现有 MySQL 8.0.46 实例，连接信息私有保存；应用将通过各自的 mysql2 连接池访问。开发与正式库名已指定，但检查时尚未创建，应用连接待验收。
 
 数据库数据由 MySQL 服务管理；API 与任务不挂载数据库文件。自管 MySQL 使用持久卷，现有服务遵循其存储和备份策略。迁移在发布中的独立阶段串行执行，不与其他迁移或应用写入并发。应用横向扩容前重新评估连接总量和任务协调方案。
 

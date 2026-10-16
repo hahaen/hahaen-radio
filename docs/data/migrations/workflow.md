@@ -1,6 +1,6 @@
 # 数据库迁移流程
 
-状态：已确定使用 MySQL 8.4 和 Drizzle Kit 管理迁移，当前没有已生成或已执行的业务迁移。
+状态：已确定使用 MySQL 8.0.46 和 Drizzle Kit 管理迁移，当前没有已生成或已执行的业务迁移。
 
 ## 单一迁移机制
 
@@ -12,9 +12,9 @@ TypeScript Drizzle Schema 是结构定义源，使用 MySQL 方言。Drizzle Kit
 
 1. 修改 Drizzle Schema。
 2. 使用固定版本的 Drizzle Kit 生成迁移 SQL 与元数据。
-3. Review SQL 的建表、字段转换、索引、约束、锁表与数据影响；特殊变更和数据修正使用自定义迁移。
-4. 在独立 MySQL 8.4 空库验证完整初始化。
-5. 在含代表性旧结构与数据的隔离 MySQL 8.4 测试库验证升级和数据保留。
+3. Review SQL 的建表、字段转换、索引、约束、锁表与数据影响；检查 utf8mb4、utf8mb4_general_ci、InnoDB、DYNAMIC 以及字段级例外。工具不能表达的选项、特殊变更和数据修正使用 Drizzle Kit 自定义迁移。
+4. 在独立 MySQL 8.0.46 空库验证完整初始化。
+5. 在含代表性旧结构与数据的隔离 MySQL 8.0.46 测试库验证升级和数据保留。
 6. 将 Schema、SQL、元数据和必要的数据转换脚本一起版本化。
 
 迁移一旦在共享环境执行，就不直接修改已有文件；后续修正使用新迁移。生产不使用绕过版本记录的直接 Schema 推送。
@@ -47,5 +47,7 @@ DDL 可能隐式提交，后续语句失败时前面的变更可能已经生效�
 工具命令的职责为 `drizzle-kit generate` 生成 SQL，`drizzle-kit migrate` 执行待应用迁移，自定义变更通过锁定版本支持的 `generate --custom` 流程管理。项目脚本、配置路径与首次迁移清单在实现后补充；这些命令名称不代表当前工程已经可以执行。
 
 工具行为见[生成迁移](https://orm.drizzle.team/docs/drizzle-kit-generate)和[执行迁移](https://orm.drizzle.team/docs/drizzle-kit-migrate)。
+
+字符集和排序规则的验收依据见[建库建表规范](../database/table-options-and-collations.md)，不因建库有默认值就省略表与列级检查。
 
 恢复原则见[备份与恢复](../backup/backup-and-restore.md)，执行顺序见[发布与回退](../../deployment/releases/release-and-rollback.md)。

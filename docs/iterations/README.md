@@ -6,5 +6,6 @@
 | --- | --- | --- |
 | 2026-10-16 | [MySQL 与 Drizzle Kit 选型](2026-10-16-mysql-drizzle-kit/README.md) | 方案和规则已整理，运行能力待实施 |
 | 2026-10-16 | [技术方案评估](2026-10-16-technical-assessment/README.md) | 选型与优化优先级已评估，建议待实施 |
+| 2026-10-16 | [建库建表选项核对](2026-10-16-table-options/README.md) | 已完成只读元数据核对，规范已整理 |
 
 返回[文档导航](../README.md)。

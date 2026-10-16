@@ -2,7 +2,7 @@
 
 状态：目录已建立，尚无业务迁移 SQL、迁移元数据或执行记录。
 
-本目录保存 Drizzle Kit 为 MySQL 8.4 生成并审核的版本化 SQL 和迁移元数据。结构定义位于 `apps/server/src/db/`，采用 MySQL 方言；SQL、元数据和 Schema 同步版本化，具体目录格式由固定版本工具生成。
+本目录保存 Drizzle Kit 为 MySQL 8.0.46 生成并审核的版本化 SQL 和迁移元数据。结构定义位于 `apps/server/src/db/`，采用 MySQL 方言；SQL、元数据和 Schema 同步版本化，具体目录格式由固定版本工具生成。
 
 开发使用 Drizzle Kit 生成 SQL，Review 后在隔离 MySQL 测试库验证，再由 Jenkins 手动发布中的独立阶段执行。生产不使用 `drizzle-kit push`，不临时生成 SQL，也不引入第二套迁移执行器。
 

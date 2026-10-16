@@ -1,10 +1,10 @@
 # MySQL 与 Drizzle
 
-状态：已确定使用 MySQL 8.4 LTS、mysql2、Drizzle ORM 和 Drizzle Kit；连接、Schema、迁移及运行环境尚未初始化。
+状态：现有目标实例 MySQL 8.0.46 已只读核对，使用 mysql2、Drizzle ORM 和 Drizzle Kit；应用连接、Schema、迁移与发布配置尚未初始化。
 
 ## 数据库与连接
 
-业务表使用 InnoDB，字符集使用 utf8mb4。排序规则在首次建库与设计字段时明确，特别检查大小写、唯一性和多语言排序语义；连接与时间处理采用 UTC 约定。
+库和业务表默认显式使用 utf8mb4、utf8mb4_general_ci；表使用 InnoDB 和 DYNAMIC 行格式。大小写敏感机器标识按值域单独设置 ascii_bin 或其他合适类型，不能把所有列统一转换。连接字符配置保持一致，时间处理采用 UTC 约定，详见[表选项与排序规则](table-options-and-collations.md)。
 
 后端通过 `mysql2/promise` 创建有限连接池，交给 `drizzle-orm/mysql2` 执行查询。API 与后台任务分别持有自己的池，容量合计不得超过数据库为本应用分配的连接预算。
 
@@ -12,7 +12,7 @@
 
 ## 服务与权限
 
-数据库可连接现有 MySQL 8.4 服务，也可作为独立容器部署。实际部署位置、TLS、数据库名称和运行账户在环境配置阶段确认，目前未创建实例或账户。
+当前计划连接已提供的现有 MySQL 8.0.46 实例，地址与身份私有保存。开发库名为 `ha_radio_dev`，正式为 `ha_radio`，只读检查时两库均不存在，本次没有创建库或账户。应用端 TLS、连接池和运行身份仍需初始化及验收，不能把本机工具读取成功视为应用连接已成功。
 
 API 与任务通过网络访问数据库，不挂载 MySQL 数据卷。仅数据库进程管理自身数据目录；数据库端口限制在应用需要的网络范围，跨主机连接配置经过验证的 TLS。
 
@@ -24,7 +24,7 @@ API 与任务通过网络访问数据库，不挂载 MySQL 数据卷。仅数据
 
 按查询建立索引和约束，查询参数化，数据库行映射为对外 DTO。时间、数值精度和 mysql2 返回类型需要在字段设计时统一，不依赖隐式类型转换。
 
-事务绑定同一数据库连接，保持短小，批量任务分批处理。针对死锁、锁等待、幂等和重试设置明确策略，测试使用独立 MySQL 8.4 数据库。
+事务绑定同一数据库连接，保持短小，批量任务分批处理。针对死锁、锁等待、幂等和重试设置明确策略，测试使用独立 MySQL 8.0.46 数据库。
 
 MySQL DDL 可能隐式提交。单条 DDL 的原子性不代表整批迁移可回滚，升级失败要核对结构、数据与迁移历史，不能直接认为重跑或镜像回退就能恢复。
 
@@ -40,6 +40,6 @@ MySQL DDL 可能隐式提交。单条 DDL 的原子性不代表整批迁移可�
 
 不对同一结构并行使用第二套迁移执行器。生产迁移、备份与权限配置均需实现和验收后才能声明可用。
 
-相关资料：[Drizzle MySQL](https://orm.drizzle.team/docs/mysql/get-started-mysql)、[MySQL 隐式提交](https://dev.mysql.com/doc/refman/8.4/en/implicit-commit.html)。
+相关资料：[Drizzle MySQL](https://orm.drizzle.team/docs/mysql/get-started-mysql)、[MySQL 隐式提交](https://dev.mysql.com/doc/refman/8.0/en/implicit-commit.html)。
 
 备份见[备份与恢复](../backup/backup-and-restore.md)，执行顺序见[迁移流程](../migrations/workflow.md)。返回[数据导航](../README.md)。
