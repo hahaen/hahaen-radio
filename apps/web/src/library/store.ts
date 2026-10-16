@@ -4,6 +4,11 @@ import {
   FilterSchema,
   SavedSongSchema,
   SavedStationSchema,
+  PreferencesSchema,
+  SleepSchema,
+  defaultPreferences,
+  type Preferences,
+  type SleepTimer,
   TransferSchema,
   MAX_LIBRARY_ITEMS,
   LibraryError,
@@ -20,18 +25,22 @@ import type { StationPreview } from '@haen/contracts';
 export const LIBRARY_PREFIX = 'haen:personal:v1:';
 type StorageLike = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
 type Problem = 'unavailable' | 'corrupt' | null;
-type Category = 'favorite' | 'song' | 'history' | 'filters' | 'last';
+type Category = 'favorite' | 'song' | 'history' | 'filters' | 'last' | 'preferences' | 'sleep';
 export interface LibraryState {
   favorites: SavedStation[];
   songs: SavedSong[];
   history: SavedStation[];
   lastStation: SavedStation | null;
   filters: ListeningFilters;
+  preferences: Preferences;
+  sleep: SleepTimer | null;
   storageProblem: Problem;
 }
 const stationRecord = z.strictObject({ version: z.literal(1), value: SavedStationSchema });
 const songRecord = z.strictObject({ version: z.literal(1), value: SavedSongSchema });
 const filterRecord = z.strictObject({ version: z.literal(1), value: FilterSchema });
+const preferencesRecord = z.strictObject({ version: z.literal(1), value: PreferencesSchema });
+const sleepRecord = z.strictObject({ version: z.literal(1), value: SleepSchema });
 const newest = <T extends { savedAt: number }>(values: Iterable<T>) =>
   [...values].sort(
     (a, b) => b.savedAt - a.savedAt || JSON.stringify(a).localeCompare(JSON.stringify(b), 'en'),
@@ -42,6 +51,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     songs = new Map<string, SavedSong>(),
     history = new Map<string, SavedStation>();
   let filters = defaultFilters(),
+    preferences = defaultPreferences(),
+    sleep: SleepTimer | null = null,
     lastStation: SavedStation | null = null,
     storageProblem: Problem = null,
     storage: StorageLike | undefined,
@@ -67,6 +78,9 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         filters = input === null ? defaultFilters() : filterRecord.parse(input).value;
       else if (suffix === 'last')
         lastStation = input === null ? null : stationRecord.parse(input).value;
+      else if (suffix === 'preferences')
+        preferences = input === null ? defaultPreferences() : preferencesRecord.parse(input).value;
+      else if (suffix === 'sleep') sleep = input === null ? null : sleepRecord.parse(input).value;
       else {
         const separator = suffix.indexOf(':'),
           kind = suffix.slice(0, separator),
@@ -99,6 +113,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     songs.clear();
     history.clear();
     filters = defaultFilters();
+    preferences = defaultPreferences();
+    sleep = null;
     lastStation = null;
     try {
       if (storage.length > 25000) throw new Error('STORAGE_LIMIT');
@@ -117,6 +133,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     history: newest(history.values()).slice(0, 100),
     lastStation,
     filters,
+    preferences,
+    sleep,
     storageProblem,
   });
   const store = createStore<LibraryState>(() => snapshot());
@@ -130,6 +148,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         ...(category === 'history' ? { history: newest(history.values()).slice(0, 100) } : {}),
         ...(category === 'filters' ? { filters } : {}),
         ...(category === 'last' ? { lastStation } : {}),
+        ...(category === 'preferences' ? { preferences } : {}),
+        ...(category === 'sleep' ? { sleep } : {}),
       });
   }
   function write(key: string, value: unknown | null) {
@@ -182,7 +202,11 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         refresh(change.key);
         const suffix = change.key.slice(LIBRARY_PREFIX.length).split(':')[0];
         if (suffix === 'history') trimHistory();
-        if (['favorite', 'song', 'history', 'filters', 'last'].includes(suffix!)) {
+        if (
+          ['favorite', 'song', 'history', 'filters', 'last', 'preferences', 'sleep'].includes(
+            suffix!,
+          )
+        ) {
           changed.add(suffix as Category);
           timer ??= setTimeout(flush, 16);
         }
@@ -200,6 +224,31 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
       const next = FilterSchema.parse(value);
       write(LIBRARY_PREFIX + 'filters', next);
       publish('filters');
+    },
+    setPreferences(patch: Partial<Preferences>) {
+      refresh(LIBRARY_PREFIX + 'preferences');
+      const next = PreferencesSchema.parse({ ...preferences, ...patch });
+      write(LIBRARY_PREFIX + 'preferences', next);
+      publish('preferences');
+    },
+    setSleep(minutes: 0 | 15 | 30 | 60, now = Date.now()) {
+      const value =
+        minutes === 0
+          ? null
+          : SleepSchema.parse({
+              id: crypto.randomUUID(),
+              minutes,
+              deadline: now + minutes * 60000,
+              expired: false,
+            });
+      write(LIBRARY_PREFIX + 'sleep', value);
+      publish('sleep');
+    },
+    expireSleep(id: string, now = Date.now()) {
+      refresh(LIBRARY_PREFIX + 'sleep');
+      if (sleep?.id === id && !sleep.expired && sleep.deadline <= now)
+        write(LIBRARY_PREFIX + 'sleep', { ...sleep, expired: true });
+      publish('sleep');
     },
     toggleFavorite(station: Pick<StationPreview, 'id' | 'name' | 'countryCode'>) {
       const key = keyOf('favorite', station.id.toLowerCase());

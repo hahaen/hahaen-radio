@@ -1,6 +1,6 @@
 # 仓库目录规划
 
-状态：前后端基础入口、工作区配置、共享契约和检查脚本已建立；数据库、业务与发布流水线待后续阶段实施。
+状态：前后端基础入口、工作区配置、共享契约和检查脚本已建立；数据库、真实目录、播放、探索与个人工具已接入；曲目、音频增强与发布流水线继续实施。
 
 ## 顶层结构
 
@@ -51,6 +51,8 @@ hahaen-radio/
 工程初始化已创建 `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml` 与应用入口；`Jenkinsfile` 仍待部署阶段实施。未实施职责继续使用 `.gitkeep` 保留。说明文件、具体模块与检查配置未在树中逐项展开。
 
 `packages/contracts/src` 已预留共享契约源码目录；`packages/config` 的具体配置文件在工具链初始化时创建。具体业务模块名称待需求确定后建立。
+
+当前前端实际业务位于 `src/graphics`、`src/audio`、`src/catalog` 和 `src/library`，系统媒体、快捷键、睡眠与闲置的生命周期位于 `src/platform`；树中的 `engines`、`features` 等为规划职责，不能视为已有实现入口。
 
 ## 包边界
 

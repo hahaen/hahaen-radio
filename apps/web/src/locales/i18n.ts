@@ -4,6 +4,32 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   zh: {
     translation: {
+      listeningSettings: '收听设置',
+      playbackPreferences: '播放与界面',
+      showHints: '显示操作提示',
+      idleImmersive: '收听时闲置 30 秒进入沉浸',
+      sleepTimer: '睡眠定时',
+      sleepDuration: '睡眠时长',
+      sleepMinutes: '{{minutes}} 分钟',
+      sleepOff: '关闭',
+      sleepRemaining: '剩余 {{time}}',
+      sleepExpired: '睡眠定时已结束。',
+      sleepInactive: '未设置睡眠定时。',
+      sleepBackgroundHint: '浏览器挂起期间可能延迟，返回页面后会重新检查截止时间。',
+      keyboardHelp: '键盘操作',
+      spaceKey: '空格',
+      keyPlayback: '播放 / 暂停',
+      keyStations: '返回上一站 / 随机下一站',
+      keyView: '切换地球与流派',
+      keySearch: '查找电台',
+      keyFavorite: '收藏当前电台',
+      keyPin: '固定当前电台',
+      keyMute: '静音 / 取消静音',
+      keyImmersive: '进入 / 退出沉浸',
+      keyboardScope: '在页面空白区域使用。输入框、中文组合输入和面板中的原生操作会保留。',
+      immersiveListening: '沉浸收听',
+      exitImmersive: '返回探索',
+
       myListening: '我的收听',
       closePanel: '关闭面板',
       listeningLists: '收听清单',
@@ -196,6 +222,34 @@ const resources = {
   },
   en: {
     translation: {
+      listeningSettings: 'Listening settings',
+      playbackPreferences: 'Playback and interface',
+      showHints: 'Show operation hints',
+      idleImmersive: 'Enter immersive listening after 30 idle seconds',
+      sleepTimer: 'Sleep timer',
+      sleepDuration: 'Sleep duration',
+      sleepMinutes: '{{minutes}} minutes',
+      sleepOff: 'Off',
+      sleepRemaining: '{{time}} remaining',
+      sleepExpired: 'The sleep timer has ended.',
+      sleepInactive: 'No sleep timer is set.',
+      sleepBackgroundHint:
+        'Suspended browsers may delay the timer. The deadline is checked again when you return.',
+      keyboardHelp: 'Keyboard controls',
+      spaceKey: 'Space',
+      keyPlayback: 'Play / pause',
+      keyStations: 'Previous station / next random station',
+      keyView: 'Switch globe and genre',
+      keySearch: 'Find a station',
+      keyFavorite: 'Favorite current station',
+      keyPin: 'Pin current station',
+      keyMute: 'Mute / unmute',
+      keyImmersive: 'Enter / exit immersive listening',
+      keyboardScope:
+        'Use on the page background. Text input, composition, and native panel controls keep their own keyboard behavior.',
+      immersiveListening: 'Immersive listening',
+      exitImmersive: 'Back to exploration',
+
       myListening: 'My listening',
       closePanel: 'Close panel',
       listeningLists: 'Listening lists',
@@ -410,15 +464,33 @@ function initialLanguage() {
   }
   return navigator.language.toLowerCase().startsWith('en') ? 'en' : 'zh';
 }
-export async function setLanguage(language: 'zh' | 'en') {
+async function applyLanguage(language: 'zh' | 'en') {
   await i18n.changeLanguage(language);
   document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN';
   document.title = i18n.t('pageTitle');
+}
+export async function setLanguage(language: 'zh' | 'en') {
+  await applyLanguage(language);
   try {
     localStorage.setItem('haen:language:v1', language);
+    return true;
   } catch {
     /* Keep the in-memory language. */
+    return false;
   }
+}
+export function observeLanguage() {
+  const changed = (event: StorageEvent) => {
+    if (event.key !== 'haen:language:v1' && event.key !== null) return;
+    try {
+      const value = localStorage.getItem('haen:language:v1');
+      if ((value === 'zh' || value === 'en') && value !== i18n.language) void applyLanguage(value);
+    } catch {
+      /* Language remains usable without storage. */
+    }
+  };
+  window.addEventListener('storage', changed);
+  return () => window.removeEventListener('storage', changed);
 }
 void i18n.use(initReactI18next).init({
   resources,

@@ -13,6 +13,7 @@ export function GlobePanel({
   selectionVersion,
   active,
   onPick,
+  showHints = true,
 }: {
   groups: StationGroup[];
   station: StationPreview | null;
@@ -20,6 +21,7 @@ export function GlobePanel({
   selectionVersion: number;
   active: boolean;
   onPick(group: StationGroup, reason: PickReason): void;
+  showHints?: boolean;
 }) {
   const { t } = useTranslation();
   const host = useRef<HTMLDivElement>(null),
@@ -89,8 +91,9 @@ export function GlobePanel({
     const canvas = host.current?.querySelector('canvas');
     if (!canvas) return;
     canvas.setAttribute('aria-label', t('globeCanvas'));
-    canvas.setAttribute('aria-describedby', 'globe-help');
-  }, [state, t]);
+    if (showHints) canvas.setAttribute('aria-describedby', 'globe-help');
+    else canvas.removeAttribute('aria-describedby');
+  }, [state, t, showHints]);
   const disabled = state !== 'ready';
   return (
     <div
@@ -180,10 +183,10 @@ export function GlobePanel({
             <span>{t('placeStationCount', { count: preview.stations.length })}</span>
           </>
         ) : (
-          <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
+          showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
         )}
       </div>
-      <p id="globe-help" className={styles.help}>
+      <p id="globe-help" className={styles.help} hidden={!showHints}>
         {t('globeHelp')}
       </p>
     </div>

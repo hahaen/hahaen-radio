@@ -2,7 +2,7 @@
 
 ## 技术基础
 
-已实现 HTMLAudioElement 播放、原生 HLS 检测和按需加载 hls.js 1.7.3。源码位于 `apps/web/src/audio/engine.ts`、`hls-adapter.ts` 和 `controller.ts`。Web Audio 分析及 Media Session 属于后续阶段，当前没有将音源强制接入分析链路。
+已实现 HTMLAudioElement 播放、原生 HLS 检测和按需加载 hls.js 1.7.3。源码位于 `apps/web/src/audio/engine.ts`、`hls-adapter.ts` 和 `controller.ts`。Media Session 已通过独立平台适配器连接同一个播放协调器，Web Audio 分析仍待后续阶段，当前没有将音源强制接入分析链路。
 
 音频引擎作为独立 TypeScript 模块，不依赖 React。由应用服务持有播放器生命周期，界面通过命令和事件交互。
 

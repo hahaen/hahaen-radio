@@ -10,9 +10,11 @@ function hash(value: string) {
 export function GenreAtlas({
   stations,
   onChoose,
+  showHints = true,
 }: {
   stations: readonly StationPreview[];
   onChoose(genre: Genre): void;
+  showHints?: boolean;
 }) {
   const { t } = useTranslation();
   const groups = useMemo(
@@ -51,7 +53,9 @@ export function GenreAtlas({
           <small>{t('genreCount', { count: group.stations.length })}</small>
         </button>
       ))}
-      <p className={styles.genreNote}>{t('genreAtlasHelp')}</p>
+      <p className={styles.genreNote} hidden={!showHints}>
+        {t('genreAtlasHelp')}
+      </p>
     </div>
   );
 }

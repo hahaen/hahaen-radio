@@ -1,5 +1,5 @@
 import { createStore } from 'zustand/vanilla';
-import type { StationDetail, StationPreview } from '@haen/contracts';
+import { StationIdSchema, type StationDetail, type StationPreview } from '@haen/contracts';
 import { AudioEngine, type PlaybackSnapshot } from './engine';
 import { getStation } from '../services/catalog';
 import { HttpError } from '../services/http';
@@ -58,10 +58,11 @@ export function createPlayerController(
   let exploring = false;
   let automaticExploration = false;
   const failedStations = new Set<string>();
-  const visits: StationPreview[] = [];
+  const visits: { id: string; preview: StationPreview | null }[] = [];
+  let historySeeded = false,
+    targetId: string | null = null;
   let cursor = -1;
-  const canGoBack = (id = store.getState().station?.id) =>
-    cursor >= 0 && (visits[cursor]?.id !== id || cursor > 0);
+  const canGoBack = (id = targetId) => cursor >= 0 && (visits[cursor]?.id !== id || cursor > 0);
   const invalidateSelection = () =>
     store.setState((state) => ({ selectionVersion: state.selectionVersion + 1 }));
   const cancel = () => {
@@ -82,7 +83,7 @@ export function createPlayerController(
       visits[cursor]?.id !== state.station.id
     ) {
       visits.splice(cursor + 1);
-      visits.push(state.station);
+      visits.push({ id: state.station.id, preview: state.station });
       if (visits.length > 100) visits.shift();
       cursor = visits.length - 1;
     }
@@ -125,6 +126,7 @@ export function createPlayerController(
     const selectedToken = token;
     request = new AbortController();
     const signal = request.signal;
+    targetId = id;
     engine.pause();
     wantsPlayback = autoplay;
     store.setState({
@@ -239,17 +241,38 @@ export function createPlayerController(
       }
     },
     select,
+    seedHistory(ids: readonly string[]) {
+      if (historySeeded || visits.length) return;
+      historySeeded = true;
+      const valid = ids.flatMap((id) => {
+        const parsed = StationIdSchema.safeParse(id);
+        return parsed.success ? [parsed.data.toLowerCase()] : [];
+      });
+      visits.push(
+        ...[...new Set(valid)]
+          .slice(0, 100)
+          .reverse()
+          .map((id) => ({ id, preview: null })),
+      );
+      cursor = visits.length - 1;
+      store.setState({ canGoBack: targetId !== null && canGoBack() });
+    },
+    clearVisits() {
+      visits.length = 0;
+      cursor = -1;
+      store.setState({ canGoBack: false });
+    },
     open: (id: string, autoplay = false) => resolveStation(id, autoplay, false, null),
     invalidateSelection,
     next: () => explore(wantsPlayback || !store.getState().station),
     start: () => explore(true),
     previous() {
-      const state = store.getState();
-      const index = visits[cursor]?.id === state.station?.id ? cursor - 1 : cursor;
-      const station = visits[index];
-      if (!station) return;
+      const index = visits[cursor]?.id === targetId ? cursor - 1 : cursor;
+      const visit = visits[index];
+      if (!visit) return;
       cursor = index;
-      void select(station, wantsPlayback);
+      if (visit.preview) void select(visit.preview, wantsPlayback);
+      else void resolveStation(visit.id, wantsPlayback, false, null);
     },
     play() {
       invalidateSelection();

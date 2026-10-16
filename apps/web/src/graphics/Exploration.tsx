@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type Ref,
+} from 'react';
 import { Globe2, ListMusic, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Genre, StationPreview } from '@haen/contracts';
@@ -13,6 +21,9 @@ import { GlobePanel } from './GlobePanel';
 import { GenreAtlas } from './GenreAtlas';
 import styles from './exploration.module.css';
 type Selection = { kind: 'place'; id: string } | { kind: 'genre'; genre: Genre } | null;
+export interface ExplorationHandle {
+  close(): void;
+}
 export function Exploration({
   stations,
   station,
@@ -24,6 +35,11 @@ export function Exploration({
   progress,
   onRetry,
   onSelect,
+  mode,
+  onModeChange,
+  visible = true,
+  showHints = true,
+  ref,
 }: {
   stations: StationPreview[];
   station: StationPreview | null;
@@ -35,9 +51,13 @@ export function Exploration({
   progress: { loaded: number; total: number };
   onRetry(): void;
   onSelect(station: StationPreview, reason: ExplorationChoice, expected?: SceneExpectation): void;
+  mode: 'globe' | 'genres';
+  onModeChange(value: 'globe' | 'genres'): void;
+  visible?: boolean;
+  showHints?: boolean;
+  ref?: Ref<ExplorationHandle>;
 }) {
   const { t } = useTranslation();
-  const [mode, setMode] = useState<'globe' | 'genres'>('globe');
   const [selection, setSelection] = useState<Selection>(null),
     [offset, setOffset] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -45,11 +65,20 @@ export function Exploration({
   const rememberOrigin = () => {
     origin.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   };
-  const close = () => {
+  const close = useCallback(() => {
     setSelection(null);
     origin.current?.focus({ preventScroll: true });
     origin.current?.scrollIntoView({ block: 'nearest' });
-  };
+  }, []);
+  useImperativeHandle(
+    ref,
+    () => ({
+      close: () => {
+        if (selection) close();
+      },
+    }),
+    [close, selection],
+  );
   const groups = useMemo(() => groupStations(stations), [stations]);
   const group =
     selection?.kind === 'place' ? groups.find((value) => value.id === selection.id) : null;
@@ -99,7 +128,7 @@ export function Exploration({
           aria-pressed={mode === 'globe'}
           onClick={() => {
             setSelection(null);
-            setMode('globe');
+            onModeChange('globe');
           }}
         >
           <Globe2 size={18} aria-hidden="true" />
@@ -109,7 +138,7 @@ export function Exploration({
           aria-pressed={mode === 'genres'}
           onClick={() => {
             setSelection(null);
-            setMode('genres');
+            onModeChange('genres');
           }}
         >
           <ListMusic size={18} aria-hidden="true" />
@@ -121,10 +150,13 @@ export function Exploration({
         station={station}
         pinned={pinned}
         selectionVersion={selectionVersion}
-        active={mode === 'globe'}
+        active={mode === 'globe' && visible}
+        showHints={showHints}
         onPick={choosePlace}
       />
-      {mode === 'genres' && <GenreAtlas stations={stations} onChoose={expand} />}
+      {mode === 'genres' && (
+        <GenreAtlas stations={stations} onChoose={expand} showHints={showHints} />
+      )}
       <div className={styles.dataState} aria-live="polite">
         {loading ? (
           t(progress.total ? 'sceneLoading' : 'scenePreparing', {

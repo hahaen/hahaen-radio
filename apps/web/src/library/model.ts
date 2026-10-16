@@ -35,6 +35,28 @@ export const defaultFilters = (): ListeningFilters => ({
   minBitrate: 0,
   favoritesOnly: false,
 });
+export const PreferencesSchema = z.strictObject({
+  volume: z.number().min(0).max(1),
+  muted: z.boolean(),
+  showHints: z.boolean(),
+  view: z.enum(['globe', 'genres']),
+  idleImmersive: z.boolean(),
+});
+export type Preferences = z.infer<typeof PreferencesSchema>;
+export const defaultPreferences = (): Preferences => ({
+  volume: 0.7,
+  muted: false,
+  showHints: true,
+  view: 'globe',
+  idleImmersive: false,
+});
+export const SleepSchema = z.strictObject({
+  id: z.uuid(),
+  deadline: timestamp,
+  minutes: z.union([z.literal(15), z.literal(30), z.literal(60)]),
+  expired: z.boolean(),
+});
+export type SleepTimer = z.infer<typeof SleepSchema>;
 export const songKey = (song: Pick<SavedSong, 'artist' | 'title'>) =>
   JSON.stringify(
     [song.artist, song.title].map((value) =>

@@ -36,6 +36,27 @@ function environment() {
   return { storage: () => storage, events, values, change };
 }
 describe('local personal library', () => {
+  it('preserves independent preferences from another tab and restores a timer with its expiry identity', () => {
+    const env = environment(),
+      first = createLibrary(env),
+      second = createLibrary(env);
+    first.setPreferences({ volume: 0.25 });
+    second.setPreferences({ muted: true });
+    first.setPreferences({ showHints: false, view: 'genres' });
+    first.setSleep(30, 1000);
+    const restored = createLibrary(env).store.getState();
+    expect(restored.preferences).toMatchObject({
+      volume: 0.25,
+      muted: true,
+      showHints: false,
+      view: 'genres',
+      idleImmersive: false,
+    });
+    expect(restored.sleep).toMatchObject({ minutes: 30, deadline: 1801000, expired: false });
+    const id = restored.sleep!.id;
+    second.expireSleep(id, 1801000);
+    expect(createLibrary(env).store.getState().sleep).toMatchObject({ id, expired: true });
+  });
   it('preserves independent concurrent favorites, reads current values for delayed events, and removes across tabs', async () => {
     const env = environment(),
       a = createLibrary(env),

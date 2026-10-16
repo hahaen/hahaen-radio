@@ -34,6 +34,29 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('playback coordination', () => {
+  it('restores previous-station navigation by ID without inventing station details or autoplay', async () => {
+    const { controller, media } = harness();
+    controller.seedHistory([testStation(3).id, testStation(2).id, testStation(1).id]);
+    await controller.open(testStation(3).id);
+    expect(controller.store.getState().canGoBack).toBe(true);
+    controller.previous();
+    await vi.waitFor(() => expect(controller.store.getState().station?.id).toBe(testStation(2).id));
+    controller.previous();
+    await vi.waitFor(() => expect(controller.store.getState().station?.id).toBe(testStation(1).id));
+    expect(controller.store.getState().canGoBack).toBe(false);
+    expect(media).toHaveLength(0);
+    controller.clearVisits();
+    expect(controller.store.getState().canGoBack).toBe(false);
+  });
+  it('returns from an unvisited share to the most recent successful station', async () => {
+    const { controller, media } = harness();
+    controller.seedHistory([testStation(2).id, testStation(1).id]);
+    await controller.open(testStation(9).id);
+    controller.previous();
+    await vi.waitFor(() => expect(controller.store.getState().station?.id).toBe(testStation(2).id));
+    expect(controller.store.getState().intent).toBe(false);
+    expect(media).toHaveLength(0);
+  });
   it('opens a restored station without creating media or autoplay and lets an explicit selection supersede it', async () => {
     let finish: (value: StationDetail) => void = () => {};
     const { controller, media } = harness(async (id) =>
