@@ -4,7 +4,8 @@
 
 | 编号 | 决策 | 状态 |
 | --- | --- | --- |
-| ADR-0001 | [技术栈、单仓库与单机部署](0001-stack-and-deployment.md) | 已接受，待实施 |
+| ADR-0001 | [技术栈、单仓库与单机部署](0001-stack-and-deployment.md) | 数据库部分由 ADR-0002 取代，其余继续适用 |
+| ADR-0002 | [MySQL 与 Drizzle Kit](0002-mysql-and-drizzle-kit.md) | 已接受，待实施 |
 
 ## 记录格式
 

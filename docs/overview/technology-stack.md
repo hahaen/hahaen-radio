@@ -38,10 +38,10 @@
 | 定时任务 | node-cron | 独立任务进程中调度 |
 | 开发运行 | tsx | 本地监听和 TypeScript 执行 |
 | 生产编译 | tsc | 编译为 JavaScript 后运行 |
-| 数据库 | SQLite | 本机持久存储 |
-| 数据驱动 | better-sqlite3 | 原生依赖在目标镜像内安装 |
+| 数据库 | MySQL 8.4 LTS | InnoDB、utf8mb4，独立数据库服务 |
+| 数据驱动 | mysql2 | API 与任务分别使用有限连接池 |
 | 数据访问 | Drizzle ORM | 类型化查询 |
-| 数据库迁移 | Drizzle Kit | 生成、审核、执行迁移 SQL |
+| 数据库迁移 | Drizzle Kit | 唯一迁移执行工具，开发生成、审核测试、发布执行 |
 
 ## 工程与部署
 
@@ -50,7 +50,7 @@
 | 仓库与依赖 | pnpm Workspace、单一 pnpm-lock.yaml |
 | 静态检查与格式 | ESLint、typescript-eslint、Prettier |
 | 单元与组件测试 | Vitest、React Testing Library |
-| API 集成测试 | Fastify inject、独立临时 SQLite |
+| API 集成测试 | Fastify inject、独立 MySQL 8.4 测试库 |
 | 浏览器测试 | Playwright |
 | 覆盖率 | Vitest V8 Coverage |
 | CI/CD | Jenkins Pipeline，手动触发发布 |
@@ -65,6 +65,6 @@
 
 初始化时需重点核对 React 与相关组件包、Vite 与插件及测试工具、TypeScript 与检查工具、Fastify 与校验和 OpenAPI 插件、Drizzle ORM 与 Drizzle Kit、Three.js 与类型声明之间的兼容性。
 
-按需加载图形和 HLS 模块。外部服务通过后端适配器接入，其供应商与授权配置待具体需求确定；数据库只由后端和后台任务访问。
+按需加载图形和 HLS 模块。外部服务通过后端适配器接入，其供应商与授权配置待具体需求确定；数据库只由后端、后台任务及受控迁移入口访问；API 与任务不挂载数据库数据卷。生产禁止直接 Schema 推送，迁移工具和数据库连接仍待初始化。
 
 选型依据与边界见[架构决策](../architecture/decisions/0001-stack-and-deployment.md)。版本冻结流程见[环境与依赖](../engineering/environment-and-dependencies.md)。

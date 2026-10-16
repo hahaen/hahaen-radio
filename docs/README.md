@@ -18,10 +18,11 @@
 | `architecture/` | 系统、仓库、架构决策 | [架构导航](architecture/README.md)、[系统设计](architecture/system-design.md)、[仓库规划](architecture/repository-layout.md)、[决策记录](architecture/decisions/README.md) |
 | `frontend/` | 应用、渲染、音频、浏览器 | [前端导航](frontend/README.md)、[应用结构与状态](frontend/application/structure-and-state.md)、[Three.js](frontend/rendering/threejs.md)、[音频引擎](frontend/audio/audio-engine.md)、[平台与本地存储](frontend/platform/browser-and-storage.md) |
 | `backend/` | API、服务分层、任务 | [后端导航](backend/README.md)、[API 约定](backend/api/conventions.md)、[服务与外部接入](backend/services/layers-and-integrations.md)、[任务调度](backend/jobs/scheduling.md) |
-| `data/` | 数据库、迁移、备份 | [数据导航](data/README.md)、[SQLite 与 Drizzle](data/database/sqlite-and-drizzle.md)、[迁移流程](data/migrations/workflow.md)、[备份与恢复](data/backup/backup-and-restore.md) |
+| `data/` | 数据库、迁移、备份 | [数据导航](data/README.md)、[MySQL 与 Drizzle](data/database/mysql-and-drizzle.md)、[迁移流程](data/migrations/workflow.md)、[备份与恢复](data/backup/backup-and-restore.md) |
 | `engineering/` | 环境、依赖、质量、测试 | [工程导航](engineering/README.md)、[环境与依赖](engineering/environment-and-dependencies.md)、[质量与测试](engineering/quality-and-testing.md) |
 | `deployment/` | 容器、Jenkins、发布 | [部署导航](deployment/README.md)、[容器与存储](deployment/containers/topology-and-storage.md)、[Jenkins 流水线](deployment/jenkins/pipeline.md)、[环境与凭据](deployment/jenkins/environment-and-credentials.md)、[发布与回退](deployment/releases/release-and-rollback.md) |
 | `operations/` | 配置、日志、健康检查 | [运维导航](operations/README.md)、[配置与日志](operations/configuration-and-logging.md)、[健康与排障](operations/health-and-troubleshooting.md) |
+| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md) |
 
 ## 文档目录树
 
@@ -37,7 +38,8 @@ docs/
 │   ├── repository-layout.md
 │   └── decisions/
 │       ├── README.md
-│       └── 0001-stack-and-deployment.md
+│       ├── 0001-stack-and-deployment.md
+│       └── 0002-mysql-and-drizzle-kit.md
 ├── frontend/
 │   ├── README.md
 │   ├── application/structure-and-state.md
@@ -51,7 +53,7 @@ docs/
 │   └── jobs/scheduling.md
 ├── data/
 │   ├── README.md
-│   ├── database/sqlite-and-drizzle.md
+│   ├── database/mysql-and-drizzle.md
 │   ├── migrations/workflow.md
 │   └── backup/backup-and-restore.md
 ├── engineering/
@@ -65,10 +67,14 @@ docs/
 │   │   ├── pipeline.md
 │   │   └── environment-and-credentials.md
 │   └── releases/release-and-rollback.md
-└── operations/
+├── operations/
+│   ├── README.md
+│   ├── configuration-and-logging.md
+│   └── health-and-troubleshooting.md
+└── iterations/
     ├── README.md
-    ├── configuration-and-logging.md
-    └── health-and-troubleshooting.md
+    └── 2026-10-16-mysql-drizzle-kit/
+        └── README.md
 ```
 
 ## 状态与维护规则

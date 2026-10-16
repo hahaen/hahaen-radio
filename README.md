@@ -2,7 +2,7 @@
 
 声屿 HAEN · 嗯，听听世界。
 
-本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 SQLite 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
+本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
 
 目前已完成技术方案、分类文档与工程目录骨架，应用依赖、可运行入口、数据库和部署配置尚未初始化；以下文档描述技术基线，不代表服务已经实现或部署。
 
@@ -22,7 +22,7 @@
 | 前端 | React 19、TypeScript、Vite 8 |
 | 图形与音频 | Three.js、WebGL 2、Web Audio、HTMLAudioElement、hls.js |
 | 后端 | Node.js 24 LTS、Fastify 5、TypeScript |
-| 数据 | SQLite、better-sqlite3、Drizzle ORM、Drizzle Kit |
+| 数据 | MySQL 8.4 LTS、mysql2、Drizzle ORM、Drizzle Kit |
 | 工程 | pnpm Workspace、ESLint、Prettier、Vitest、Playwright |
 | 发布 | Jenkins、Docker、Docker Compose、Caddy 2 |
 

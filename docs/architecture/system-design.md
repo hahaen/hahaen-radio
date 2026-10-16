@@ -22,7 +22,7 @@ flowchart TD
     Browser[浏览器] --> Caddy[Caddy：HTTPS 和路由]
     Caddy --> Static[前端静态资源]
     Caddy --> API[Fastify API]
-    API --> DB[(SQLite 持久卷)]
+    API --> DB[(MySQL 8.4 服务)]
     Jobs[后台任务进程] --> DB
     Jobs --> External[外部数据服务]
     Browser --> Audio[电台音频服务]
@@ -37,7 +37,7 @@ flowchart TD
 - 音频引擎负责播放生命周期，通过事件报告状态。
 - Fastify 负责 API、契约校验、数据访问和外部服务适配。
 - 后台任务负责批处理与调度，不占用 API 的长请求连接。
-- SQLite 保存服务端持久数据，浏览器存储保存本地偏好与缓存。
+- MySQL 保存服务端持久数据，后端通过 mysql2 连接池和 Drizzle ORM 访问；浏览器存储保存本地偏好与缓存。
 
 ## 音频流量
 
@@ -47,8 +47,8 @@ flowchart TD
 
 ## 部署边界
 
-基线为一台 Linux 服务器，API 一个实例、任务进程一个实例，共用本机 SQLite 文件。WAL 模式下允许多进程读取和串行写入，写事务保持短小，批处理控制并发。
+应用基线为一台 Linux 服务器，API 一个实例、任务进程一个实例，通过各自的 mysql2 连接池访问同一个 MySQL 8.4 数据库。数据库可以是现有服务或独立容器，具体目标尚未确认。
 
-数据库放在本机持久磁盘，不放在 Jenkins 工作区、镜像层或跨主机共享文件系统。横向扩容前重新评估数据库和任务协调方案。
+数据库数据由 MySQL 服务管理；API 与任务不挂载数据库文件。自管 MySQL 使用持久卷，现有服务遵循其存储和备份策略。迁移在发布中的独立阶段串行执行，不与其他迁移或应用写入并发。应用横向扩容前重新评估连接总量和任务协调方案。
 
 容器关系见[容器与存储](../deployment/containers/topology-and-storage.md)，音频边界见[音频引擎](../frontend/audio/audio-engine.md)。
