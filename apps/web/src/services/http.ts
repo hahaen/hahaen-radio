@@ -13,6 +13,7 @@ export async function getJson<T>(
   path: string,
   schema: z.ZodType<T>,
   signal?: AbortSignal,
+  request?: { method: 'POST'; body: unknown },
 ): Promise<T> {
   const controller = new AbortController();
   const cancel = () => controller.abort(signal?.reason);
@@ -25,7 +26,11 @@ export async function getJson<T>(
   try {
     const response = await fetch(`/api/v1${path}`, {
       signal: controller.signal,
-      headers: { accept: 'application/json' },
+      ...(request ? { method: request.method, body: JSON.stringify(request.body) } : {}),
+      headers: {
+        accept: 'application/json',
+        ...(request ? { 'content-type': 'application/json' } : {}),
+      },
     });
     if (!response.ok) {
       const error = ApiErrorSchema.safeParse(await response.json().catch(() => null));

@@ -34,6 +34,32 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('playback coordination', () => {
+  it('opens a restored station without creating media or autoplay and lets an explicit selection supersede it', async () => {
+    let finish: (value: StationDetail) => void = () => {};
+    const { controller, media } = harness(async (id) =>
+      id === testStation(1).id
+        ? await new Promise<StationDetail>((resolve) => {
+            finish = resolve;
+          })
+        : testStation(2),
+    );
+    const restoring = controller.open(testStation(1).id);
+    await controller.select(testStation(2), false);
+    finish(testStation(1));
+    await restoring;
+    expect(controller.store.getState().station?.id).toBe(testStation(2).id);
+    expect(controller.store.getState().intent).toBe(false);
+    expect(media).toHaveLength(0);
+  });
+  it('resolves a shared station while keeping it paused until the user plays', async () => {
+    const { controller, media } = harness();
+    await controller.open(testStation(1).id);
+    expect(controller.store.getState().station?.id).toBe(testStation(1).id);
+    expect(controller.store.getState().playback.status).toBe('paused');
+    expect(media).toHaveLength(0);
+    controller.play();
+    expect(media).toHaveLength(1);
+  });
   it('invalidates old scene choices for explicit commands but preserves them across volume changes', async () => {
     const { controller } = harness();
     const start = controller.store.getState().selectionVersion;

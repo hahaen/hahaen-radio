@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { StrictMode } from 'react';
+import { MemoryRouter } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -26,6 +27,7 @@ function withoutScene(fetcher: (input: string | URL | Request) => Promise<Respon
 }
 
 beforeEach(async () => {
+  localStorage.clear();
   await setLanguage('zh');
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function (
     this: HTMLMediaElement,
@@ -46,9 +48,11 @@ const response = () =>
 function mount(strict = false) {
   const client = new QueryClient({ defaultOptions: { queries: { gcTime: 0 } } });
   const app = (
-    <QueryClientProvider client={client}>
-      <App />
-    </QueryClientProvider>
+    <MemoryRouter>
+      <QueryClientProvider client={client}>
+        <App />
+      </QueryClientProvider>
+    </MemoryRouter>
   );
   render(strict ? <StrictMode>{app}</StrictMode> : app);
 }
@@ -70,7 +74,7 @@ describe('radio application entry', () => {
       'href',
       'https://www.geonames.org/',
     );
-    expect(screen.getByRole('searchbox')).toHaveAttribute(
+    expect(screen.getByRole('searchbox', { name: 'Search stations' })).toHaveAttribute(
       'placeholder',
       'Station, country or region',
     );

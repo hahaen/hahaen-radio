@@ -4,7 +4,7 @@
 
 本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
 
-已完成工程初始化、真实目录管线、基础播放与夜航探索，可搜索电台、旋转地球、按流派发现并播放 MP3/AAC/HLS。个人收听工具、曲目与部署配置继续逐阶段推进；实际状态见[实施进度](docs/product/progress.md)。
+已完成工程初始化、真实目录管线、基础播放与夜航探索，可搜索电台、旋转地球、按流派发现并播放 MP3/AAC/HLS。电台收藏、最近收听、多维筛选、分享与文件迁移也已接入，设置、曲目与部署配置继续推进；实际状态见[实施进度](docs/product/progress.md)。
 
 ## 文档入口
 

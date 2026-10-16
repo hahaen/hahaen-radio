@@ -50,8 +50,6 @@
 }
 .current {
   grid-area: current;
-  position: sticky;
-  top: 48px;
   padding: 40px 0 64px;
 }
 .current h1 {
@@ -548,5 +546,67 @@
   }
   .stationKind {
     display: none;
+  }
+}
+
+.openLibrary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 24px;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+}
+.stationActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+}
+.stationActions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text);
+}
+.stationActions button[aria-pressed='true'] {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+.storageWarning {
+  color: var(--color-error);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.manualLink {
+  width: 100%;
+  max-width: 480px;
+  min-height: 44px;
+  padding: 10px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+}
+@media (width < 768px) {
+  .openLibrary {
+    padding-inline: 12px;
+  }
+  .openLibrary span {
+    display: none;
+  }
+  .stationActions {
+    justify-content: center;
   }
 }

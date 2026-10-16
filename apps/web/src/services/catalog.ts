@@ -2,7 +2,9 @@ import {
   CatalogManifestSchema,
   StationDetailSchema,
   StationPageSchema,
+  StationLookupResultSchema,
   type StationSummary,
+  type StationDetail,
 } from '@haen/contracts';
 import { getJson } from './http';
 
@@ -35,6 +37,46 @@ export const getCatalog = (signal?: AbortSignal) =>
   getJson('/catalog', CatalogManifestSchema, signal);
 export const getStation = (id: string, signal?: AbortSignal) =>
   getJson(`/stations/${encodeURIComponent(id)}`, StationDetailSchema, signal);
+export async function lookupStations(ids: readonly string[], signal: AbortSignal) {
+  const items: StationDetail[] = [],
+    missing: string[] = [];
+  const unique = [...new Set(ids)];
+  if (unique.length > 25000) throw new Error('LIBRARY_CAPACITY');
+  const controller = new AbortController();
+  const active = AbortSignal.any([signal, controller.signal, AbortSignal.timeout(90000)]);
+  let next = 0;
+  const worker = async () => {
+    while (next < unique.length) {
+      active.throwIfAborted();
+      const offset = next;
+      next += 100;
+      const batch = unique.slice(offset, offset + 100);
+      const result = await getJson('/stations/lookup', StationLookupResultSchema, active, {
+        method: 'POST',
+        body: { ids: batch },
+      });
+      const returned = [...result.items.map((item) => item.id), ...result.missing];
+      if (
+        returned.length !== batch.length ||
+        new Set(returned).size !== batch.length ||
+        returned.some((id) => !batch.includes(id))
+      )
+        throw new Error('INVALID_LOOKUP_RESULT');
+      items.push(...result.items);
+      missing.push(...result.missing);
+    }
+  };
+  const workers = Array.from({ length: Math.min(2, Math.ceil(unique.length / 100)) }, worker);
+  try {
+    await Promise.all(workers);
+  } catch (error) {
+    controller.abort();
+    await Promise.allSettled(workers);
+    throw error;
+  }
+  active.throwIfAborted();
+  return { items, missing };
+}
 export async function randomStation(
   filters: SearchFilters,
   signal: AbortSignal,

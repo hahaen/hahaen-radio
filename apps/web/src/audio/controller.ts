@@ -113,7 +113,12 @@ export function createPlayerController(
       });
     }
   };
-  async function select(station: StationPreview, autoplay = true, automatic = false) {
+  async function resolveStation(
+    id: string,
+    autoplay: boolean,
+    automatic: boolean,
+    station: StationPreview | null,
+  ) {
     if (!engine) return;
     cancel();
     if (!automatic) failedStations.clear();
@@ -129,14 +134,14 @@ export function createPlayerController(
       intent: autoplay,
       requestFailure: null,
       autoSkips: automatic ? store.getState().autoSkips : 0,
-      canGoBack: canGoBack(station.id),
+      canGoBack: canGoBack(id),
     });
     if (!networkOnline) {
       store.setState({ resolving: false, requestFailure: 'offline' });
       return;
     }
     try {
-      const detail = await (options.station ?? getStation)(station.id, signal);
+      const detail = await (options.station ?? getStation)(id, signal);
       if (signal.aborted || selectedToken !== token || !engine) return;
       store.setState({
         station: detail,
@@ -159,6 +164,8 @@ export function createPlayerController(
       });
     }
   }
+  const select = (station: StationPreview, autoplay = true, automatic = false) =>
+    resolveStation(station.id, autoplay, automatic, station);
   async function explore(autoplay: boolean, automatic = false) {
     if (!engine || !explorer) return;
     cancel();
@@ -232,6 +239,7 @@ export function createPlayerController(
       }
     },
     select,
+    open: (id: string, autoplay = false) => resolveStation(id, autoplay, false, null),
     invalidateSelection,
     next: () => explore(wantsPlayback || !store.getState().station),
     start: () => explore(true),

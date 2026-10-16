@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useStore } from 'zustand';
+import { useLocation } from 'react-router';
 import {
   MapPin,
   Pause,
@@ -13,12 +14,20 @@ import {
   Volume2,
   VolumeX,
   X,
+  Star,
+  Share2,
+  Library as LibraryIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
 import { setLanguage } from '../locales/i18n';
 import { createPlayerController, type PlayerState } from '../audio/controller';
-import { randomStation, searchStations } from '../services/catalog';
+import { lookupStations, randomStation, searchStations } from '../services/catalog';
+import { useListeningLibrary } from '../library/use-library';
+import { defaultFilters, type ListeningFilters } from '../library/model';
+import { sharedStation, shareStation } from '../library/share';
+import { LibraryPanel } from '../library/LibraryPanel';
+import { Filters } from '../library/Filters';
 import { loadSceneCatalog } from '../catalog/load';
 import { createStationCollection, pickStation } from '../catalog/collection';
 import { Exploration } from '../graphics/Exploration';
@@ -78,10 +87,43 @@ export function App() {
   const { t, i18n } = useTranslation();
   const player = usePlayback();
   const state = useStore(player.store);
-  const [draft, setDraft] = useState('');
-  const [search, setSearch] = useState('');
+  const library = useListeningLibrary(player);
+  const personal = useStore(library.store);
+  const search = personal.filters.q;
+  const [searchInput, setSearchInput] = useState({ base: search, value: search });
+  const draft = searchInput.base === search ? searchInput.value : search;
+  const setDraft = (value: string) => setSearchInput({ base: search, value });
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [actionMessage, setActionMessage] = useState(''),
+    [manualLink, setManualLink] = useState('');
+  const [lastEntry] = useState(personal.lastStation);
+  const route = useLocation();
+  const shared = useMemo(() => sharedStation(route.search), [route.search]);
+  useEffect(() => {
+    const id = shared.invalid ? null : (shared.id ?? lastEntry?.id);
+    if (id) void player.open(id, false);
+  }, [player, shared.id, shared.invalid, lastEntry]);
   const [offset, setOffset] = useState(0);
-  const filters = useMemo(() => ({ q: search }), [search]);
+  const filters = useMemo(
+    () => ({
+      q: search,
+      ...(personal.filters.genres !== null ? { genres: personal.filters.genres } : {}),
+      ...(personal.filters.languages !== null ? { languages: personal.filters.languages } : {}),
+      minBitrate: personal.filters.minBitrate,
+    }),
+    [personal.filters, search],
+  );
+  const favoriteIds = useMemo(
+    () => new Set(personal.favorites.map((item) => item.id)),
+    [personal.favorites],
+  );
+  const savedLookup = useQuery({
+    queryKey: ['saved-stations', [...favoriteIds].sort()],
+    queryFn: ({ signal }) => lookupStations([...favoriteIds], signal),
+    enabled: favoriteIds.size > 0 && (libraryOpen || personal.filters.favoritesOnly),
+    retry: 0,
+    staleTime: 30000,
+  });
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const scene = useQuery({
     queryKey: ['scene-catalog'],
@@ -91,11 +133,20 @@ export function App() {
     staleTime: 60000,
     refetchInterval: 300000,
   });
+  const catalogSource =
+    scene.data?.stations ??
+    (personal.filters.favoritesOnly ? (savedLookup.data?.items ?? EMPTY_STATIONS) : undefined);
   const collection = useMemo(
-    () => (scene.data ? createStationCollection(scene.data.stations) : undefined),
-    [scene.data],
+    () => (catalogSource ? createStationCollection(catalogSource) : undefined),
+    [catalogSource],
   );
-  const candidates = useMemo(() => collection?.filter(filters), [collection, filters]);
+  const candidates = useMemo(
+    () =>
+      collection
+        ?.filter(filters)
+        .filter((station) => !personal.filters.favoritesOnly || favoriteIds.has(station.id)),
+    [collection, filters, personal.filters.favoritesOnly, favoriteIds],
+  );
   const candidatesRef = useRef<StationPreview[] | undefined>(undefined);
   useEffect(() => {
     candidatesRef.current = candidates;
@@ -128,28 +179,46 @@ export function App() {
     };
   }, []);
   const remoteStations = useQuery({
-    queryKey: ['stations', search, offset],
+    queryKey: ['stations', filters, offset],
     enabled: candidates === undefined,
     queryFn: ({ signal }) => searchStations(filters, offset, 30, signal),
     retry: 1,
     staleTime: 30000,
   });
+  const pageOffset = candidates
+    ? Math.min(offset, Math.max(0, Math.floor((candidates.length - 1) / 30) * 30))
+    : offset;
   const stations = {
     data: candidates
       ? {
-          items: candidates.slice(offset, offset + 30),
+          items: candidates.slice(pageOffset, pageOffset + 30),
           total: candidates.length,
-          offset,
+          offset: pageOffset,
           limit: 30,
         }
       : remoteStations.data,
-    isPending: candidates === undefined && remoteStations.isPending,
-    isError: candidates === undefined && remoteStations.isError,
-    isFetching: candidates === undefined && remoteStations.isFetching,
-    refetch: remoteStations.refetch,
+    isPending:
+      candidates === undefined
+        ? remoteStations.isPending
+        : !scene.data &&
+          personal.filters.favoritesOnly &&
+          favoriteIds.size > 0 &&
+          savedLookup.isPending,
+    isError:
+      candidates === undefined
+        ? remoteStations.isError
+        : !scene.data && personal.filters.favoritesOnly && savedLookup.isError,
+    isFetching:
+      candidates === undefined
+        ? remoteStations.isFetching
+        : !scene.data && personal.filters.favoritesOnly && savedLookup.isFetching,
+    refetch:
+      personal.filters.favoritesOnly && !scene.data ? savedLookup.refetch : remoteStations.refetch,
   };
   const outsideFilter = !!(
     state.station &&
+    !stations.isPending &&
+    !stations.isError &&
     candidates &&
     !candidates.some((station) => station.id === state.station!.id)
   );
@@ -179,7 +248,13 @@ export function App() {
   const reset = () => {
     player.invalidateSelection();
     setDraft('');
-    setSearch('');
+    library.setFilters(defaultFilters());
+    setOffset(0);
+  };
+  const changeFilters = (value: ListeningFilters) => {
+    player.invalidateSelection();
+    library.setFilters(value);
+    setDraft(value.q);
     setOffset(0);
   };
   const shortStatus =
@@ -199,6 +274,18 @@ export function App() {
         >
           <Search size={18} aria-hidden="true" />
           {t('findStation')}
+        </button>
+        <button
+          className={styles.openLibrary}
+          aria-label={t('myListening')}
+          onClick={(event) => {
+            event.currentTarget.focus({ preventScroll: true });
+            player.invalidateSelection();
+            setLibraryOpen(true);
+          }}
+        >
+          <LibraryIcon size={20} aria-hidden="true" />
+          <span>{t('myListening')}</span>
         </button>
         <div className={styles.languages} role="group" aria-label={t('language')}>
           <button
@@ -221,9 +308,15 @@ export function App() {
           </button>
         </div>
       </header>
+      {personal.storageProblem && (
+        <p className={styles.storageWarning} role="alert">
+          {t('storage.' + personal.storageProblem)}
+        </p>
+      )}
       <main id="main" tabIndex={-1} className={styles.main}>
         <section className={styles.current} aria-label={t('selectedStation')}>
           <h1>{state.station?.name ?? t('headline')}</h1>
+          {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
           {state.station ? (
             <>
               <p className={styles.location}>
@@ -239,9 +332,63 @@ export function App() {
                 </span>
               </p>
               <StationFacts station={state.station} detail={state.detail} />
+              <div className={styles.stationActions}>
+                <button
+                  aria-label={t(
+                    favoriteIds.has(state.station.id) ? 'unfavoriteStation' : 'favoriteStation',
+                    { name: state.station.name },
+                  )}
+                  aria-pressed={favoriteIds.has(state.station.id)}
+                  onClick={() => {
+                    if (!state.station) return;
+                    try {
+                      library.toggleFavorite(state.station);
+                    } catch {
+                      setActionMessage('libraryCapacity');
+                    }
+                  }}
+                >
+                  <Star
+                    size={20}
+                    fill={favoriteIds.has(state.station.id) ? 'currentColor' : 'none'}
+                    aria-hidden="true"
+                  />
+                  {t(favoriteIds.has(state.station.id) ? 'favorited' : 'favorite')}
+                </button>
+                <button
+                  onClick={() => {
+                    if (!state.station) return;
+                    void shareStation(state.station.id, state.station.name).then((result) => {
+                      if (result === 'cancelled') return;
+                      if (result === 'shared' || result === 'copied') {
+                        setActionMessage(result === 'copied' ? 'linkCopied' : 'linkShared');
+                        setManualLink('');
+                      } else {
+                        setManualLink(result);
+                        setActionMessage('copyLinkManually');
+                      }
+                    });
+                  }}
+                >
+                  <Share2 size={20} aria-hidden="true" />
+                  {t('share')}
+                </button>
+              </div>
             </>
           ) : (
             <p className={styles.description}>{t('chooseStation')}</p>
+          )}
+          <p className={styles.note} aria-live="polite">
+            {actionMessage ? t(actionMessage) : ''}
+          </p>
+          {manualLink && (
+            <input
+              className={styles.manualLink}
+              aria-label={t('stationShareLink')}
+              value={manualLink}
+              readOnly
+              onFocus={(event) => event.currentTarget.select()}
+            />
           )}
           <p
             role="status"
@@ -263,6 +410,16 @@ export function App() {
           {failed && (
             <button className={styles.textButton} onClick={() => player.retry()}>
               {t('retry')}
+            </button>
+          )}
+          {state.requestFailure && (shared.id || lastEntry) && (
+            <button
+              className={styles.textButton}
+              onClick={() => {
+                void player.start();
+              }}
+            >
+              {t('continueExploring')}
             </button>
           )}
         </section>
@@ -306,7 +463,7 @@ export function App() {
             onSubmit={(event) => {
               event.preventDefault();
               player.invalidateSelection();
-              setSearch(draft.trim());
+              library.setFilters({ ...personal.filters, q: draft.trim() });
               setOffset(0);
             }}
           >
@@ -329,6 +486,11 @@ export function App() {
               {t('searchSubmit')}
             </button>
           </form>
+          <Filters
+            value={personal.filters}
+            manifest={scene.data?.manifest}
+            onChange={changeFilters}
+          />
           <div className={styles.directoryState} aria-live="polite" data-testid="directory-state">
             {stations.isPending ? (
               t('directoryLoading')
@@ -390,15 +552,15 @@ export function App() {
           {stations.data && stations.data.total > 30 && (
             <nav className={styles.pagination} aria-label={t('stationList')}>
               <button
-                disabled={offset === 0 || stations.isFetching}
-                onClick={() => setOffset(Math.max(0, offset - 30))}
+                disabled={pageOffset === 0 || stations.isFetching}
+                onClick={() => setOffset(Math.max(0, pageOffset - 30))}
               >
                 {t('earlier')}
               </button>
-              <span>{t('pageNumber', { page: Math.floor(offset / 30) + 1 })}</span>
+              <span>{t('pageNumber', { page: Math.floor(pageOffset / 30) + 1 })}</span>
               <button
-                disabled={offset + 30 >= stations.data.total || stations.isFetching}
-                onClick={() => setOffset(offset + 30)}
+                disabled={pageOffset + 30 >= stations.data.total || stations.isFetching}
+                onClick={() => setOffset(pageOffset + 30)}
               >
                 {t('later')}
               </button>
@@ -421,6 +583,22 @@ export function App() {
           </p>
         </section>
       </main>
+      {libraryOpen && (
+        <LibraryPanel
+          library={library}
+          lookup={savedLookup.data}
+          lookupError={savedLookup.isError}
+          checking={savedLookup.isFetching}
+          onRefresh={() => {
+            void savedLookup.refetch();
+          }}
+          onOpen={(id) => {
+            void player.open(id, true);
+            setLibraryOpen(false);
+          }}
+          onClose={() => setLibraryOpen(false)}
+        />
+      )}
       <footer ref={footerRef} className={styles.player} aria-label={t('player')}>
         <div className={styles.playerStation}>
           <span className={styles.playerTitle} title={state.station?.name}>
