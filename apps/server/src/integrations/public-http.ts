@@ -78,6 +78,9 @@ export interface PublicResponse {
   close(): void;
 }
 export interface PublicRequestOptions {
+  method?: 'GET' | 'POST';
+  body?: Uint8Array;
+  contentType?: string;
   signal?: AbortSignal;
   timeoutMs?: number;
   allowedUrl?: (url: URL) => boolean;
@@ -91,6 +94,11 @@ export async function openPublicResponse(
   input: string,
   options: PublicRequestOptions = {},
 ): Promise<PublicResponse> {
+  if (
+    options.body &&
+    (options.method !== 'POST' || !options.contentType || options.body.byteLength > 2 * 1024 * 1024)
+  )
+    throw new RemoteRequestError('INVALID_RESPONSE');
   const deadline = new AbortController();
   const signal = options.signal
     ? AbortSignal.any([options.signal, deadline.signal])
@@ -123,6 +131,7 @@ export async function openPublicResponse(
           resolved.url,
           {
             signal,
+            method: options.method ?? 'GET',
             family: resolved.address.family,
             ca: trust,
             rejectUnauthorized: true,
@@ -133,6 +142,12 @@ export async function openPublicResponse(
               ...(options.icyMetadata ? { 'icy-metadata': '1' } : {}),
               accept: options.accept ?? 'application/json, text/plain, */*',
               'accept-encoding': 'identity',
+              ...(options.body
+                ? {
+                    'content-type': options.contentType!,
+                    'content-length': String(options.body.byteLength),
+                  }
+                : {}),
             },
           },
           (response) => {
@@ -143,11 +158,12 @@ export async function openPublicResponse(
         outgoing.once('error', () =>
           reject(signal.aborted ? signal.reason : new RemoteRequestError('REQUEST_FAILED')),
         );
-        outgoing.end();
+        outgoing.end(options.body);
       });
       if ([301, 302, 303, 307, 308].includes(incoming.statusCode ?? 0)) {
         const location = incoming.headers.location;
         incoming.destroy();
+        if (options.method === 'POST') throw new RemoteRequestError('INVALID_RESPONSE');
         if (!location || redirects === 3) throw new RemoteRequestError('INVALID_RESPONSE');
         target = new URL(location, resolved.url).toString();
         continue;

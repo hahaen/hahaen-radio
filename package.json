@@ -27,7 +27,8 @@
     "test:mysql": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server test:mysql",
     "catalog": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server catalog",
     "jobs": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server jobs",
-    "places": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server places"
+    "places": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server places",
+    "recognition:quota": "pnpm --filter @haen/server recognition:quota"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

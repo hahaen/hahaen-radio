@@ -19,6 +19,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'pnpm --filter @haen/server dev',
+      env: { RECOGNITION_ENABLED: 'false' },
       url: 'http://127.0.0.1:3001/api/v1/health/live',
       timeout: 30000,
       reuseExistingServer: false,

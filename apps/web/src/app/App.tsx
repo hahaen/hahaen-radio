@@ -787,6 +787,13 @@ export function App() {
       {trackOpen && (
         <TrackPanel
           value={track.data}
+          stationId={state.station?.id}
+          streamId={
+            state.playback.stationId === state.station?.id
+              ? (state.playback.streamId ?? undefined)
+              : undefined
+          }
+          selectionVersion={state.selectionVersion}
           active={track.active}
           loading={track.isPending}
           failed={track.isError}

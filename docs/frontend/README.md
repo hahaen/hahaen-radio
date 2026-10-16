@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | `design/` | [夜航设计规范](design/night-voyage.md)、[本地字体](design/fonts.md) | 已确认概念图、设计变量、构图与双端视觉验收 |
 | `application/` | [应用结构与状态](application/structure-and-state.md) | React、路由、查询、状态和样式 |
-| `application/` | [收听入口与播放器](application/player-flow.md)、[探索界面](application/exploration.md)、[个人收听工具](application/listening-tools.md)、[收听设置](application/listening-controls.md)、[曲目与歌词](application/tracks-and-lyrics.md) | 本阶段构图、真实状态与恢复边界 |
+| `application/` | [收听入口与播放器](application/player-flow.md)、[探索界面](application/exploration.md)、[个人收听工具](application/listening-tools.md)、[收听设置](application/listening-controls.md)、[曲目与歌词](application/tracks-and-lyrics.md)、[手动识曲](application/recognition.md) | 本阶段构图、真实状态与恢复边界 |
 | `rendering/` | [Three.js 渲染](rendering/threejs.md)、[探索目录](rendering/exploration-data.md) | 场景、帧循环、交互与资源 |
 | `audio/` | [音频引擎](audio/audio-engine.md)、[可选音频增强](audio/enhancement.md) | 播放、HLS、音频处理与状态 |
 | `platform/` | [浏览器与本地存储](platform/browser-and-storage.md) | 能力检测、存储和兼容性 |

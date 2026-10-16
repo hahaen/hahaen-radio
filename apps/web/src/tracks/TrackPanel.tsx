@@ -8,6 +8,7 @@ import { songKey } from '../library/model';
 import { Modal } from '../app/Modal';
 import { SongLinks } from './SongLinks';
 import { LyricsView } from './LyricsView';
+import { RecognitionPanel } from './RecognitionPanel';
 import styles from './tracks.module.css';
 export function TrackSummary({
   value,
@@ -50,6 +51,9 @@ export function TrackPanel({
   failed,
   library,
   onClose,
+  stationId,
+  streamId,
+  selectionVersion = 0,
 }: {
   value: NowPlaying | undefined;
   active: boolean;
@@ -57,6 +61,9 @@ export function TrackPanel({
   failed: boolean;
   library: Library;
   onClose(): void;
+  stationId?: string | undefined;
+  streamId?: string | undefined;
+  selectionVersion?: number;
 }) {
   const { t, i18n } = useTranslation(),
     songs = useStore(library.store, (state) => state.songs);
@@ -119,6 +126,19 @@ export function TrackPanel({
           </>
         )}
       </div>
+      <RecognitionPanel
+        key={
+          (stationId ?? value?.stationId ?? '') +
+          ':' +
+          (streamId ?? value?.streamId ?? '') +
+          ':' +
+          selectionVersion
+        }
+        stationId={stationId ?? value?.stationId}
+        streamId={streamId ?? value?.streamId}
+        active={active}
+        library={library}
+      />
     </Modal>
   );
 }

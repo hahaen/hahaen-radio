@@ -57,6 +57,26 @@ const resources = {
       clickLyricToCalibrate: '点击某句可将它校准到此刻；换歌、换线路或切换版本会重置校时。',
       timedLyrics: '带时间戳的歌词',
 
+      recognitionTitle: '手动识曲',
+      recognitionStart: '识别当前片段',
+      recognitionWorking: '正在识别片段…',
+      recognitionChecking: '正在检查识曲服务…',
+      recognitionDisabled: '识曲服务暂未启用，仍可正常收听。',
+      recognitionInactive: '播放当前电台后可手动识曲；已有结果来自此前片段。',
+      recognitionConsent:
+        '仅点击后将当前电台的短片段交由 AudD 识别，不使用麦克风。识别可能没有结果。',
+      recognitionRetryAfter: '{{seconds}} 秒后可再次尝试。',
+      recognitionObserved: 'AudD 片段结果 · {{time}}',
+      recognitionTimingUnknown: '结果仅对应采集的片段，不确定直播歌曲进度；歌词仍需手动校时。',
+      recognitionState: {
+        found: '已识别片段中的歌曲。',
+        'not-found': '这次没有识别到歌曲，可以稍后再试。',
+        unavailable: '当前线路或识曲服务暂不可用，基础收听仍可继续。',
+        busy: '识曲服务正在处理其他请求，请稍后再试。',
+        cooldown: '识曲服务正在冷却，请稍后再试。',
+        'quota-exhausted': '识曲额度已用完，基础收听仍可继续。',
+        error: '这次识别未完成，请稍后再试。',
+      },
       audioEnhancementUnavailable: '当前设备不支持部分音频增强，基础收听仍可使用。',
       normalizeVolume: '音量统一',
       normalization: {
@@ -344,6 +364,28 @@ const resources = {
         'Click a line to align it with this moment. A new song, stream, or version resets calibration.',
       timedLyrics: 'Timestamped lyrics',
 
+      recognitionTitle: 'Identify a song',
+      recognitionStart: 'Identify this sample',
+      recognitionWorking: 'Identifying the sample…',
+      recognitionChecking: 'Checking song identification…',
+      recognitionDisabled: 'Song identification is not enabled. Listening still works.',
+      recognitionInactive:
+        'Play the current station to identify a song. Existing results describe an earlier sample.',
+      recognitionConsent:
+        'Only after your click, a short station sample is sent to AudD. Your microphone is never used. A match is not guaranteed.',
+      recognitionRetryAfter: 'Try again in {{seconds}} seconds.',
+      recognitionObserved: 'AudD sample result · {{time}}',
+      recognitionTimingUnknown:
+        'This identifies a captured sample, not the current live song position. Lyrics still require manual timing.',
+      recognitionState: {
+        found: 'A song was identified in the sample.',
+        'not-found': 'No song was identified this time. You can try again later.',
+        unavailable: 'This stream or identification service is unavailable. Listening still works.',
+        busy: 'The identification service is busy. Please try again later.',
+        cooldown: 'The identification service is cooling down. Please try again later.',
+        'quota-exhausted': 'The identification allowance has been used. Listening still works.',
+        error: 'Identification did not finish. Please try again later.',
+      },
       audioEnhancementUnavailable:
         'Some audio enhancements are unavailable on this device. Basic listening still works.',
       normalizeVolume: 'Normalize volume',

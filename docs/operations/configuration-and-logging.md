@@ -63,4 +63,6 @@ Docker 配置日志轮转和磁盘上限，避免日志占满数据库磁盘。J
 
 默认诊断保留 7 天；当前每轮任务清理过期 job_runs，进程日志的 7 天清理和磁盘轮转由后续部署配置补齐。诊断材料在共享前脱敏，不将数据库备份或环境文件当作普通构建产物上传。
 
+可选识曲的 `RECOGNITION_ENABLED`、`AUDD_API_TOKEN`、`RECOGNITION_REQUEST_LIMIT`、`RECOGNITION_BUDGET_ID` 与 `RECOGNITION_STATE_PATH` 均为服务端变量；完整启用与持久状态流程见[额度运维](recognition-quota.md)。关闭时不要求或创建额度文件。
+
 返回[运维导航](README.md)。

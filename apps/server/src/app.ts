@@ -1,4 +1,6 @@
 import { randomUUID } from 'node:crypto';
+import { registerRecognitionRoutes } from './modules/recognition/routes.js';
+import type { RecognitionService } from './modules/recognition/service.js';
 import Fastify from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -24,7 +26,11 @@ export function buildApp(
   config: Environment,
   logging = true,
   catalog?: CatalogService,
-  tracks?: { nowPlaying?: NowPlayingService; lyrics?: LyricsService },
+  tracks?: {
+    nowPlaying?: NowPlayingService;
+    lyrics?: LyricsService;
+    recognition?: RecognitionService;
+  },
 ) {
   const app = Fastify({
     logger: logging
@@ -101,6 +107,7 @@ export function buildApp(
   void app.register(async (routes) => {
     registerCatalogRoutes(routes, catalog);
     registerTrackRoutes(routes, catalog, tracks);
+    registerRecognitionRoutes(routes, tracks?.recognition);
     routes.withTypeProvider<ZodTypeProvider>().get(
       '/api/v1/health/live',
       {

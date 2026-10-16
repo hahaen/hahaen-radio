@@ -7,6 +7,7 @@
 | ADR-0001 | [技术栈、单仓库与单机部署](0001-stack-and-deployment.md) | 数据库部分由 ADR-0002 取代，其余继续适用 |
 | ADR-0002 | [MySQL 与 Drizzle Kit](0002-mysql-and-drizzle-kit.md) | 版本及字符配置由 ADR-0003 修订，其余适用 |
 | ADR-0003 | [建表选项与实际目标环境](0003-table-options-and-target-environment.md) | 元数据已核对，规范已确定，应用待实施 |
+| ADR-0004 | [识曲采用显式预算与持久化预扣](0004-recognition-allowance.md) | 单实例运维状态与可控验证已接入，真实服务待授权条件 |
 
 ## 记录格式
 

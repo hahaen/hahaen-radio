@@ -13,7 +13,7 @@ export async function getJson<T>(
   path: string,
   schema: z.ZodType<T>,
   signal?: AbortSignal,
-  request?: { method: 'POST'; body: unknown },
+  request?: { method: 'POST'; body: unknown; timeoutMs?: number },
 ): Promise<T> {
   const controller = new AbortController();
   const cancel = () => controller.abort(signal?.reason);
@@ -21,7 +21,7 @@ export async function getJson<T>(
   else signal?.addEventListener('abort', cancel, { once: true });
   const timeout = setTimeout(
     () => controller.abort(new DOMException('Request timed out', 'TimeoutError')),
-    10000,
+    request?.timeoutMs ?? 10000,
   );
   try {
     const response = await fetch(`/api/v1${path}`, {

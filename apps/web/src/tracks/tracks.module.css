@@ -197,3 +197,18 @@
   font-size: 12px;
   margin-block: 4px;
 }
+
+.recognition {
+  margin-top: 32px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.recognition h3,
+.recognition h4 {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 400;
+  margin-block: 20px 8px;
+}

@@ -24,3 +24,5 @@ export * from './catalog.js';
 export * from './scene.js';
 
 export * from './tracks.js';
+
+export * from './recognition.js';
