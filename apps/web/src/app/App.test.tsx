@@ -52,6 +52,10 @@ describe('radio application entry', () => {
     expect(document.documentElement.lang).toBe('en');
     expect(document.title).toBe('HAEN · Listen to the world.');
     expect(localStorage.getItem('haen:language:v1')).toBe('en');
+    expect(screen.getByRole('link', { name: 'GeoNames' })).toHaveAttribute(
+      'href',
+      'https://www.geonames.org/',
+    );
     expect(screen.getByRole('searchbox')).toHaveAttribute(
       'placeholder',
       'Station, country or region',

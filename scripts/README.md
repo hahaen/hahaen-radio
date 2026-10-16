@@ -2,6 +2,8 @@
 
 已提供 `check-docs.mjs` 检查 Markdown 本地链接，以及 `clean-dist.mjs` 在服务端和共享契约构建前清理其各自 dist，避免已删除或测试辅助模块残留到产物。清理脚本只允许上述两个包目录，不接受任意删除路径。
 
+已提供 `generate-audio-fixtures.mjs` 生成自制测试音，以及 `prepare-land.mjs` 从固定摘要的 Natural Earth 输入生成本地大陆资源。后者步骤见[离线地理](../docs/data/offline-geography.md)。
+
 按实际任务加入开发辅助、数据检查、备份和发布辅助脚本。脚本应具有明确输入、失败退出状态与环境边界，不内嵌凭据或默认访问生产数据。
 
 只有脚本实现并验证后，才在文档和流水线中声明对应命令可用。

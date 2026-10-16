@@ -27,6 +27,7 @@ const resources = {
       directoryCount: '找到 {{count, number}} 个电台',
       noResults: '没有找到电台，换个关键词试试。',
       resetSearch: '查看全部电台',
+      geographySource: '附近地名资料：',
       directorySource: '电台目录由 Radio Browser 提供。线路可用性受电台与当前网络影响。',
       start: '开始收听',
       chooseStation: '选择一个电台，开始收听。',
@@ -111,6 +112,7 @@ const resources = {
       directoryCount: '{{count, number}} stations found',
       noResults: 'No stations found. Try a different search.',
       resetSearch: 'Show all stations',
+      geographySource: 'Nearby place data:',
       directorySource:
         'Station directory by Radio Browser. Availability depends on the station and your network.',
       start: 'Start listening',

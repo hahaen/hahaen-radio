@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { eq, sql } from 'drizzle-orm';
 import { StationSearchSchema } from '@haen/contracts';
 import { readDatabaseConfig } from '../config/database.js';
@@ -8,7 +8,8 @@ import { normalizeStation } from '../modules/catalog/normalize.js';
 import { prepareSnapshot } from '../modules/catalog/snapshot.js';
 import { synchronizeCatalog } from '../modules/catalog/sync.js';
 import { openDatabase, type Database } from './connection.js';
-import { catalogVersions, jobLeases, stationOverrides } from './schema.js';
+import { catalogVersions, jobLeases, stationOverrides, places, jobRuns } from './schema.js';
+import { readPlaces, replacePlaces } from '../modules/places/repository.js';
 
 describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acceptance', () => {
   let database: Database;
@@ -128,6 +129,83 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
     expect(await createCatalogService(repository).station(stations[0]!.id)).toMatchObject({
       availability: 'blocked',
       streams: [],
+    });
+  });
+  it('atomically replaces offline places and rolls back a cancelled import after its first batch', async () => {
+    const original = Array.from({ length: 1001 }, (_, index) => ({
+      id: index + 1,
+      name: '京都市',
+      asciiName: 'Kyoto',
+      aliases: '京都,Kyoto',
+      countryCode: 'JP',
+      latitude: 35.011,
+      longitude: 135.768,
+      timezone: 'Asia/Tokyo',
+    }));
+    await expect(replacePlaces(database, original)).resolves.toMatchObject({ count: 1001 });
+    const controller = new AbortController();
+    const check = controller.signal.throwIfAborted.bind(controller.signal);
+    let checkpoints = 0;
+    const spy = vi.spyOn(controller.signal, 'throwIfAborted').mockImplementation(() => {
+      if (++checkpoints === 3) controller.abort();
+      check();
+    });
+    try {
+      await expect(
+        replacePlaces(
+          database,
+          Array.from({ length: 2001 }, (_, index) => ({
+            ...original[0]!,
+            id: index + 10001,
+            name: 'cancelled replacement',
+          })),
+          controller.signal,
+        ),
+      ).rejects.toThrow();
+      expect(checkpoints).toBe(3);
+    } finally {
+      spy.mockRestore();
+    }
+    const retained = await readPlaces(database);
+    expect(retained).toHaveLength(1001);
+    expect(retained.every((row) => row.name === '京都市')).toBe(true);
+    expect(
+      await database.run((session) =>
+        session.select().from(jobRuns).where(eq(jobRuns.name, 'places-import')),
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ status: 'succeeded', processedCount: 1001 }),
+        expect.objectContaining({ status: 'failed', errorCode: 'PLACES_IMPORT_FAILED' }),
+      ]),
+    );
+    let reads = 0;
+    await expect(
+      readPlaces({
+        close: () => database.close(),
+        async run(operation) {
+          if (++reads === 3)
+            await replacePlaces(
+              database,
+              original.map((row) => ({ ...row, id: row.id + 50000 })),
+            );
+          return database.run(operation);
+        },
+      }),
+    ).rejects.toThrow('PLACES_SNAPSHOT_CHANGED');
+    await replacePlaces(database, original);
+    const enriched = await createCatalogRepository(database).enrich([
+      normalizeStation({
+        stationuuid: '00000000-0000-4000-8000-000000000050',
+        name: 'Place fixture',
+        countrycode: 'JP',
+        geo_lat: 35.011,
+        geo_long: 135.768,
+      })!,
+    ]);
+    expect(enriched[0]).toMatchObject({ city: null, nearbyCity: '京都市', timezone: 'Asia/Tokyo' });
+    await database.run(async (session) => {
+      await session.delete(places);
     });
   });
   it('rolls back business writes on an application transaction failure', async () => {

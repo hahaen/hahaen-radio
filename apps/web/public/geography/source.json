@@ -1,0 +1,11 @@
+{
+  "name": "Natural Earth",
+  "version": "5.1.2",
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_110m_land.geojson",
+  "sha256": "9e0729ee253ca7d7a5c4ae9395fb1902264c5377c52e224d13dd85010e2835d9",
+  "license": "Public domain",
+  "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "assetSha256": "4c74aa71fc824d629b89b8dbe1bc3ce6b0e23e792822abf4787403bdd936cb78",
+  "polygonCount": 127,
+  "pointCount": 7595
+}

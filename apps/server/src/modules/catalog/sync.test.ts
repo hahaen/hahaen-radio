@@ -20,6 +20,7 @@ describe('catalogue synchronization orchestration', () => {
       load: async () => ({ stations, sourceCount: 1, invalidCount: 0 }),
     });
     expect(result.status).toBe('published');
+    expect(repository.enrich).toHaveBeenCalledWith(stations, expect.any(AbortSignal));
     expect(vi.mocked(repository.stage).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(repository.publish).mock.invocationCallOrder[0]!,
     );
@@ -53,6 +54,21 @@ describe('catalogue synchronization orchestration', () => {
         staging ? 'CATALOG_SYNC_FAILED' : 'CATALOG_SOURCE_UNAVAILABLE',
       );
     }
+  });
+  it('preserves the old catalogue when offline place data cannot be validated', async () => {
+    const repository = testRepository();
+    vi.mocked(repository.enrich).mockRejectedValue(new Error('CATALOG_PLACES_UNAVAILABLE'));
+    await expect(
+      synchronizeCatalog(repository, {
+        load: async () => ({ stations, sourceCount: 1, invalidCount: 0 }),
+      }),
+    ).rejects.toThrow('CATALOG_PLACES_UNAVAILABLE');
+    expect(repository.stage).not.toHaveBeenCalled();
+    expect(repository.publish).not.toHaveBeenCalled();
+    expect(repository.finish).toHaveBeenCalledWith(
+      expect.any(String),
+      'CATALOG_PLACES_UNAVAILABLE',
+    );
   });
   it('aborts an in-flight source after losing the heartbeat and never publishes', async () => {
     vi.useFakeTimers();

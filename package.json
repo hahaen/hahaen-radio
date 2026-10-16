@@ -26,7 +26,8 @@
     "db:migrate": "pnpm --filter @haen/server db:migrate",
     "test:mysql": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server test:mysql",
     "catalog": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server catalog",
-    "jobs": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server jobs"
+    "jobs": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server jobs",
+    "places": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server places"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

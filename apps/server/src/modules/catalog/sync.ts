@@ -8,6 +8,7 @@ const safeFailures = new Set([
   'CATALOG_DUPLICATE_ID',
   'CATALOG_SUSPICIOUS_SHRINK',
   'CATALOG_REGISTRY_LIMIT',
+  'CATALOG_PLACES_UNAVAILABLE',
 ]);
 export async function synchronizeCatalog(
   repository: CatalogRepository,
@@ -35,7 +36,9 @@ export async function synchronizeCatalog(
     await repository.cleanup(token);
     const result = await source.load(combined);
     combined.throwIfAborted();
-    const snapshot = prepareSnapshot(result.stations, await repository.registry());
+    const stations = await repository.enrich(result.stations, combined);
+    combined.throwIfAborted();
+    const snapshot = prepareSnapshot(stations, await repository.registry());
     combined.throwIfAborted();
     await repository.stage(token, snapshot, result.sourceCount, combined);
     combined.throwIfAborted();

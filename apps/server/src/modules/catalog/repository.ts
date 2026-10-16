@@ -18,6 +18,8 @@ import {
   stationRegistry,
 } from '../../db/schema.js';
 import type { CatalogSnapshot, RegistryEntry } from './snapshot.js';
+import { readPlaces } from '../places/repository.js';
+import { createPlaceEnricher } from '../places/geonames.js';
 
 const JOB = 'catalog-sync';
 const leaseExpiry = sql`DATE_ADD(UTC_TIMESTAMP(3), INTERVAL 2 MINUTE)`;
@@ -45,6 +47,7 @@ export class LeaseLostError extends Error {
   }
 }
 export interface CatalogRepository {
+  enrich(stations: StationDetail[], signal?: AbortSignal): Promise<StationDetail[]>;
   acquire(): Promise<string | null>;
   renew(token: string): Promise<void>;
   cleanup(token: string): Promise<void>;
@@ -81,6 +84,15 @@ async function assertLease(session: DatabaseSession, token: string) {
 }
 export function createCatalogRepository(database: Database): CatalogRepository {
   return {
+    async enrich(stations, signal) {
+      try {
+        const enrich = createPlaceEnricher(await readPlaces(database, signal));
+        return stations.map(enrich);
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        throw new Error('CATALOG_PLACES_UNAVAILABLE', { cause: error });
+      }
+    },
     acquire: () =>
       database.run((session) =>
         session.transaction(async (tx) => {

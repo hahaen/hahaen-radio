@@ -1,10 +1,12 @@
 import { vi } from 'vitest';
+import type { StationDetail } from '@haen/contracts';
 import type { CatalogRepository } from '../modules/catalog/repository.js';
 import type { CatalogSnapshot } from '../modules/catalog/snapshot.js';
 
 // Test fixture only: persistence and transaction correctness require the MySQL suite.
 export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
   return {
+    enrich: vi.fn(async (stations: StationDetail[]) => stations),
     acquire: vi.fn(async () => '00000000-0000-4000-8000-000000000099'),
     renew: vi.fn(async () => {}),
     cleanup: vi.fn(async () => {}),
@@ -58,7 +60,13 @@ export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
                     .filter(Boolean)
                     .every((term) =>
                       fold(
-                        [station.name, station.region, station.city, station.countryCode].join(' '),
+                        [
+                          station.name,
+                          station.region,
+                          station.city,
+                          station.nearbyCity,
+                          station.countryCode,
+                        ].join(' '),
                       ).includes(term),
                     ) &&
                   (query.genres === undefined || query.genres.includes(station.genre)) &&

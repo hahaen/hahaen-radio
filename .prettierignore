@@ -8,3 +8,4 @@ AGENTS.override.md
 .env*
 pnpm-lock.yaml
 tests/fixtures/audio/*.ts
+apps/web/public/geography/land.json

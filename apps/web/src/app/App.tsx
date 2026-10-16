@@ -306,6 +306,20 @@ export function App() {
             </nav>
           )}
           <p className={styles.source}>{t('directorySource')}</p>
+          <p className={styles.source}>
+            {t('geographySource')}{' '}
+            <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">
+              GeoNames
+            </a>
+            {' · '}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              CC BY 4.0
+            </a>
+          </p>
         </section>
       </main>
       <footer ref={footerRef} className={styles.player} aria-label={t('player')}>
