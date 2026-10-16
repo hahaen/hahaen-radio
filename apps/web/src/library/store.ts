@@ -2,6 +2,9 @@ import { createStore } from 'zustand/vanilla';
 import { z } from 'zod';
 import {
   FilterSchema,
+  AudioOptionsSchema,
+  defaultAudioOptions,
+  type AudioOptions,
   SavedSongSchema,
   SavedStationSchema,
   PreferencesSchema,
@@ -25,7 +28,8 @@ import type { StationPreview } from '@haen/contracts';
 export const LIBRARY_PREFIX = 'haen:personal:v1:';
 type StorageLike = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
 type Problem = 'unavailable' | 'corrupt' | null;
-type Category = 'favorite' | 'song' | 'history' | 'filters' | 'last' | 'preferences' | 'sleep';
+type Category =
+  'favorite' | 'song' | 'history' | 'filters' | 'last' | 'preferences' | 'sleep' | 'audio';
 export interface LibraryState {
   favorites: SavedStation[];
   songs: SavedSong[];
@@ -33,6 +37,7 @@ export interface LibraryState {
   lastStation: SavedStation | null;
   filters: ListeningFilters;
   preferences: Preferences;
+  audio: AudioOptions;
   sleep: SleepTimer | null;
   storageProblem: Problem;
 }
@@ -40,6 +45,7 @@ const stationRecord = z.strictObject({ version: z.literal(1), value: SavedStatio
 const songRecord = z.strictObject({ version: z.literal(1), value: SavedSongSchema });
 const filterRecord = z.strictObject({ version: z.literal(1), value: FilterSchema });
 const preferencesRecord = z.strictObject({ version: z.literal(1), value: PreferencesSchema });
+const audioRecord = z.strictObject({ version: z.literal(1), value: AudioOptionsSchema });
 const sleepRecord = z.strictObject({ version: z.literal(1), value: SleepSchema });
 const newest = <T extends { savedAt: number }>(values: Iterable<T>) =>
   [...values].sort(
@@ -52,6 +58,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     history = new Map<string, SavedStation>();
   let filters = defaultFilters(),
     preferences = defaultPreferences(),
+    audio = defaultAudioOptions(),
     sleep: SleepTimer | null = null,
     lastStation: SavedStation | null = null,
     storageProblem: Problem = null,
@@ -80,6 +87,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         lastStation = input === null ? null : stationRecord.parse(input).value;
       else if (suffix === 'preferences')
         preferences = input === null ? defaultPreferences() : preferencesRecord.parse(input).value;
+      else if (suffix === 'audio')
+        audio = input === null ? defaultAudioOptions() : audioRecord.parse(input).value;
       else if (suffix === 'sleep') sleep = input === null ? null : sleepRecord.parse(input).value;
       else {
         const separator = suffix.indexOf(':'),
@@ -114,6 +123,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     history.clear();
     filters = defaultFilters();
     preferences = defaultPreferences();
+    audio = defaultAudioOptions();
     sleep = null;
     lastStation = null;
     try {
@@ -134,6 +144,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     lastStation,
     filters,
     preferences,
+    audio,
     sleep,
     storageProblem,
   });
@@ -149,6 +160,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         ...(category === 'filters' ? { filters } : {}),
         ...(category === 'last' ? { lastStation } : {}),
         ...(category === 'preferences' ? { preferences } : {}),
+        ...(category === 'audio' ? { audio } : {}),
         ...(category === 'sleep' ? { sleep } : {}),
       });
   }
@@ -203,9 +215,16 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         const suffix = change.key.slice(LIBRARY_PREFIX.length).split(':')[0];
         if (suffix === 'history') trimHistory();
         if (
-          ['favorite', 'song', 'history', 'filters', 'last', 'preferences', 'sleep'].includes(
-            suffix!,
-          )
+          [
+            'favorite',
+            'song',
+            'history',
+            'filters',
+            'last',
+            'preferences',
+            'sleep',
+            'audio',
+          ].includes(suffix!)
         ) {
           changed.add(suffix as Category);
           timer ??= setTimeout(flush, 16);
@@ -224,6 +243,11 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
       const next = FilterSchema.parse(value);
       write(LIBRARY_PREFIX + 'filters', next);
       publish('filters');
+    },
+    setAudioOptions(patch: Partial<AudioOptions>) {
+      refresh(LIBRARY_PREFIX + 'audio');
+      write(LIBRARY_PREFIX + 'audio', AudioOptionsSchema.parse({ ...audio, ...patch }));
+      publish('audio');
     },
     setPreferences(patch: Partial<Preferences>) {
       refresh(LIBRARY_PREFIX + 'preferences');

@@ -212,3 +212,14 @@ it('saves and removes canonical song identities without overwriting station favo
   expect(library.store.getState().songs.map((song) => song.title)).toEqual(['Imported']);
   expect(library.store.getState().favorites).toHaveLength(1);
 });
+it('keeps audio preferences separate from older preferences and merges independent tab changes', () => {
+  const env = environment(),
+    first = createLibrary(env),
+    second = createLibrary(env);
+  first.setPreferences({ volume: 0.3 });
+  first.setAudioOptions({ normalize: true });
+  second.setAudioOptions({ tuning: true });
+  const restored = createLibrary(env).store.getState();
+  expect(restored.audio).toEqual({ normalize: true, tuning: true });
+  expect(restored.preferences.volume).toBe(0.3);
+});

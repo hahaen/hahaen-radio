@@ -57,6 +57,18 @@ const resources = {
       clickLyricToCalibrate: '点击某句可将它校准到此刻；换歌、换线路或切换版本会重置校时。',
       timedLyrics: '带时间戳的歌词',
 
+      audioEnhancementUnavailable: '当前设备不支持部分音频增强，基础收听仍可使用。',
+      normalizeVolume: '音量统一',
+      normalization: {
+        off: '音量统一已关闭。',
+        waiting: '收听时尝试校准音量。',
+        active: '正在使用本台的响度校准。',
+        unavailable: '此线路暂不能分析，保持原音量。',
+      },
+      normalizationHint: '仅支持可分析的线路，会额外读取少量音频；降低过响片段，不放大安静片段。',
+      tuningSound: '调台音效',
+      allowTuningSound: '允许播放音效',
+      tuningHint: '默认关闭；暂停、静音或音量为零时不播放。浏览器可能需要你允许声音。',
       listeningSettings: '收听设置',
       playbackPreferences: '播放与界面',
       showHints: '显示操作提示',
@@ -332,6 +344,21 @@ const resources = {
         'Click a line to align it with this moment. A new song, stream, or version resets calibration.',
       timedLyrics: 'Timestamped lyrics',
 
+      audioEnhancementUnavailable:
+        'Some audio enhancements are unavailable on this device. Basic listening still works.',
+      normalizeVolume: 'Normalize volume',
+      normalization: {
+        off: 'Volume normalization is off.',
+        waiting: 'Calibration will be attempted while listening.',
+        active: 'Using this station’s loudness calibration.',
+        unavailable: 'This stream cannot be analysed. Original volume is preserved.',
+      },
+      normalizationHint:
+        'Supported streams require a small additional audio sample. Loud sections are reduced; quiet sections are not amplified.',
+      tuningSound: 'Station tuning sound',
+      allowTuningSound: 'Allow tuning sound',
+      tuningHint:
+        'Off by default. Never plays while paused, muted, or at zero volume. Your browser may require permission to play sound.',
       listeningSettings: 'Listening settings',
       playbackPreferences: 'Playback and interface',
       showHints: 'Show operation hints',

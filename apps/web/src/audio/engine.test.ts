@@ -175,3 +175,83 @@ describe('independent audio engine', () => {
     engine.destroy();
   });
 });
+
+it('keeps playback and reports unavailable when a device ignores calibrated output at full base volume', async () => {
+  vi.stubGlobal(
+    'OfflineAudioContext',
+    class {
+      async decodeAudioData() {
+        return {
+          length: 100,
+          duration: 1,
+          numberOfChannels: 1,
+          getChannelData: () => new Float32Array(100).fill(0.28),
+        };
+      }
+    },
+  );
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(
+      async () =>
+        new Response(new Uint8Array([0]), {
+          headers: { 'content-type': 'audio/wav' },
+        }),
+    ),
+  );
+  const { engine, elements, event } = harness();
+  try {
+    engine.setVolume(1);
+    engine.setAudioOptions({ normalize: true, tuning: false });
+    engine.select('station-a', [stream(1)], true);
+    Object.defineProperty(elements[0]!, 'volume', {
+      configurable: true,
+      get: () => 1,
+      set: () => {},
+    });
+    event('playing');
+    await vi.waitFor(() => expect(engine.getSnapshot().normalization).toBe('unavailable'));
+    expect(engine.getSnapshot()).toMatchObject({
+      status: 'playing',
+      volume: 1,
+      volumeControllable: false,
+    });
+    expect(elements[0]!.volume).toBe(1);
+  } finally {
+    engine.destroy();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('unlocks optional audio with the new volume and mute state but does not resume a paused context', () => {
+  const resume = vi.fn(async () => {});
+  vi.stubGlobal(
+    'AudioContext',
+    class {
+      state = 'suspended';
+      resume = resume;
+      close = vi.fn(async () => {});
+    },
+  );
+  const { engine } = harness();
+  try {
+    engine.setAudioOptions({ normalize: false, tuning: true });
+    engine.setVolume(0);
+    engine.select('station-a', [stream(1)], true);
+    expect(resume).not.toHaveBeenCalled();
+    engine.setVolume(0.2);
+    expect(resume).toHaveBeenCalledOnce();
+    engine.setMuted(true);
+    engine.setMuted(false);
+    expect(resume).toHaveBeenCalledTimes(2);
+    engine.pause();
+    engine.setVolume(0);
+    engine.setVolume(0.2);
+    engine.setMuted(true);
+    engine.setMuted(false);
+    expect(resume).toHaveBeenCalledTimes(2);
+  } finally {
+    engine.destroy();
+    vi.unstubAllGlobals();
+  }
+});

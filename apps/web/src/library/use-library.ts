@@ -17,8 +17,10 @@ export function useListeningLibrary(player: PlayerController) {
       applying = false;
     };
     apply();
+    player.setAudioOptions(library.store.getState().audio);
     const offLibrary = library.store.subscribe((state, previous) => {
       if (state.preferences !== previous.preferences) apply();
+      if (state.audio !== previous.audio) player.setAudioOptions(state.audio);
       if (state.history.length === 0 && previous.history.length > 0) player.clearVisits();
     });
     const offVolume = player.store.subscribe((state, previous) => {

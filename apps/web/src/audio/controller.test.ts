@@ -228,3 +228,26 @@ describe('playback coordination', () => {
     expect(controller.store.getState().station?.id).toBe(testStation(2).id);
   });
 });
+it('preserves a pending play intent when normalization or volume changes repeat an already paused state', async () => {
+  let finish: (value: StationDetail) => void = () => {};
+  const { controller, playing } = harness(async (id) =>
+    id === testStation(2).id
+      ? new Promise((resolve) => {
+          finish = resolve;
+        })
+      : testStation(1),
+  );
+  await controller.select(testStation(1));
+  playing();
+  const pending = controller.select(testStation(2));
+  controller.setAudioOptions({ normalize: true, tuning: false });
+  controller.setVolume(0.25);
+  expect(controller.store.getState().intent).toBe(true);
+  finish(testStation(2));
+  await pending;
+  playing();
+  expect(controller.store.getState()).toMatchObject({
+    intent: true,
+    playback: { status: 'playing' },
+  });
+});

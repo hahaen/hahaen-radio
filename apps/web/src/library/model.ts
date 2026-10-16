@@ -125,3 +125,7 @@ export function exportFavorites(stations: SavedStation[], songs: SavedSong[], no
   parts.push(JSON.stringify(current));
   return parts;
 }
+
+export const AudioOptionsSchema = z.strictObject({ normalize: z.boolean(), tuning: z.boolean() });
+export type AudioOptions = z.infer<typeof AudioOptionsSchema>;
+export const defaultAudioOptions = (): AudioOptions => ({ normalize: false, tuning: false });

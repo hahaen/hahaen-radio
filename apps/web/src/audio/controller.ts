@@ -87,7 +87,7 @@ export function createPlayerController(
       if (visits.length > 100) visits.shift();
       cursor = visits.length - 1;
     }
-    if (playback.status === 'paused') wantsPlayback = false;
+    if (playback.status === 'paused' && state.playback.status !== 'paused') wantsPlayback = false;
     store.setState({ playback, canGoBack: canGoBack(), intent: wantsPlayback });
     if (playback.status === 'failed' && playback.stationId) failedStations.add(playback.stationId);
     if (
@@ -121,6 +121,7 @@ export function createPlayerController(
     station: StationPreview | null,
   ) {
     if (!engine) return;
+    if (autoplay) engine.activateAudio();
     cancel();
     if (!automatic) failedStations.clear();
     const selectedToken = token;
@@ -170,6 +171,7 @@ export function createPlayerController(
     resolveStation(station.id, autoplay, automatic, station);
   async function explore(autoplay: boolean, automatic = false) {
     if (!engine || !explorer) return;
+    if (autoplay) engine.activateAudio();
     cancel();
     if (!networkOnline) {
       store.setState({ resolving: false, requestFailure: 'offline' });
@@ -307,6 +309,9 @@ export function createPlayerController(
         store.setState({ resolving: false });
       }
     },
+    setAudioOptions: (value: { normalize: boolean; tuning: boolean }) =>
+      engine?.setAudioOptions(value),
+    activateAudio: () => engine?.activateAudio(true),
     setVolume: (volume: number) => engine?.setVolume(volume),
     setMuted: (muted: boolean) => engine?.setMuted(muted),
     setOnline(online: boolean) {
