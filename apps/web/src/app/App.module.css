@@ -1,0 +1,129 @@
+.page {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 48px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+.brand {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.brand span {
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.18em;
+}
+.languages {
+  display: flex;
+  gap: 8px;
+}
+.languages button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+}
+.languages button[aria-pressed='true'] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text);
+}
+.main {
+  flex: 1;
+  width: min(100%, 840px);
+  padding-block: clamp(80px, 18svh, 180px);
+}
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--color-accent);
+  letter-spacing: 0.18em;
+}
+.main h1 {
+  max-width: 700px;
+  font-family: var(--font-display);
+  font-size: clamp(36px, 5vw, 64px);
+  line-height: 1.3;
+  font-weight: 400;
+  text-wrap: balance;
+  margin: 24px 0;
+}
+.description {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+.connection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 48px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+.dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+}
+.retry {
+  margin-top: 16px;
+  padding: 12px 24px;
+  min-height: 44px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(100%, 360px);
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.rule {
+  height: 1px;
+  background: var(--color-border);
+  flex: 1;
+}
+.skip {
+  position: absolute;
+  top: 8px;
+  left: 16px;
+  transform: translateY(-160%);
+  padding: 12px;
+  background: var(--color-surface);
+  z-index: 10;
+}
+.skip:focus {
+  transform: translateY(0);
+}
+@media (width < 768px) {
+  .page {
+    padding: 20px;
+  }
+  .brand {
+    font-size: 20px;
+  }
+  .brand span {
+    font-size: 15px;
+  }
+  .main h1 {
+    font-size: 32px;
+  }
+}

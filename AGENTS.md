@@ -6,10 +6,11 @@
 
 - 项目名称：声屿 HAEN。标语：嗯，听听世界。
 - 项目必须同时适配电脑端和手机端，两端均为开发与验收的必需范围。
-- 当前技术基线和工程目录骨架已建立，应用依赖、可运行入口、数据库与部署配置尚未初始化。
+- 当前已建立技术基线、工程目录及前后端基础入口，工作区初始化与本机基础验证已通过；数据库、业务与部署配置仍待后续阶段完成，具体见产品实施进度。
 - 区分“已确定方案”“已实现”“已验证”和“已部署”，不得将文档中的目标结构当作现有代码。
 - 当前状态应以实际仓库和运行环境为准；实现推进后及时更新相关文档。
 - 总导航：[docs/README.md](docs/README.md)。
+- 产品目标：[docs/product/README.md](docs/product/README.md)，状态见[实施进度](docs/product/progress.md)与[验收矩阵](docs/product/acceptance.md)。
 - 技术基线：[docs/overview/technology-stack.md](docs/overview/technology-stack.md)。
 - 视觉基线：[夜航设计规范](docs/frontend/design/night-voyage.md)与[已确认概念图](docs/frontend/design/assets/night-voyage-concept.png)。
 - 系统设计：[docs/architecture/system-design.md](docs/architecture/system-design.md)。

@@ -1,0 +1,56 @@
+:root {
+  color-scheme: dark;
+  --color-bg: #0b151b;
+  --color-surface: #15252d;
+  --color-text: #e8e9e1;
+  --color-text-muted: #a6b7b8;
+  --color-secondary: #83aaa3;
+  --color-accent: #d8ad6b;
+  --color-on-accent: #0b151b;
+  --color-border: rgb(166 183 184 / 18%);
+  --color-selected-bg: rgb(131 170 163 / 12%);
+  --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
+  --font-body: 'Noto Sans SC', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 320px;
+}
+button,
+input {
+  font: inherit;
+}
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: default;
+}
+a {
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

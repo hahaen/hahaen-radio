@@ -1,6 +1,6 @@
 # 仓库目录规划
 
-状态：前后端、共享包、迁移、脚本、部署和端到端测试目录骨架已建立。应用入口、工作区配置、依赖、流水线和运行配置尚未初始化。
+状态：前后端基础入口、工作区配置、共享契约和检查脚本已建立；数据库、业务与发布流水线待后续阶段实施。
 
 ## 顶层结构
 
@@ -48,7 +48,7 @@ hahaen-radio/
 └── pnpm-lock.yaml
 ```
 
-上述目录已通过说明文件或 `.gitkeep` 纳入版本管理。树中的 `Jenkinsfile`、`package.json`、`pnpm-workspace.yaml` 和 `pnpm-lock.yaml` 为后续初始化目标，当前尚未创建。说明文件和占位文件未在树中逐项展开。
+工程初始化已创建 `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml` 与应用入口；`Jenkinsfile` 仍待部署阶段实施。未实施职责继续使用 `.gitkeep` 保留。说明文件、具体模块与检查配置未在树中逐项展开。
 
 `packages/contracts/src` 已预留共享契约源码目录；`packages/config` 的具体配置文件在工具链初始化时创建。具体业务模块名称待需求确定后建立。
 

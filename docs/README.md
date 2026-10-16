@@ -1,6 +1,6 @@
 # 技术文档导航
 
-本目录保存「声屿 HAEN」的技术方案、工程约定与部署运维流程。当前已完成文档整理和工程目录骨架，应用依赖、可运行入口、数据库和发布流水线均待初始化与验证。
+本目录保存「声屿 HAEN」的产品目标、技术方案、工程约定与部署运维流程。工程初始化已通过本机基础验证；数据库、完整业务与发布配置仍待后续阶段完成，实际验证状态见产品验收矩阵。
 
 ## 阅读顺序
 
@@ -14,6 +14,7 @@
 
 | 一级目录 | 二级主题 | 文档 |
 | --- | --- | --- |
+| `product/` | 产品目标、阶段进度与验收 | [产品目标](product/README.md)、[实施进度](product/progress.md)、[验收矩阵](product/acceptance.md) |
 | `overview/` | 项目状态、技术组合 | [总览](overview/README.md)、[技术选型](overview/technology-stack.md) |
 | `architecture/` | 系统、仓库、架构决策 | [架构导航](architecture/README.md)、[系统设计](architecture/system-design.md)、[仓库规划](architecture/repository-layout.md)、[决策记录](architecture/decisions/README.md) |
 | `frontend/` | 设计、应用、渲染、音频、浏览器 | [前端导航](frontend/README.md)、[夜航设计规范](frontend/design/night-voyage.md)、[应用结构与状态](frontend/application/structure-and-state.md)、[Three.js](frontend/rendering/threejs.md)、[音频引擎](frontend/audio/audio-engine.md)、[平台与本地存储](frontend/platform/browser-and-storage.md) |
@@ -22,13 +23,17 @@
 | `engineering/` | 环境、依赖、质量、测试 | [工程导航](engineering/README.md)、[环境与依赖](engineering/environment-and-dependencies.md)、[质量与测试](engineering/quality-and-testing.md) |
 | `deployment/` | 容器、Jenkins、发布 | [部署导航](deployment/README.md)、[容器与存储](deployment/containers/topology-and-storage.md)、[Jenkins 流水线](deployment/jenkins/pipeline.md)、[环境与凭据](deployment/jenkins/environment-and-credentials.md)、[发布与回退](deployment/releases/release-and-rollback.md) |
 | `operations/` | 配置、日志、健康检查 | [运维导航](operations/README.md)、[配置与日志](operations/configuration-and-logging.md)、[健康与排障](operations/health-and-troubleshooting.md) |
-| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md) |
+| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md) |
 
 ## 文档目录树
 
 ```text
 docs/
 ├── README.md
+├── product/
+│   ├── README.md
+│   ├── progress.md
+│   └── acceptance.md
 ├── overview/
 │   ├── README.md
 │   └── technology-stack.md
@@ -87,7 +92,9 @@ docs/
     │   └── README.md
     ├── 2026-10-16-desktop-mobile-adaptation/
     │   └── README.md
-    └── 2026-10-16-night-voyage-design/
+    ├── 2026-10-16-night-voyage-design/
+    │   └── README.md
+    └── 2026-10-17-workspace-foundation/
         └── README.md
 ```
 
