@@ -4,7 +4,7 @@
 
 本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
 
-已完成工程初始化、真实目录管线、基础播放与夜航探索，可搜索电台、旋转地球、按流派发现并播放 MP3/AAC/HLS。电台收藏、最近收听、多维筛选、分享与文件迁移也已接入，收听设置、睡眠、快捷键和沉浸基础已接入，曲目与歌词、可选音量校准及调台音效已接入，识曲、性能与部署配置继续推进；实际状态见[实施进度](docs/product/progress.md)。
+已完成工程初始化、真实目录管线、基础播放与夜航探索，可搜索电台、旋转地球、按流派发现并播放 MP3/AAC/HLS。电台收藏、最近收听、多维筛选、分享与文件迁移也已接入，收听设置、睡眠、快捷键和沉浸基础已接入，曲目与歌词、可选音量校准及调台音效已接入，默认关闭的识曲适配及部署材料已实现；本次按约定功能、构建运行、相关测试及无已知严重功能问题的标准完成，环境专项保留待办。证据见[目标收尾](docs/iterations/2026-10-17-goal-completion/README.md)；实际状态见[实施进度](docs/product/progress.md)。
 
 ## 文档入口
 
@@ -73,4 +73,4 @@ pnpm exec playwright install chromium firefox webkit
 pnpm test:e2e
 ```
 
-`pnpm build` 生成各包 `dist/`；后端编译入口为 `pnpm --filter @haen/server start`，任务为 `start:jobs`。前端已有真实列表、搜索、播放器、地球与流派探索；个人工具、曲目与可选音频增强已接入，完整交付继续推进。三个镜像目标、Compose 与 Caddy 配置已建立，见[构建与运行](docs/deployment/containers/local-and-image-build.md)；Docker 实测按用户要求延后到实际部署环境执行。
+`pnpm build` 生成各包 `dist/`；后端编译入口为 `pnpm --filter @haen/server start`，任务为 `start:jobs`。前端已有真实列表、搜索、播放器、地球与流派探索；个人工具、曲目与可选音频增强已接入，本次功能交付完成。三个镜像目标、Compose 与 Caddy 配置已建立，见[构建与运行](docs/deployment/containers/local-and-image-build.md)；Docker 实测按用户要求延后到实际部署环境执行。

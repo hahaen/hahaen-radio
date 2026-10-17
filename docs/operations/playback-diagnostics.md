@@ -6,7 +6,7 @@
 
 新增 `0002_playback_diagnostics.sql` 建立 diagnostic_limits 与 playback_reports、索引、CHECK 约束、显式表选项及单例初始行。Drizzle Schema、生成 SQL 和元数据同步版本化；不在启动时自动建表或补写丢失的额度行。
 
-当前新迁移仅在隔离 MySQL 8.0.46 临时库执行；开发库仍为前两条，正式库未执行。目标环境应先按[迁移流程](../data/migrations/workflow.md)审核 SQL、停写、完成一致性备份并执行迁移，再配置最小权限，随后更新 API/任务和 Web。旧 API 缺少报告入口时，新 Web 保留本地说明与基础收听；原有识曲能力契约未改变。
+当前新迁移已在隔离 MySQL 8.0.46 临时库验证，并在开发库执行；开发库三条迁移、11 表及 API/任务所需新增表权限已具备，正式库未执行，见[收尾记录](../iterations/2026-10-17-goal-completion/README.md)。目标环境应先按[迁移流程](../data/migrations/workflow.md)审核 SQL、停写、完成一致性备份并执行迁移，再配置最小权限，随后更新 API/任务和 Web。旧 API 缺少报告入口时，新 Web 保留本地说明与基础收听；原有识曲能力契约未改变。
 
 | 身份 | 新表权限 |
 | --- | --- |
