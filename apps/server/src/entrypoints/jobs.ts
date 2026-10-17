@@ -5,9 +5,12 @@ import { RadioBrowserClient } from '../integrations/radio-browser.js';
 import { createCatalogRepository } from '../modules/catalog/repository.js';
 import { synchronizeCatalog } from '../modules/catalog/sync.js';
 import { createDiagnosticRepository } from '../modules/diagnostics/repository.js';
+import { createRuntimeLog } from '../operations/runtime-log.js';
 
 let database: Database | undefined;
+let log: ReturnType<typeof createRuntimeLog> | undefined;
 try {
+  log = createRuntimeLog('jobs');
   database = await openDatabase(readDatabaseConfig());
   const repository = createCatalogRepository(database);
   const controller = new AbortController();
@@ -18,10 +21,10 @@ try {
     activeCleanup = diagnostics
       .cleanup()
       .then((removed) => {
-        console.info(JSON.stringify({ event: 'diagnostic_cleanup_finished', removed }));
+        log!.event('diagnostic_cleanup_finished', { removed });
       })
       .catch(() => {
-        console.error(JSON.stringify({ event: 'diagnostic_cleanup_failed' }));
+        log!.event('diagnostic_cleanup_failed', { level: 50 });
       })
       .finally(() => {
         activeCleanup = undefined;
@@ -40,10 +43,10 @@ try {
       if (active || controller.signal.aborted) return;
       active = synchronizeCatalog(repository, new RadioBrowserClient(), controller.signal)
         .then((result) => {
-          console.info(JSON.stringify({ event: 'catalog_sync_finished', ...result }));
+          log!.event('catalog_sync_finished', result);
         })
         .catch(() => {
-          console.error(JSON.stringify({ event: 'catalog_sync_failed' }));
+          log!.event('catalog_sync_failed', { level: 50 });
         })
         .finally(() => {
           active = undefined;
@@ -62,6 +65,7 @@ try {
     await active;
     await activeCleanup;
     await database?.close();
+    log?.close();
     clearTimeout(deadline);
   };
   process.once('SIGINT', () => {
@@ -70,11 +74,11 @@ try {
   process.once('SIGTERM', () => {
     void close();
   });
-  console.info(
-    JSON.stringify({ event: 'scheduler_started', timezone: 'UTC', schedule: '0 2 * * *' }),
-  );
+  log.event('scheduler_started');
 } catch {
+  log?.event('scheduler_start_failed', { level: 50 });
   await database?.close().catch(() => {});
+  log?.close();
   console.error(JSON.stringify({ event: 'scheduler_start_failed' }));
   process.exitCode = 1;
 }

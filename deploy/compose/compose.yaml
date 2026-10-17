@@ -10,10 +10,7 @@ x-runtime: &runtime
   tmpfs: ['/tmp:size=32m,mode=1777']
   stop_grace_period: 30s
   logging:
-    driver: local
-    options:
-      max-size: 10m
-      max-file: '3'
+    driver: none
   networks: [application]
 
 x-database: &database
@@ -42,9 +39,11 @@ services:
       HOST: 0.0.0.0
       PORT: '3001'
       API_DOCS_ENABLED: 'false'
+      HAEN_LOG_DIRECTORY: /var/log/haen
     volumes:
       - *ca
       - recognition_state:/var/lib/haen/recognition
+      - api_logs:/var/log/haen
     healthcheck:
       test:
         [
@@ -68,7 +67,10 @@ services:
     environment:
       <<: *database
       RECOGNITION_ENABLED: 'false'
-    volumes: [*ca]
+      HAEN_LOG_DIRECTORY: /var/log/haen
+    volumes:
+      - *ca
+      - jobs_logs:/var/log/haen
 
   web:
     image: ${HAEN_WEB_IMAGE:?Set an immutable web image}
@@ -130,3 +132,5 @@ volumes:
   caddy_data:
   caddy_config:
   recognition_state:
+  api_logs:
+  jobs_logs:

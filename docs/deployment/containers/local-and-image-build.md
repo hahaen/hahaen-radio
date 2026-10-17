@@ -50,7 +50,7 @@ API 无公开端口，只有 Web 映射 HTTP/HTTPS；应用网络保留访问外
 
 Caddy 保留 `/api` 与 `/api/*` 前缀并禁止 API 响应缓存；命名静态目录及带扩展名的资源缺失时返回 404。只有接受 HTML 的 GET/HEAD 页面导航回退到 index.html。哈希 assets 长缓存，其余资源及 HTML 需重新校验。Caddy 管理接口关闭，内部 loopback 8081/health 仅用于容器健康；不启用访问记录，并丢弃可能包含请求地址的 Caddy 普通运行日志。
 
-API/jobs 日志暂使用 local 驱动限制每容器最多 3×10MiB；大小上限不等于 7 天时间保留，后续日志方案与部署验收必须补齐。数据库及证书状态不随应用更新删除；不执行 `down --volumes`。
+API/jobs使用独立持久日志卷，目录700、文件600，普通日志由应用按七天、每片段10MiB及每服务30MiB上限清理，Docker日志驱动为none；读取、停机清理延迟和旧镜像回退限制见[日志说明](../../operations/runtime-logs.md)。实际卷权限及自然清理仍待目标验收。数据库及证书状态不随应用更新删除；不执行 `down --volumes`。
 
 ## 验证边界与资料
 

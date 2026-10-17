@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "387f890604b0683fcf591b9c033f4052074942fe",
+  "ordinaryTests": 219,
+  "ordinaryMysqlSkipped": 10,
+  "newOrdinaryTests": 10,
+  "nativeApiStartupAndGracefulExit": true,
+  "nativeRuntimeLogProbe": true,
+  "nativeQueryRemoved": true,
+  "realFilesSizeRotation": true,
+  "clockControlledExpiration": true,
+  "legacyServerRefusedBeforeMaintenance": true,
+  "sourceReview": true,
+  "databaseRun": false,
+  "dockerRun": false,
+  "jenkinsRun": false,
+  "productionWrites": false,
+  "naturalSevenDayRun": false,
+  "upstreamSync": "No upstream change; 25 task files restored byte-for-byte, scoped re-review, full checks and compiled native API repeated",
+  "inputs": {
+    "apps/server/src/operations/runtime-log.ts": "434524b25edc7e2ce23d9932033c221a62ddaa4c6686eaa96578222307a684e6",
+    "apps/server/src/operations/runtime-log.test.ts": "43bf68189a5495e6de6af5b4c62368b797f6bd8a600d9abbdbf59db0e6a23d49",
+    "apps/server/src/app.ts": "b8873e5c431b95650b9045a6f7e7183d8ac9f58d921e8275f4a21c3ef5760729",
+    "apps/server/src/entrypoints/api.ts": "620350c88acd8de99aa7d1e9d6025947100e0531ecb6155857a86b04f34ea21f",
+    "apps/server/src/entrypoints/jobs.ts": "7716bb747125ca00c448691f648436f04356d41d0572a2606884f06a4aef06bd",
+    "deploy/docker/Dockerfile": "f435947812d354bd583868417f9e04f6e36e6f4b40c9b5cff144fbc6f3b296f7",
+    "deploy/compose/compose.yaml": "f677c9b99095738624c22873beddba5180de50fc996bacd9dfbec31acb105449",
+    "scripts/deploy/runtime-logs.mjs": "1d0374242112623b5d68622a33a02123d7ef22a7777d0246e878569dff440f73",
+    "scripts/deploy/target.mjs": "90ace7b446e5dcc8e7c29a895cf887399c9f2b5a98594ee856667a1ce37fca91",
+    "scripts/release/smoke.mjs": "9218a0fd064d87e7965da6f1eb9ccb0956e96e1e2794aa01e687029b17871183",
+    "tests/deployment/runtime-logs.test.mjs": "5fe6988f34acb4fcd5b18d815537365a12b1c6b3dd7c1aa1809a86e9350a105b"
+  },
+  "postSyncOrdinaryTests": 219,
+  "postSyncDocs": {
+    "markdown": 99,
+    "localLinks": 601
+  }
+}

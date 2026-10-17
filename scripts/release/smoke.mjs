@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { imageReference, roles } from './common.mjs';
 import { assertImages } from './images.mjs';
+import { runtimeLogProbe } from '../deploy/runtime-logs.mjs';
 
 const label = 'org.haen.ci.run';
 export async function smokeImages(run, build, mysqlImage, directory, signal) {
@@ -53,12 +54,25 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
     '--read-only',
     '--tmpfs',
     '/tmp:size=32m',
+    '--env',
+    'HAEN_LOG_DIRECTORY=/var/log/haen',
+    '--tmpfs',
+    '/var/log/haen:size=32m,mode=700,uid=1000,gid=1000',
     '--cap-drop',
     'ALL',
     '--security-opt',
     'no-new-privileges:true',
     build.images[role].id,
   ];
+  const checkLogs = (name, service, event) =>
+    run([
+      'exec',
+      name,
+      'node',
+      '--input-type=module',
+      '-e',
+      runtimeLogProbe(service, build.revision, event),
+    ]);
   const sql = (query) =>
     run([
       'exec',
@@ -192,9 +206,10 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
         'ready',
       ),
     );
+    assert.equal(await checkLogs(apiName, 'api', 'request_completed'), 'ready');
     await run([...appArgs('server', jobsName), 'dist/entrypoints/jobs.js']);
     await retry(
-      async () => assert((await run(['logs', jobsName])).includes('scheduler_started')),
+      async () => assert.equal(await checkLogs(jobsName, 'jobs', 'scheduler_started'), 'ready'),
       10,
     );
     assert.equal((await inspect(jobsName)).Running, true);

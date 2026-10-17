@@ -34,11 +34,13 @@ export function buildApp(
     recognition?: RecognitionService;
     diagnostics?: DiagnosticService;
   },
+  logStream?: { write: (message: string) => void },
 ) {
   const app = Fastify({
     logger: logging
       ? {
           level: config.logLevel,
+          ...(logStream ? { stream: logStream } : {}),
           redact: {
             paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
             censor: '[REDACTED]',

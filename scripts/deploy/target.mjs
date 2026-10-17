@@ -18,6 +18,7 @@ import {
   sourceMigrations,
 } from '../release/images.mjs';
 import { deployFlow, validateRelease } from './flow.mjs';
+import { assertRuntimeLogImage, runtimeLogProbe } from './runtime-logs.mjs';
 
 const pathValue = (value) => {
   assert(
@@ -313,12 +314,13 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
         );
         for (const role of roles) {
           await run(['pull', candidate.images[role]], { capture: false, timeout: 900000 });
-          await imageIdentity(
+          const image = await imageIdentity(
             run,
             candidate.images[role],
             candidate.imageRevisions[role],
             candidate.platform,
           );
+          if (role === 'server') assertRuntimeLogImage(image);
         }
         if (current) {
           for (const role of roles) {
@@ -526,18 +528,24 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
           const rows = await instances('jobs');
           assert.equal(rows.length, 1);
           assert(rows[0].State.Running && rows[0].RestartCount === 0);
-          const events = (await run(['logs', '--tail', '30', rows[0].Id]))
-            .split('\n')
-            .flatMap((line) => {
-              try {
-                return [JSON.parse(line)];
-              } catch {
-                return [];
-              }
-            });
-          if (events.some((item) => item.event === 'scheduler_started')) {
+          const started = Date.parse(rows[0].State.StartedAt);
+          assert(Number.isSafeInteger(started));
+          try {
+            assert.equal(
+              await run([
+                'exec',
+                rows[0].Id,
+                'node',
+                '--input-type=module',
+                '-e',
+                runtimeLogProbe('jobs', value.imageRevisions.server, 'scheduler_started', started),
+              ]),
+              'ready',
+            );
             await assertRuntime(value, ['jobs']);
             return;
+          } catch {
+            signal.throwIfAborted();
           }
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }

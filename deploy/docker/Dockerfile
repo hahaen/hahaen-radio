@@ -10,11 +10,13 @@ RUN pnpm --filter @haen/server --prod deploy /out/server
 
 FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS server
 ARG VCS_REF=local
-LABEL org.opencontainers.image.title="HAEN server" org.opencontainers.image.revision=$VCS_REF
+LABEL org.opencontainers.image.title="HAEN server" org.opencontainers.image.revision=$VCS_REF io.haen.runtime-log="private-jsonl-v1"
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=3001
+ENV HAEN_APPLICATION_REVISION=$VCS_REF
 WORKDIR /app
 COPY --from=portable --chown=node:node /out/server/ ./
 RUN mkdir -p /var/lib/haen/recognition && chown node:node /var/lib/haen/recognition && chmod 700 /var/lib/haen/recognition
+RUN mkdir -p /var/log/haen && chown node:node /var/log/haen && chmod 700 /var/log/haen
 USER node
 EXPOSE 3001
 ENTRYPOINT ["node"]

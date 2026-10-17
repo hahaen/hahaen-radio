@@ -4,7 +4,7 @@
 
 | 编号 | 范围 | 当前状态 | 证据 |
 | --- | --- | --- | --- |
-| ENG-01 | 冻结依赖安装、检查、测试与构建 | 已通过 | Node.js 24.9.0 / pnpm 12.5.1；格式、Lint、类型检查、209 项普通测试、前后端生产构建；10 项 MySQL 用例历史验收见 OBS-01；MIGRATE-01 与 BACKUP-01 的专用真实验收见各自归档，本轮未执行数据库验收 |
+| ENG-01 | 冻结依赖安装、检查、测试与构建 | 已通过 | Node.js 24.9.0 / pnpm 12.5.1；格式、Lint、类型检查、219 项普通测试、前后端生产构建；10 项 MySQL 用例历史验收见 OBS-01；MIGRATE-01 与 BACKUP-01 的专用真实验收见各自归档，本轮未执行数据库验收 |
 | ENG-02 | API 契约、错误与配置加载 | 已通过 | Fastify inject；编译后 API 实际启动；临时环境文件加载与生产文档隐藏检查 |
 | WEB-01 | 三浏览器与手机视口基础入口 | 已通过 | Chromium 156、Firefox 157、WebKit 27.2 和 Pixel 7 模拟视口共 8 项测试；中文与英文切换、刷新持久化、无横向溢出及真实同域代理；不代表真实手机验收 |
 | DATA-01 | MySQL 8.0.46 初始化、迁移与数据保留 | 已通过 | 两条迁移；专用临时库初始化、升级保留、重复迁移、事务回滚及连接池超时恢复，共 6 项 MySQL 验收通过；开发库已应用，正式库未执行 |
@@ -29,8 +29,9 @@
 | BACKUP-02 | 每日流程与受控副本复制 | 已通过 | 本机文件与真实 MySQL 验收见[每日归档](../iterations/2026-10-17-backup-schedule/README.md)；systemd 定时及独立物理存储仍待目标 Linux 验收 |
 | MIGRATE-01 | 迁移状态、前缀核验与空库保护 | 已通过 | 4 项新增普通测试及真实 MySQL 8.0.46 的空库、重复执行返回 0、两条到三条升级保留、摘要/时间漂移与未管理表/半完成建表拒绝，见[预检归档](../iterations/2026-10-17-migration-preflight/README.md)；不是完整列/索引/约束漂移检测，正式库未执行 |
 | CI-01 | Jenkins 镜像构建、验收与分发 | 待外部条件 | 确定提交、镜像 ID/摘要链、隔离检查脚本和手动分发已实现，7 项模拟 CLI/原生边界测试通过；实际 Jenkins/Docker/仓库及目标发布执行器见[产物记录](../iterations/2026-10-17-release-images/README.md) |
+| LOG-01 | 普通日志七天与容量保留 | 待外部条件 | 原生文件/Fastify、当前启动探针及编译API通过，见[归档](../iterations/2026-10-17-runtime-log/README.md)；Linux命名卷、自然清理和磁盘故障仍待目标验收 |
 | CI-02 | 独立目标审批与跨节点交接 | 待外部条件 | 209项普通检查、14项定向原生CLI/文件验证及源码Review见[本轮记录](../iterations/2026-10-17-jenkins-target/README.md)；实际Jenkins DSL/CPS/input/stash/凭据和Linux发布未执行 |
 | DEPLOY-02 | 目标执行器、维护与受控恢复 | 待外部条件 | 实现、203项普通检查、原生Caddy的9组布局及3组200%文字、实际MySQL维护/备份见[归档](../iterations/2026-10-17-target-deployment/README.md)；流程IO为模拟，Linux/Docker/sudo与Jenkins目标阶段仍待验收 |
-| DEPLOY-01 | 镜像、Compose、迁移、恢复与手动发布 | 待外部条件 | 用户于 2026-10-17 明确允许本机不测 Docker；镜像/Compose/Caddy 基础见[容器归档](../iterations/2026-10-17-container-foundation/README.md)，备份工具见[恢复归档](../iterations/2026-10-17-backup-recovery/README.md)；每日调度材料见[说明](../operations/daily-backups.md)；Jenkins 构建分发材料已接入，目标执行器见[本轮归档](../iterations/2026-10-17-target-deployment/README.md)，Jenkins目标交接见[本轮记录](../iterations/2026-10-17-jenkins-target/README.md)，真实节点尚待验收，真实副本/定时与日志保留继续验收，实际部署环境执行容器检查 |
+| DEPLOY-01 | 镜像、Compose、迁移、恢复与手动发布 | 待外部条件 | 用户于 2026-10-17 明确允许本机不测 Docker；镜像/Compose/Caddy 基础见[容器归档](../iterations/2026-10-17-container-foundation/README.md)，备份工具见[恢复归档](../iterations/2026-10-17-backup-recovery/README.md)；每日调度材料见[说明](../operations/daily-backups.md)；Jenkins 构建分发材料已接入，目标执行器见[本轮归档](../iterations/2026-10-17-target-deployment/README.md)，Jenkins目标交接见[本轮记录](../iterations/2026-10-17-jenkins-target/README.md)，真实节点尚待验收，普通日志七天清理见[说明](../operations/runtime-logs.md)，真实副本/自然定时与卷权限继续验收，实际部署环境执行容器检查 |
 
 返回[实施进度](progress.md)。
