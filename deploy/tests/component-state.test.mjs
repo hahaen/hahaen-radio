@@ -180,3 +180,25 @@ it('rejects mutable tags, extra fields and frontend migration tools', () => {
   ])
     expect(() => componentRelease(value)).toThrow();
 });
+
+it('recovers a failed component without repeating SQL and restores the unselected writer exactly', async () => {
+  const f = fixture();
+  const original = structuredClone(f.state.components.jobs);
+  f.state.attempt = {
+    component: 'api',
+    candidate: release('api', 'b'),
+    affected: ['api', 'jobs'],
+    phase: 'failed',
+  };
+  await componentFlow(
+    { component: 'api', action: 'recover', recoveryConfirmed: true, recoveryVersion: 'attempt' },
+    f.io,
+  );
+  expect(f.events.some(([name]) => name === 'migrate')).toBe(false);
+  expect(f.events.filter(([name]) => name === 'publish').map(([, value]) => value)).toEqual([
+    f.state.components.api,
+    original,
+  ]);
+  expect(f.state.components.jobs).toEqual(original);
+  expect(f.state.attempt).toBeUndefined();
+});

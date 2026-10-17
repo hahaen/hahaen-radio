@@ -406,12 +406,14 @@ export async function executeComponentTarget(env, signal, database, targetFinger
           ? storedMigrationStatus(invoke, config, state.schema)
           : hostMigrationStatus(config, readDatabaseConfig),
       begin: async (attempt) => {
-        if (state.lastCompleted) {
-          const path = join(config.stateDirectory, state.lastCompleted.id + '.json');
+        for (const record of [state.lastCompleted, state.attempt].filter(Boolean)) {
+          assert(/^[a-f0-9]{24}$/.test(record.id));
+          const path = join(config.stateDirectory, record.id + '.json');
           try {
-            await save(path, state.lastCompleted);
+            await save(path, record);
           } catch (error) {
             if (error.code !== 'EEXIST') throw error;
+            assert.deepEqual(await load(path), record);
           }
         }
         state = { ...state, attempt };
