@@ -12,7 +12,7 @@
 | 6 曲目与沉浸能力 | 已通过 | 元数据、歌曲收藏、外部搜索、歌词版本与手动校时见[曲目归档](../iterations/2026-10-17-track-and-lyrics/README.md)；沉浸与闲置基础、默认关闭的响度校准和调台音效已实现并通过适用验收，见[音频增强归档](../iterations/2026-10-17-audio-enhancement/README.md)；分析不兼容时保留基础播放，真实设备另列阶段 8 |
 | 7 识曲独立项 | 待外部条件 | 默认关闭的适配、状态、持久额度与手动入口已有 151 项普通测试、20 项识曲浏览器用例及编译入口证据；真实服务仍待有效凭据及明确额度，不声称真实识曲完成，见[识曲记录](../iterations/2026-10-17-manual-recognition/README.md) |
 | 8 兼容与性能验收 | 进行中 | 三浏览器全量核心回归已通过；3 万条目录与 60 轮切换的四项目检查通过，结果见[规模记录](../iterations/2026-10-17-scale-stability/README.md)；真实手机与完整资源预算仍待验收 |
-| 9 可部署交付 | 进行中 | 镜像目标、Compose 与 Caddy 基础已实现，见[容器归档](../iterations/2026-10-17-container-foundation/README.md)；[备份恢复工具](../iterations/2026-10-17-backup-recovery/README.md)已实现并通过本机隔离验收；备份与迁移的[维护锁](../iterations/2026-10-17-maintenance-coordination/README.md)已通过实际竞争及失锁验收；Jenkins、调度、副本与日志保留继续推进，本机容器实测按用户要求延后 |
+| 9 可部署交付 | 进行中 | 镜像目标、Compose 与 Caddy 基础已实现，见[容器归档](../iterations/2026-10-17-container-foundation/README.md)；[备份恢复工具](../iterations/2026-10-17-backup-recovery/README.md)已实现并通过本机隔离验收；备份与迁移的[维护锁](../iterations/2026-10-17-maintenance-coordination/README.md)已通过实际竞争及失锁验收；每日备份、受控副本复制及 systemd 材料已实现，见[定时备份](../iterations/2026-10-17-backup-schedule/README.md)；Jenkins、真实存储/定时与日志保留继续推进，本机容器实测按用户要求延后 |
 
 产品说明已接入双语关于、隐私、帮助、资源署名与本地反馈，见[任务记录](../iterations/2026-10-17-product-information/README.md)。有限播放诊断与保留清理已接入独立手动接口，新增迁移仅在隔离库执行，见[诊断记录](../iterations/2026-10-17-playback-diagnostics/README.md)。
 

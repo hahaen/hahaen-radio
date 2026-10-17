@@ -22,8 +22,8 @@
 | `data/` | 数据库、目录、迁移、备份 | [数据导航](data/README.md)、[目录管线](data/catalog-pipeline.md)、[离线地理](data/offline-geography.md)、[MySQL 与 Drizzle](data/database/mysql-and-drizzle.md)、[表选项与排序规则](data/database/table-options-and-collations.md)、[迁移流程](data/migrations/workflow.md)、[备份与恢复](data/backup/backup-and-restore.md) |
 | `engineering/` | 环境、依赖、质量、测试 | [工程导航](engineering/README.md)、[环境与依赖](engineering/environment-and-dependencies.md)、[质量与测试](engineering/quality-and-testing.md)、[规模与稳定性](engineering/scale-and-stability.md) |
 | `deployment/` | 容器、Jenkins、发布 | [部署导航](deployment/README.md)、[容器与存储](deployment/containers/topology-and-storage.md)、[镜像构建与运行](deployment/containers/local-and-image-build.md)、[Jenkins 流水线](deployment/jenkins/pipeline.md)、[环境与凭据](deployment/jenkins/environment-and-credentials.md)、[发布与回退](deployment/releases/release-and-rollback.md) |
-| `operations/` | 配置、日志、健康检查 | [运维导航](operations/README.md)、[配置与日志](operations/configuration-and-logging.md)、[数据库维护协调](operations/database-maintenance.md)、[健康与排障](operations/health-and-troubleshooting.md)、[识曲额度](operations/recognition-quota.md)、[播放诊断](operations/playback-diagnostics.md) |
-| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md)、[目录管线](iterations/2026-10-17-catalog-pipeline/README.md)、[真实播放](iterations/2026-10-17-real-playback/README.md)、[离线地理](iterations/2026-10-17-offline-geography/README.md)、[探索界面](iterations/2026-10-17-exploration-interface/README.md)、[本地收听清单](iterations/2026-10-17-personal-library/README.md)、[收听控制](iterations/2026-10-17-listening-controls/README.md)、[曲目与歌词](iterations/2026-10-17-track-and-lyrics/README.md)、[音频增强](iterations/2026-10-17-audio-enhancement/README.md)、[手动识曲](iterations/2026-10-17-manual-recognition/README.md)、[产品说明](iterations/2026-10-17-product-information/README.md)、[有限诊断](iterations/2026-10-17-playback-diagnostics/README.md)、[规模验证](iterations/2026-10-17-scale-stability/README.md)、[容器基础](iterations/2026-10-17-container-foundation/README.md)、[备份恢复](iterations/2026-10-17-backup-recovery/README.md)、[维护协调](iterations/2026-10-17-maintenance-coordination/README.md) |
+| `operations/` | 配置、日志、健康检查 | [运维导航](operations/README.md)、[配置与日志](operations/configuration-and-logging.md)、[数据库维护协调](operations/database-maintenance.md)、[每日备份](operations/daily-backups.md)、[健康与排障](operations/health-and-troubleshooting.md)、[识曲额度](operations/recognition-quota.md)、[播放诊断](operations/playback-diagnostics.md) |
+| `iterations/` | 按日期和主题的任务记录 | [归档导航](iterations/README.md)、[MySQL 与 Drizzle Kit](iterations/2026-10-16-mysql-drizzle-kit/README.md)、[技术方案评估](iterations/2026-10-16-technical-assessment/README.md)、[建表选项核对](iterations/2026-10-16-table-options/README.md)、[双端适配规范](iterations/2026-10-16-desktop-mobile-adaptation/README.md)、[夜航视觉规范](iterations/2026-10-16-night-voyage-design/README.md)、[工程初始化](iterations/2026-10-17-workspace-foundation/README.md)、[目录管线](iterations/2026-10-17-catalog-pipeline/README.md)、[真实播放](iterations/2026-10-17-real-playback/README.md)、[离线地理](iterations/2026-10-17-offline-geography/README.md)、[探索界面](iterations/2026-10-17-exploration-interface/README.md)、[本地收听清单](iterations/2026-10-17-personal-library/README.md)、[收听控制](iterations/2026-10-17-listening-controls/README.md)、[曲目与歌词](iterations/2026-10-17-track-and-lyrics/README.md)、[音频增强](iterations/2026-10-17-audio-enhancement/README.md)、[手动识曲](iterations/2026-10-17-manual-recognition/README.md)、[产品说明](iterations/2026-10-17-product-information/README.md)、[有限诊断](iterations/2026-10-17-playback-diagnostics/README.md)、[规模验证](iterations/2026-10-17-scale-stability/README.md)、[容器基础](iterations/2026-10-17-container-foundation/README.md)、[备份恢复](iterations/2026-10-17-backup-recovery/README.md)、[维护协调](iterations/2026-10-17-maintenance-coordination/README.md)、[每日备份](iterations/2026-10-17-backup-schedule/README.md) |
 
 ## 文档目录树
 
@@ -108,6 +108,7 @@ docs/
 │   ├── README.md
 │   ├── configuration-and-logging.md
 │   ├── database-maintenance.md
+│   ├── daily-backups.md
 │   ├── health-and-troubleshooting.md
 │   ├── recognition-quota.md
 │   └── playback-diagnostics.md
@@ -129,6 +130,9 @@ docs/
     │   └── README.md
     ├── 2026-10-17-offline-geography/
     │   └── README.md
+    ├── 2026-10-17-backup-schedule/
+    │   ├── README.md
+    │   └── results.json
     ├── 2026-10-17-maintenance-coordination/
     │   ├── README.md
     │   └── results.json

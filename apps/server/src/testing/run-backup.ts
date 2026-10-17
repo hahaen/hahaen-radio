@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { openSync, closeSync } from 'node:fs';
-import { mkdir, mkdtemp, cp, rm, writeFile, readdir, readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile, readdir, readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -167,6 +167,7 @@ try {
     BACKUP_SCHEMA_STABLE: 'true',
     BACKUP_WRITES_STOPPED: 'true',
   };
+  let retainedBackupId: string | undefined;
   const cli = async (args: string[], extra: Record<string, string> = {}, success = true) => {
     const result = await exec(process.execPath, ['dist/entrypoints/backup.js', ...args], {
       cwd: server,
@@ -190,6 +191,10 @@ try {
     if (extra.DB_NAME === restoreName && result.stderr.includes('"isolatedTargetCreated":true'))
       restoreOwned = true;
     assert.equal(result.code, success ? 0 : 1);
+    if (!success && args[0] === 'daily') {
+      const failure = JSON.parse(result.stderr.trim()) as { retainedBackupId?: string };
+      retainedBackupId = failure.retainedBackupId;
+    }
     assert(!result.stdout.includes(config.password));
     assert(!result.stderr.includes(config.password));
     return result.stdout.trim();
@@ -212,11 +217,45 @@ try {
   } finally {
     await admin.query('DROP VIEW `' + source + '`.unsupported_backup_view');
   }
-  await cp(join(primary, created.id), join(secondary, created.id), {
-    recursive: true,
-    errorOnExist: true,
-    force: false,
+  const cycleEnv = {
+    BACKUP_REPLICA_DIRECTORY: secondary,
+    BACKUP_APPLICATION_REVISION: 'a'.repeat(40),
+  };
+  await writeFile(join(primary, '.backup-cycle.lock'), 'owned by this acceptance test', {
+    mode: 0o600,
   });
+  try {
+    await cli(['daily'], cycleEnv, false);
+    await cli(['prune'], {}, false);
+    assert.deepEqual((await readdir(primary)).sort(), ['.backup-cycle.lock', created.id].sort());
+  } finally {
+    await rm(join(primary, '.backup-cycle.lock'));
+  }
+  await writeFile(join(secondary, '.backup.lock'), 'owned by this acceptance test', {
+    mode: 0o600,
+  });
+  const beforeFailure = await readdir(primary);
+  try {
+    await cli(['daily'], cycleEnv, false);
+    const afterFailure = await readdir(primary);
+    assert(beforeFailure.every((name) => afterFailure.includes(name)));
+    assert(typeof retainedBackupId === 'string' && afterFailure.includes(retainedBackupId));
+    await cli(['verify', retainedBackupId]);
+    assert.equal(afterFailure.filter((name) => !beforeFailure.includes(name)).length, 1);
+    assert.deepEqual(await readdir(secondary), ['.backup.lock']);
+  } finally {
+    await rm(join(secondary, '.backup.lock'));
+  }
+  const cycle = JSON.parse(await cli(['daily'], cycleEnv)) as { id: string };
+  await cli(['verify', cycle.id]);
+  await cli(['verify', cycle.id], { BACKUP_DIRECTORY: secondary });
+  const dailyManifest = BackupManifest.parse(
+    JSON.parse(await readFile(join(secondary, cycle.id, 'manifest.json'), 'utf8')),
+  );
+  assert.equal(dailyManifest.kind, 'daily');
+  assert.equal(dailyManifest.counts, null);
+  await cli(['copy', created.id], cycleEnv);
+  await cli(['copy', created.id], cycleEnv);
   await rm(join(primary, created.id), { recursive: true });
   await cli(['verify', created.id], { BACKUP_DIRECTORY: secondary });
   await cli(['restore-isolated', created.id], {
@@ -318,12 +357,14 @@ try {
   assert(!(await exists(untouched)));
   assert(
     !(await readdir(primary)).some(
-      (name) => name.startsWith('.client-') || name === '.backup.lock',
+      (name) =>
+        name.startsWith('.client-') || name === '.backup.lock' || name === '.backup-cycle.lock',
     ),
   );
   assert(
     !(await readdir(secondary)).some(
-      (name) => name.startsWith('.client-') || name === '.backup.lock',
+      (name) =>
+        name.startsWith('.client-') || name === '.backup.lock' || name === '.backup-cycle.lock',
     ),
   );
   console.info(
@@ -349,6 +390,11 @@ try {
       lostLockChildStopped: true,
       lockLossMs,
       repeatedCompiledMigration: true,
+      verifiedCopyCommand: true,
+      dailyCycleVerified: true,
+      overlappingDailyRefused: true,
+      copyFailurePreservesPrimary: true,
+      retainedBackupRecoveryId: true,
     }),
   );
 } catch (error) {

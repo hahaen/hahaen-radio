@@ -8,11 +8,12 @@ import {
   open,
   readFile,
   readdir,
+  realpath,
   rename,
   rm,
   unlink,
 } from 'node:fs/promises';
-import { isAbsolute, join } from 'node:path';
+import { isAbsolute, join, sep } from 'node:path';
 import { tmpdir } from 'node:os';
 import { Transform, Writable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
@@ -23,6 +24,11 @@ import type { DatabaseConfig } from '../config/database.js';
 import { withMaintenanceLock } from './maintenance.js';
 
 export class BackupError extends Error {}
+export class DailyBackupError extends BackupError {
+  constructor(readonly retainedBackupId: string) {
+    super('Daily backup incomplete; verified primary retained');
+  }
+}
 export class IsolatedRestoreError extends BackupError {
   constructor(readonly targetCreated: boolean) {
     super(targetCreated ? 'Restore failed; isolated target retained' : 'Restore refused');
@@ -99,10 +105,14 @@ async function privatePath(path: string, directory: boolean) {
     fail();
   return stat;
 }
-async function lock<T>(directory: string, operation: () => Promise<T>) {
+async function lock<T>(
+  directory: string,
+  operation: () => Promise<T>,
+  name: '.backup.lock' | '.backup-cycle.lock' = '.backup.lock',
+) {
   if (!isAbsolute(directory)) fail();
   await privatePath(directory, true);
-  const path = join(directory, '.backup.lock');
+  const path = join(directory, name);
   const handle = await open(path, 'wx', 0o600);
   const inode = (await handle.stat()).ino;
   try {
@@ -624,7 +634,11 @@ export async function restoreIsolated(options: BackupOptions, config: DatabaseCo
     }
   });
 }
-export function pruneBackups(options: Pick<BackupOptions, 'directory' | 'maxBytes' | 'signal'>) {
+type BackupFiles = Pick<BackupOptions, 'directory' | 'maxBytes' | 'signal'>;
+export function pruneBackups(options: BackupFiles) {
+  return lock(options.directory, () => pruneWithinCycle(options), '.backup-cycle.lock');
+}
+function pruneWithinCycle(options: BackupFiles) {
   return lock(options.directory, async () => {
     const names = (await readdir(options.directory)).filter(
       (name) => BackupId.safeParse(name).success,
@@ -654,4 +668,105 @@ export function pruneBackups(options: Pick<BackupOptions, 'directory' | 'maxByte
     }
     return removed;
   });
+}
+
+async function replicaDirectories(source: string, destination: string, distinctDevice: boolean) {
+  if (!isAbsolute(source) || !isAbsolute(destination)) fail();
+  const a = await privatePath(source, true),
+    b = await privatePath(destination, true);
+  const sourcePath = await realpath(source),
+    destinationPath = await realpath(destination);
+  if (
+    sourcePath === destinationPath ||
+    sourcePath.startsWith(destinationPath + sep) ||
+    destinationPath.startsWith(sourcePath + sep) ||
+    (distinctDevice && a.dev === b.dev)
+  )
+    fail();
+}
+
+export async function copyBackup(
+  options: Pick<BackupOptions, 'directory' | 'maxBytes' | 'signal'>,
+  id: string,
+  destination: string,
+  distinctDevice = false,
+) {
+  await replicaDirectories(options.directory, destination, distinctDevice);
+  const limit = BackupByteLimit.parse(options.maxBytes ?? DEFAULT_BACKUP_BYTES);
+  return lock(options.directory, () =>
+    lock(destination, async () => {
+      const original = await inspect(options.directory, id, limit, options.signal);
+      const target = join(destination, id);
+      const existing = await lstat(target).catch((error) => {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+        return undefined;
+      });
+      if (existing) {
+        same(await inspect(destination, id, limit, options.signal), original);
+        return original;
+      }
+      // Exclusive directory creation claims only this new target. Manifest publishes last.
+      await mkdir(target, { mode: 0o700 });
+      let complete = false;
+      try {
+        let bytes = 0;
+        await pipeline(
+          createReadStream(join(options.directory, id, 'dump.sql.gz')),
+          counter((size) => {
+            bytes += size;
+            if (bytes > limit) fail();
+          }),
+          createWriteStream(join(target, 'dump.sql.gz'), { flags: 'wx', mode: 0o600 }),
+          options.signal ? { signal: options.signal } : {},
+        );
+        const dump = await open(join(target, 'dump.sql.gz'), 'r+');
+        try {
+          await dump.sync();
+        } finally {
+          await dump.close();
+        }
+        options.signal?.throwIfAborted();
+        const manifest = await open(join(target, 'manifest.pending'), 'wx', 0o600);
+        try {
+          await manifest.writeFile(JSON.stringify(original, null, 2) + '\n');
+          await manifest.sync();
+        } finally {
+          await manifest.close();
+        }
+        await rename(join(target, 'manifest.pending'), join(target, 'manifest.json'));
+        same(await inspect(destination, id, limit, options.signal), original);
+        complete = true;
+        return original;
+      } finally {
+        if (!complete) await rm(target, { recursive: true, force: true });
+      }
+    }),
+  );
+}
+
+export async function dailyBackup(
+  options: BackupOptions,
+  config: DatabaseConfig,
+  destination: string,
+  revision: string,
+  stable: boolean,
+) {
+  const distinctDevice = config.database === 'ha_radio';
+  await replicaDirectories(options.directory, destination, distinctDevice);
+  return lock(
+    options.directory,
+    async () => {
+      const manifest = await createBackup(options, config, 'daily', revision, stable, false);
+      // A copy failure keeps the new primary and all old backups for operator recovery.
+      try {
+        await copyBackup(options, manifest.id, destination, distinctDevice);
+      } catch {
+        throw new DailyBackupError(manifest.id);
+      }
+      const replicaRemoved = await pruneBackups({ ...options, directory: destination });
+      const primaryRemoved = await pruneWithinCycle(options);
+      return { id: manifest.id, replicaRemoved, primaryRemoved };
+    },
+    '.backup-cycle.lock',
+  );
 }

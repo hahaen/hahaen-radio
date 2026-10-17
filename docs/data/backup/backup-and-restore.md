@@ -1,6 +1,6 @@
 # 数据库备份与恢复
 
-已实现受控命令、校验、隔离恢复与保留清理。本机 MySQL 8.0.46 的实际演练见[任务归档](../../iterations/2026-10-17-backup-recovery/README.md)；每日调度、真实异盘或远端副本、目标 Linux 环境仍需随发布运维配置验收。
+已实现受控命令、校验、隔离恢复与保留清理。本机 MySQL 8.0.46 的实际演练见[任务归档](../../iterations/2026-10-17-backup-recovery/README.md)；每日执行、复制与定时材料见[每日备份](../../operations/daily-backups.md)；真实异盘或远端挂载及目标 Linux 定时运行仍待部署验收。
 
 ## 工具与身份
 
@@ -12,6 +12,7 @@
 | --- | --- |
 | DB_*、NODE_ENV | 沿用服务端目标、字符集及 TLS 约束，备份和恢复使用不同身份 |
 | MYSQLDUMP_PATH / MYSQL_PATH | 两个可信客户端的绝对路径，运行前校验版本为 8.0.46 |
+| BACKUP_REPLICA_DIRECTORY / BACKUP_APPLICATION_REVISION | 每日副本目录与实际应用提交，见[每日备份](../../operations/daily-backups.md) |
 | BACKUP_DIRECTORY | 已存在、当前用户拥有且权限 700 的绝对目录 |
 | BACKUP_MAX_BYTES | 单个压缩与原始 SQL 的字节上限，默认 1GiB，显式配置范围 1MiB–100GiB |
 | BACKUP_SCHEMA_STABLE | 只有排除并发 DDL 后才设置 true |
@@ -29,12 +30,13 @@
 
 ```sh
 pnpm db:backup create pre-migration "$APPLICATION_COMMIT"
+pnpm db:backup copy "$BACKUP_ID"
 pnpm db:backup create daily "$APPLICATION_COMMIT"
 pnpm db:backup verify "$BACKUP_ID"
 pnpm db:backup prune
 ```
 
-create 的第二个参数是备份对应应用的完整 40 位提交号。成功仅输出固定事件、生成的备份 ID 与类型；配置值、SQL 和数据不进入普通输出。
+创建后从成功事件取得 BACKUP_ID；迁移前完成 copy 并确认 backup_copy_verified 后再进入迁移。create 的第二个参数是备份对应应用的完整 40 位提交号。成功仅输出固定事件、生成的备份 ID 与类型；配置值、SQL 和数据不进入普通输出。
 
 使用 mysqldump 的单事务、quick、utf8mb4、hex-blob、关闭 GTID_PURGED 与 tablespace 导出等明确选项；不导出 CREATE DATABASE，不产生普通表 DROP 语句。当前项目只支持 InnoDB 基表和库内外键；遇到视图、例程、事件、触发器、跨库引用或无法证明元数据可见性时拒绝，避免漏备份或将源库限定语句导入另一库。以后迁移增加这些对象时需同步扩展工具与恢复验收，不能静默跳过。
 
@@ -50,7 +52,7 @@ create 的第二个参数是备份对应应用的完整 40 位提交号。成功
 
 prune 只处理符合本工具 ID 的完整备份；先校验所有候选，再保留最新 7 份 daily 和最新 3 份 pre-migration。遇到损坏、异常权限、软链接、硬链接或额外目录内容时拒绝清理；无关文件保留。目录内有互斥锁，多个本机维护命令不能同时改动该备份目录。备份创建另与迁移共用 MySQL 会话级维护锁，见[维护协调](../../operations/database-maintenance.md)；完整发布仍需覆盖整个维护窗口的外层互斥。
 
-每日执行计划、异盘/远端位置、加密、空间告警与容量上限由目标环境明确配置。当前没有创建远端计划或上传真实备份。
+已提供 daily 与 copy 命令及 systemd service/timer，具体安装、独立设备检查、发布共享文件锁和部署验收见[每日备份](../../operations/daily-backups.md)。实际异盘/远端位置、加密、空间告警与容量上限由目标环境明确配置；当前未安装远端计划或上传真实备份。
 
 ## 隔离恢复
 

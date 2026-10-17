@@ -1,12 +1,13 @@
 # 部署配置目录
 
-状态：已创建三个镜像目标、生产 Compose 与 Caddy 配置；本机不运行 Docker，实际容器验收延后。备份工具另在受控运维节点运行；Jenkins、备份调度/副本和日志时间保留继续推进。
+状态：已创建三个镜像目标、生产 Compose 与 Caddy 配置；本机不运行 Docker，实际容器验收延后。备份工具另在受控运维节点运行；每日备份/复制和定时材料已实现，实际服务器与异盘验收待执行；Jenkins 和日志时间保留继续推进。
 
 | 目录 | 用途 |
 | --- | --- |
 | `docker/` | 多阶段 Dockerfile 和必要构建辅助文件 |
 | `compose/` | 服务拓扑、网络和持久卷配置 |
 | `caddy/` | HTTPS、前端静态资源与 API 代理配置 |
+| `systemd/` | 受控运维主机的每日备份 service/timer，实际安装按[说明](../docs/operations/daily-backups.md)执行 |
 
 Jenkins 流水线入口后续放在仓库根目录 `Jenkinsfile`。真实凭据、运行环境文件和数据库不放入此目录。
 

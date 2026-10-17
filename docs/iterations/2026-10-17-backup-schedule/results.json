@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "8e61b9b0deaefbbd216afccdf3360bc6ebba658d",
+  "ordinaryTests": 181,
+  "ordinaryMysqlSkipped": 10,
+  "acceptance": {
+    "event": "backup_acceptance_passed",
+    "mysql": "8.0.46",
+    "client": "8.0.46",
+    "tables": 11,
+    "migrations": 3,
+    "bytes": 2489,
+    "elapsedMs": 17031,
+    "independentCopy": true,
+    "unicodePreserved": true,
+    "constraintsPreserved": true,
+    "quotaPreserved": true,
+    "existingTargetRefused": true,
+    "tamperRefusedBeforeCreate": true,
+    "compiledApiReady": true,
+    "productionWrites": false,
+    "unsupportedObjectsRefused": true,
+    "migrationLockContention": true,
+    "backupLockContention": true,
+    "lostLockChildStopped": true,
+    "lockLossMs": 2055,
+    "repeatedCompiledMigration": true,
+    "verifiedCopyCommand": true,
+    "dailyCycleVerified": true,
+    "overlappingDailyRefused": true,
+    "copyFailurePreservesPrimary": true,
+    "retainedBackupRecoveryId": true
+  },
+  "cleanup": {
+    "event": "backup_test_cleanup",
+    "sourceRemoved": true,
+    "restoreRemoved": true,
+    "ownedApiStopped": true
+  },
+  "nativePlatform": "macOS arm64",
+  "dockerRun": false,
+  "systemdRun": false,
+  "productionWrites": false,
+  "copyScope": "Another private directory on the local filesystem, not an independent physical disk or remote storage",
+  "inputs": {
+    "apps/server/src/operations/backup.ts": "d5d6a900c5675180f089fecdb68c2f8b0c0978452958e87a8e5fc12a3e8db738",
+    "apps/server/src/entrypoints/backup.ts": "606e5a26fd961c002443e063bbae2ac91202e6c4bb493476b3cf6c5db4d8f087",
+    "apps/server/src/testing/run-backup.ts": "0d7f11669167815cc032c49bbdd2dccbb4d08e3d26b39c181e2832f6e71bba41",
+    "deploy/systemd/haen-backup.service": "ce69560cfb665b74597b6bb144464aa8df3abaa0eccfdd5ad6652e3964d2824b",
+    "deploy/systemd/haen-backup.timer": "9b9483b36a1308c30c81994201ff2184cbd7457561820bd90e9c5ee6f775660e",
+    ".env.example": "2ad42ac6a242558276b943fa1c0a3808e644a021ff1671d0e9b5ffbe67f1c727"
+  }
+}

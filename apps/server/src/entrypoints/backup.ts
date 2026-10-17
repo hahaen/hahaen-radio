@@ -6,7 +6,10 @@ import {
   BackupByteLimit,
   DEFAULT_BACKUP_BYTES,
   IsolatedRestoreError,
+  DailyBackupError,
   createBackup,
+  copyBackup,
+  dailyBackup,
   pruneBackups,
   restoreIsolated,
   verifyBackup,
@@ -44,6 +47,29 @@ try {
       process.env.BACKUP_WRITES_STOPPED === 'true',
     );
     console.info(JSON.stringify({ event: 'backup_created', id: result.id, kind: result.kind }));
+  } else if (command === 'copy' && args.length === 1) {
+    const destination = z.string().refine(isAbsolute).parse(process.env.BACKUP_REPLICA_DIRECTORY);
+    const result = await copyBackup(
+      options,
+      BackupId.parse(args[0]),
+      destination,
+      process.env.NODE_ENV === 'production',
+    );
+    console.info(JSON.stringify({ event: 'backup_copy_verified', id: result.id }));
+  } else if (command === 'daily' && args.length === 0) {
+    const destination = z.string().refine(isAbsolute).parse(process.env.BACKUP_REPLICA_DIRECTORY);
+    const revision = z
+      .string()
+      .regex(/^[a-f0-9]{40}$/)
+      .parse(process.env.BACKUP_APPLICATION_REVISION);
+    const result = await dailyBackup(
+      options,
+      readDatabaseConfig(),
+      destination,
+      revision,
+      process.env.BACKUP_SCHEMA_STABLE === 'true',
+    );
+    console.info(JSON.stringify({ event: 'backup_daily_completed', ...result }));
   } else if (command === 'verify' && args.length === 1) {
     const result = await verifyBackup(options, BackupId.parse(args[0]));
     console.info(JSON.stringify({ event: 'backup_verified', id: result.id }));
@@ -59,6 +85,7 @@ try {
   console.error(
     JSON.stringify({
       event: 'backup_command_failed',
+      retainedBackupId: error instanceof DailyBackupError ? error.retainedBackupId : undefined,
       isolatedTargetCreated: error instanceof IsolatedRestoreError && error.targetCreated,
       instruction:
         'Inspect private configuration, directory lock and isolated restore target; partial targets are retained',

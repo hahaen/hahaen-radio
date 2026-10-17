@@ -1,0 +1,31 @@
+[Unit]
+Description=HAEN daily verified database backup
+Wants=network-online.target
+After=network-online.target
+RequiresMountsFor=/var/backups/haen /mnt/haen-backup-replica
+AssertPathIsMountPoint=/mnt/haen-backup-replica
+
+[Service]
+Type=oneshot
+User=haen-backup
+Group=haen-maintenance
+UMask=0077
+Environment=NODE_ENV=production
+WorkingDirectory=/opt/haen/operations/current
+ExecStart=/usr/bin/flock --no-fork --exclusive --nonblock --conflict-exit-code 75 /var/lib/haen-maintenance/deploy.lock /opt/haen/node/bin/node --env-file=/etc/haen/backup.env /opt/haen/operations/current/dist/entrypoints/backup.js daily
+TimeoutStartSec=20min
+TimeoutStopSec=15s
+KillMode=control-group
+Restart=no
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/backups/haen /mnt/haen-backup-replica /var/lib/haen-maintenance
+CapabilityBoundingSet=
+RestrictSUIDSGID=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LockPersonality=true
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=haen-backup

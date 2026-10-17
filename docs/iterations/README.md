@@ -9,6 +9,7 @@
 | 2026-10-16 | [建库建表选项核对](2026-10-16-table-options/README.md) | 已完成只读元数据核对，规范已整理 |
 | 2026-10-16 | [电脑端与手机端适配规范](2026-10-16-desktop-mobile-adaptation/README.md) | 已明确双端开发与验收要求，界面实现待开展 |
 | 2026-10-16 | [夜航视觉规范](2026-10-16-night-voyage-design/README.md) | 用户已确认视觉方向，概念图与规则已固化，界面待实现 |
+| 2026-10-17 | [每日备份](2026-10-17-backup-schedule/README.md) | 受控副本、完整每日流程和 systemd 材料，本机与延期验收见归档 |
 | 2026-10-17 | [维护协调](2026-10-17-maintenance-coordination/README.md) | 备份与迁移共享 MySQL 锁、停写确认和失锁取消，真实验收见归档 |
 | 2026-10-17 | [备份与恢复](2026-10-17-backup-recovery/README.md) | 受控备份、校验、保留与真实 MySQL 隔离恢复，结果见归档 |
 | 2026-10-17 | [容器基础](2026-10-17-container-foundation/README.md) | 镜像目标、Compose、代理和生产包；实测范围及延期见归档 |
