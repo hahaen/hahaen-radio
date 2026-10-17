@@ -57,3 +57,5 @@ API/jobs 日志暂使用 local 驱动限制每容器最多 3×10MiB；大小上�
 实际本机与部署前补测记录见[本轮归档](../../iterations/2026-10-17-container-foundation/README.md)。已核对 [pnpm deploy](https://pnpm.io/cli/deploy)、[Compose 服务配置](https://docs.docker.com/reference/compose-file/services/)、[Caddy 路由](https://caddyserver.com/docs/caddyfile/directives/handle)与[官方 Caddy 镜像](https://hub.docker.com/_/caddy)；实际镜像运行仍单独验收。
 
 返回[容器拓扑](topology-and-storage.md)或[部署导航](../README.md)。
+
+迁移镜像的私有运行配置还需在确认所有写入方停止后设置 `MIGRATION_WRITES_STOPPED=true`。入口与备份共用数据库维护锁，完整发布协调边界见[维护说明](../../operations/database-maintenance.md)。

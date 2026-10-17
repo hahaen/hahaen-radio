@@ -20,6 +20,7 @@ import { createGzip, createGunzip } from 'node:zlib';
 import mysql, { type Connection } from 'mysql2/promise';
 import { z } from 'zod';
 import type { DatabaseConfig } from '../config/database.js';
+import { withMaintenanceLock } from './maintenance.js';
 
 export class BackupError extends Error {}
 export class IsolatedRestoreError extends BackupError {
@@ -449,114 +450,124 @@ export async function createBackup(
   return lock(options.directory, async () => {
     options.signal?.throwIfAborted();
     await version(options.dumpPath, options.signal);
-    const connection = await connect(config),
-      id =
-        'haen-' +
-        new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replace('.', '') +
-        '-' +
-        randomBytes(6).toString('hex');
-    BackupId.parse(id);
-    const directory = join(options.directory, id);
-    let complete = false;
-    const deadline = setTimeout(() => connection.destroy(), 330000).unref();
-    try {
-      await checkBackupIdentity(connection, config.database);
-      const names = await tables(connection, config.database),
-        migrations = await history(connection);
-      const rowCounts = kind === 'pre-migration' ? await counts(connection, names) : null;
-      await mkdir(directory, { mode: 0o700 });
-      const hash = createHash('sha256');
-      let bytes = 0,
-        plainBytes = 0;
-      await optionsFile(options.directory, config, (path) =>
-        client(
-          options.dumpPath,
-          [
-            '--defaults-file=' + path,
-            '--single-transaction',
-            '--quick',
-            '--skip-lock-tables',
-            '--skip-add-locks',
-            '--skip-add-drop-table',
-            '--no-tablespaces',
-            '--set-gtid-purged=OFF',
-            '--column-statistics=0',
-            '--hex-blob',
-            '--skip-comments',
-            '--routines',
-            '--events',
-            '--triggers',
-            config.database,
-          ],
-          options.signal,
-          (child) => {
-            child.stdin?.end();
-            return pipeline(
-              child.stdout!,
-              counter((size) => {
-                plainBytes += size;
-                if (plainBytes > limit) fail();
-              }),
-              createGzip(),
-              new Transform({
-                transform(chunk: Buffer, _enc, done) {
-                  bytes += chunk.length;
-                  if (bytes > limit) return done(new BackupError('Backup exceeds limit'));
-                  hash.update(chunk);
-                  done(null, chunk);
-                },
-              }),
-              createWriteStream(join(directory, 'dump.sql.gz'), { flags: 'wx', mode: 0o600 }),
-              options.signal ? { signal: options.signal } : {},
-            );
-          },
-        ),
-      ).then(() => undefined);
-      same(await tables(connection, config.database), names);
-      same(await history(connection), migrations);
-      if (rowCounts) same(await counts(connection, names), rowCounts);
-      const manifest = BackupManifest.parse({
-        format: 1,
-        id,
-        kind,
-        createdAt: new Date().toISOString(),
-        sourceDatabase: config.database,
-        serverVersion: '8.0.46',
-        revision,
-        tables: names,
-        migrations,
-        counts: rowCounts,
-        bytes,
-        plainBytes,
-        sha256: hash.digest('hex'),
-      });
-      const dumpHandle = await open(join(directory, 'dump.sql.gz'), 'r+');
-      try {
-        await dumpHandle.sync();
-      } finally {
-        await dumpHandle.close();
-      }
-      const handle = await open(join(directory, 'manifest.pending'), 'wx', 0o600);
-      try {
-        await handle.writeFile(JSON.stringify(manifest, null, 2) + '\n');
-        await handle.sync();
-      } finally {
-        await handle.close();
-      }
-      await rename(join(directory, 'manifest.pending'), join(directory, 'manifest.json'));
-      await inspect(
-        options.directory,
-        id,
-        BackupByteLimit.parse(options.maxBytes ?? DEFAULT_BACKUP_BYTES),
-        options.signal,
-      );
-      complete = true;
-      return manifest;
-    } finally {
-      clearTimeout(deadline);
-      await connection.end();
-      if (!complete) await rm(directory, { recursive: true, force: true });
-    }
+    return withMaintenanceLock(
+      config,
+      async (signal) => {
+        const connection = await connect(config),
+          id =
+            'haen-' +
+            new Date().toISOString().replaceAll('-', '').replaceAll(':', '').replace('.', '') +
+            '-' +
+            randomBytes(6).toString('hex');
+        BackupId.parse(id);
+        const directory = join(options.directory, id);
+        let complete = false;
+        const cancel = () => connection.destroy();
+        signal.addEventListener('abort', cancel, { once: true });
+        const deadline = setTimeout(() => connection.destroy(), 330000).unref();
+        try {
+          signal.throwIfAborted();
+          await checkBackupIdentity(connection, config.database);
+          const names = await tables(connection, config.database),
+            migrations = await history(connection);
+          const rowCounts = kind === 'pre-migration' ? await counts(connection, names) : null;
+          await mkdir(directory, { mode: 0o700 });
+          const hash = createHash('sha256');
+          let bytes = 0,
+            plainBytes = 0;
+          await optionsFile(options.directory, config, (path) =>
+            client(
+              options.dumpPath,
+              [
+                '--defaults-file=' + path,
+                '--single-transaction',
+                '--quick',
+                '--skip-lock-tables',
+                '--skip-add-locks',
+                '--skip-add-drop-table',
+                '--no-tablespaces',
+                '--set-gtid-purged=OFF',
+                '--column-statistics=0',
+                '--hex-blob',
+                '--skip-comments',
+                '--routines',
+                '--events',
+                '--triggers',
+                config.database,
+              ],
+              signal,
+              (child) => {
+                child.stdin?.end();
+                return pipeline(
+                  child.stdout!,
+                  counter((size) => {
+                    plainBytes += size;
+                    if (plainBytes > limit) fail();
+                  }),
+                  createGzip(),
+                  new Transform({
+                    transform(chunk: Buffer, _enc, done) {
+                      bytes += chunk.length;
+                      if (bytes > limit) return done(new BackupError('Backup exceeds limit'));
+                      hash.update(chunk);
+                      done(null, chunk);
+                    },
+                  }),
+                  createWriteStream(join(directory, 'dump.sql.gz'), { flags: 'wx', mode: 0o600 }),
+                  { signal },
+                );
+              },
+            ),
+          ).then(() => undefined);
+          same(await tables(connection, config.database), names);
+          same(await history(connection), migrations);
+          if (rowCounts) same(await counts(connection, names), rowCounts);
+          const manifest = BackupManifest.parse({
+            format: 1,
+            id,
+            kind,
+            createdAt: new Date().toISOString(),
+            sourceDatabase: config.database,
+            serverVersion: '8.0.46',
+            revision,
+            tables: names,
+            migrations,
+            counts: rowCounts,
+            bytes,
+            plainBytes,
+            sha256: hash.digest('hex'),
+          });
+          const dumpHandle = await open(join(directory, 'dump.sql.gz'), 'r+');
+          try {
+            await dumpHandle.sync();
+          } finally {
+            await dumpHandle.close();
+          }
+          const handle = await open(join(directory, 'manifest.pending'), 'wx', 0o600);
+          try {
+            await handle.writeFile(JSON.stringify(manifest, null, 2) + '\n');
+            await handle.sync();
+          } finally {
+            await handle.close();
+          }
+          await rename(join(directory, 'manifest.pending'), join(directory, 'manifest.json'));
+          await inspect(
+            options.directory,
+            id,
+            BackupByteLimit.parse(options.maxBytes ?? DEFAULT_BACKUP_BYTES),
+            signal,
+          );
+          complete = true;
+          return manifest;
+        } finally {
+          signal.removeEventListener('abort', cancel);
+          clearTimeout(deadline);
+          await connection.end();
+          if (!complete) await rm(directory, { recursive: true, force: true });
+        }
+      },
+      options.signal,
+    );
   });
 }
 export async function restoreIsolated(options: BackupOptions, config: DatabaseConfig, id: string) {

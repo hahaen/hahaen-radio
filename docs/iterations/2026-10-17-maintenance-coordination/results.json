@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "8679db1df7162e7a545e9babf7e08df831cdb75b",
+  "ordinaryTests": 176,
+  "ordinaryMysqlSkipped": 10,
+  "acceptance": {
+    "event": "backup_acceptance_passed",
+    "mysql": "8.0.46",
+    "client": "8.0.46",
+    "tables": 11,
+    "migrations": 3,
+    "bytes": 2489,
+    "elapsedMs": 8223,
+    "independentCopy": true,
+    "unicodePreserved": true,
+    "constraintsPreserved": true,
+    "quotaPreserved": true,
+    "existingTargetRefused": true,
+    "tamperRefusedBeforeCreate": true,
+    "compiledApiReady": true,
+    "productionWrites": false,
+    "unsupportedObjectsRefused": true,
+    "migrationLockContention": true,
+    "backupLockContention": true,
+    "lostLockChildStopped": true,
+    "lockLossMs": 2065,
+    "repeatedCompiledMigration": true
+  },
+  "cleanup": {
+    "event": "backup_test_cleanup",
+    "sourceRemoved": true,
+    "restoreRemoved": true,
+    "ownedApiStopped": true
+  },
+  "nativePlatform": "macOS arm64",
+  "dockerRun": false,
+  "productionWrites": false,
+  "copyScope": "Another private directory on local filesystem, not a physical replica",
+  "inputs": {
+    "apps/server/src/operations/maintenance.ts": "ae41b6fe8c4ca5483376d7e3ac286d5d9710a5cb7b4a24c68aec3f0c6dbbd3d0",
+    "apps/server/src/operations/migrate.ts": "01bb38c6743af06b2200275354b043c0626a843e4e3302e3c8c36874f1c5a0d5",
+    "apps/server/src/operations/backup.ts": "4b22a5ac7d69cd9e2575c497be85127213dd93f8735730a5e4d624cd52efa5ca",
+    "apps/server/src/entrypoints/migrate.ts": "861d96b2b54194d2ba050d3e1ae065819ed79a35214854d38a1be4ac2180698e",
+    "apps/server/src/testing/run-backup.ts": "31058a9ccdccb647fed740fdd64e9b7984d7a02969f3d4dc19d1947e2a7f4ab1",
+    ".env.example": "33b6018e80a4e88e2dec62b1df6c69f695426b09d230b5e322bac045bcae2dfd"
+  }
+}

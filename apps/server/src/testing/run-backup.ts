@@ -14,6 +14,11 @@ import { createCatalogRepository } from '../modules/catalog/repository.js';
 import { synchronizeCatalog } from '../modules/catalog/sync.js';
 import { normalizeStation } from '../modules/catalog/normalize.js';
 import { BackupManifest } from '../operations/backup.js';
+import {
+  withMaintenanceLock,
+  maintenanceKey,
+  runMaintenanceClient,
+} from '../operations/maintenance.js';
 const root = fileURLToPath(new URL('../../../../', import.meta.url)),
   server = join(root, 'apps/server'),
   exec = promisify(execFile);
@@ -24,6 +29,8 @@ let admin: Connection | undefined,
 let api: ReturnType<typeof spawn> | undefined, apiExited: Promise<number | null> | undefined;
 const restoreName = 'ha_radio_test_restore_' + randomBytes(6).toString('hex');
 let source = '';
+const maintenanceController = new AbortController();
+let maintenance: Promise<boolean> | undefined;
 try {
   if (
     process.env.NODE_ENV !== 'test' ||
@@ -56,16 +63,27 @@ try {
     'CREATE DATABASE `' + source + '` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci',
   );
   sourceCreated = true;
-  await exec(
-    process.execPath,
-    ['node_modules/drizzle-kit/bin.cjs', 'migrate', '--config=drizzle.test.config.ts'],
-    {
+  const migrate = async (stopped: boolean, success: boolean) => {
+    const outcome = await exec(process.execPath, ['dist/entrypoints/migrate.js'], {
       cwd: server,
-      env: { ...process.env, DB_TEST_MIGRATIONS_PATH: join(root, 'migrations') },
+      env: { ...process.env, MIGRATION_WRITES_STOPPED: String(stopped) },
       timeout: 120000,
-      maxBuffer: 131072,
-    },
+      maxBuffer: 32768,
+    }).then(
+      () => true,
+      () => false,
+    );
+    assert.equal(outcome, success);
+  };
+  await migrate(false, false);
+  await withMaintenanceLock(config, () => migrate(true, false));
+  const [empty] = await admin.execute<RowDataPacket[]>(
+    'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=?',
+    [source],
   );
+  assert.equal(empty.length, 0);
+  await migrate(true, true);
+  await migrate(true, true);
   const database = await openDatabase(config);
   const station = normalizeStation({
     stationuuid: '00000000-0000-4000-8000-000000000001',
@@ -99,6 +117,50 @@ try {
     secondary = join(work, 'independent-copy');
   await mkdir(primary, { mode: 0o700 });
   await mkdir(secondary, { mode: 0o700 });
+  // Terminate only this test's owning lock session, never an unrelated session.
+  const readyPath = join(work, 'maintenance-child.pid');
+  maintenance = withMaintenanceLock(
+    config,
+    (active) =>
+      runMaintenanceClient(
+        process.execPath,
+        [
+          '--input-type=module',
+          '-e',
+          'import{writeFileSync}from"node:fs";process.on("SIGTERM",()=>{});writeFileSync(process.argv[1],String(process.pid));setInterval(()=>{},1000);',
+          readyPath,
+        ],
+        server,
+        {},
+        active,
+        15000,
+      ),
+    maintenanceController.signal,
+  ).then(
+    () => false,
+    () => true,
+  );
+  let ownedPid = 0;
+  for (let attempt = 0; attempt < 100 && !ownedPid; attempt++) {
+    ownedPid = Number(await readFile(readyPath, 'utf8').catch(() => '0'));
+    if (!ownedPid) await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  const beforeLoss = performance.now();
+  if (ownedPid) {
+    const [owners] = await admin.execute<RowDataPacket[]>('SELECT IS_USED_LOCK(?) AS owner', [
+      maintenanceKey(source),
+    ]);
+    const owner = owners[0]!.owner;
+    assert(Number.isSafeInteger(owner) && owner > 0);
+    await admin.query('KILL CONNECTION ' + owner);
+  }
+  assert(await maintenance);
+  const lockLossMs = Math.round(performance.now() - beforeLoss);
+  assert(lockLossMs < 6000);
+  maintenance = undefined;
+  assert(ownedPid > 0);
+  assert.throws(() => process.kill(ownedPid, 0));
+  await rm(readyPath);
   const env = {
     ...process.env,
     BACKUP_DIRECTORY: primary,
@@ -140,6 +202,10 @@ try {
     JSON.parse(await readFile(join(primary, created.id, 'manifest.json'), 'utf8')),
   );
   await cli(['verify', created.id]);
+  await withMaintenanceLock(config, () =>
+    cli(['create', 'pre-migration', 'a'.repeat(40)], {}, false),
+  );
+  assert.deepEqual(await readdir(primary), [created.id]);
   await admin.query('CREATE VIEW `' + source + '`.unsupported_backup_view AS SELECT 1 AS value');
   try {
     await cli(['create', 'pre-migration', 'a'.repeat(40)], {}, false);
@@ -278,6 +344,11 @@ try {
       compiledApiReady: true,
       productionWrites: false,
       unsupportedObjectsRefused: true,
+      migrationLockContention: true,
+      backupLockContention: true,
+      lostLockChildStopped: true,
+      lockLossMs,
+      repeatedCompiledMigration: true,
     }),
   );
 } catch (error) {
@@ -290,6 +361,8 @@ try {
   console.error(JSON.stringify({ event: 'backup_acceptance_failed', privateDiagnostic: !!work }));
   process.exitCode = 1;
 } finally {
+  maintenanceController.abort();
+  await maintenance;
   if (api && api.exitCode === null && api.signalCode === null) {
     api.kill('SIGTERM');
     const timer = setTimeout(() => api?.kill('SIGKILL'), 5000).unref();

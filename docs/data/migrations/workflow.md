@@ -10,7 +10,7 @@ pnpm db:generate --custom --name=<change-name>
 pnpm db:migrate
 ```
 
-生成入口使用 `apps/server/drizzle.config.ts`，输出至根目录 `migrations/`。迁移入口先校验环境库名、MySQL 版本、连接字符集和 UTC，再启动固定 Drizzle Kit；应用启动不会自动执行迁移。迁移错误可能带 SQL 或连接信息，普通输出只报告状态，失败后先检查目标结构与工具历史表。
+生成入口使用 `apps/server/drizzle.config.ts`，输出至根目录 `migrations/`。迁移入口要求 `MIGRATION_WRITES_STOPPED=true`，先校验环境库名、MySQL 版本、连接字符集和 UTC，取得数据库维护锁后再启动固定 Drizzle Kit；应用启动不会自动执行迁移。迁移错误可能带 SQL 或连接信息，普通输出只报告状态，失败后先检查目标结构与工具历史表。
 
 | 迁移 | 职责 |
 | --- | --- |
@@ -21,6 +21,8 @@ pnpm db:migrate
 首条生成 SQL 与后续表选项迁移必须作为完整初始化序列执行，完成前不启动业务。迁移历史表由 Drizzle Kit 创建，本项目在自定义迁移中约束其表选项；不手工伪造迁移记录。JSON 字段使用 MySQL 原生 JSON 语义，不误当普通 varchar 列转换。
 
 本地迁移专用 `.env.migration.local` 与 API `.env.local`、任务 `.env.jobs.local` 分开，全部须被 Git 排除且权限为 600。部署时由环境注入相同变量，不把本机私有文件打入镜像。变量与身份范围见[配置文档](../../operations/configuration-and-logging.md)。
+
+维护锁、停写确认与取消边界见[维护协调](../../operations/database-maintenance.md)。锁不代替实际停写和外层完整发布互斥。
 
 ## 独立 MySQL 验收命令
 
