@@ -26,6 +26,10 @@ Jenkins 两个节点的 remote FS 已指向上述 agent 目录，`HAEN_DEPLOY_EN
 
 systemd 的系统入口与固定 sudo helper 保留在标准系统位置，指向项目内受控文件；`/run/` 中的音频 socket 属于临时运行资源。Docker 引擎、共享 Jenkins 主目录与 Credentials、现有 Nginx/MySQL 等仍在各自原位置，未搬动共享服务或数据库数据。项目命名卷的设备路径记录在受控管理材料中，不通过删除持久卷修复配置。
 
+## Docker 命名
+
+Compose 项目为 `radio`，三个常驻容器固定为 `radio-web`、`radio-api`、`radio-jobs`，发布时重建同名容器；应用网络为 `radio_application`，命名卷以 `radio_` 开头，仍绑定 `data/` 中原设备路径。项目私有仓库容器为 `radio-registry` 与 `radio-registry-gateway`，镜像命名空间为 `radio`。共享 MySQL、Nginx 与 Jenkins 保留各自名称。目标执行器同时核对固定容器名与 Compose 归属，拒绝接管名称冲突的其他容器。
+
 ## 当前验证边界
 
 2026-10-18 已实际完成目录归并，两个 Jenkins 节点重新在线，私有镜像仓库认证读取成功，配置指纹与私有路径检查通过，音频身份认证通过；共享 Jenkins、博客和个人页面仍返回 200。构建 #8 由用户终止，未进入正式迁移或目标更新；首次上线从新目录继续执行，最终结果见[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。

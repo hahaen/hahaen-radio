@@ -195,7 +195,7 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
       [
         'compose',
         '--project-name',
-        'haen',
+        'radio',
         '--env-file',
         file,
         '--file',
@@ -207,26 +207,33 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
     );
   };
   const instances = async (service) => {
-    const ids = (
+    const owned = (
       await invoke([
         'ps',
         '--all',
         '--quiet',
         '--filter',
-        'label=com.docker.compose.project=haen',
+        'label=com.docker.compose.project=radio',
         '--filter',
         'label=com.docker.compose.service=' + service,
       ])
     )
       .split(/\s+/)
       .filter(Boolean);
+    const named = ['web', 'api', 'jobs'].includes(service)
+      ? (await invoke(['ps', '--all', '--quiet', '--filter', 'name=^/radio-' + service + '$']))
+          .split(/\s+/)
+          .filter(Boolean)
+      : [];
+    const ids = [...new Set([...owned, ...named])];
     assert(ids.length <= 1);
     if (!ids.length) return [];
     assert(ids.every((id) => /^[a-f0-9]{12,64}$/.test(id)));
     const rows = JSON.parse(await invoke(['inspect', ...ids]));
     assert.equal(rows.length, 1);
-    assert.equal(rows[0].Config.Labels['com.docker.compose.project'], 'haen');
+    assert.equal(rows[0].Config.Labels['com.docker.compose.project'], 'radio');
     assert.equal(rows[0].Config.Labels['com.docker.compose.service'], service);
+    if (['web', 'api', 'jobs'].includes(service)) assert.equal(rows[0].Name, '/radio-' + service);
     return rows;
   };
   const assertRuntime = async (value, services, stopped = false) => {

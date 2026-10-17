@@ -1,4 +1,4 @@
-name: haen
+name: radio
 
 x-runtime: &runtime
   image: ${HAEN_SERVER_IMAGE:?Set an immutable server image}
@@ -29,6 +29,7 @@ x-ca: &ca
 
 services:
   api:
+    container_name: radio-api
     <<: *runtime
     env_file:
       - path: ${HAEN_API_ENV_FILE:?Set the private API env file path}
@@ -58,6 +59,7 @@ services:
       retries: 3
 
   jobs:
+    container_name: radio-jobs
     <<: *runtime
     command: [dist/entrypoints/jobs.js]
     env_file:
@@ -73,6 +75,7 @@ services:
       - jobs_logs:/var/log/haen
 
   web:
+    container_name: radio-web
     image: ${HAEN_WEB_IMAGE:?Set an immutable web image}
     restart: unless-stopped
     read_only: true

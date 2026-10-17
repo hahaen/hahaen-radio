@@ -11,7 +11,7 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
   imageReference(mysqlImage);
   await assertImages(run, build);
   const token = randomBytes(6).toString('hex');
-  const prefix = 'haen-ci-' + build.run + '-' + token;
+  const prefix = 'radio-ci-' + build.run + '-' + token;
   const names = ['mysql', 'migration', 'seed', 'api', 'jobs', 'web'].map(
     (role) => prefix + '-' + role,
   );

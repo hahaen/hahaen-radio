@@ -4,7 +4,7 @@
 
 ## 固定运行条件
 
-- Ubuntu 24.04、Node.js 24.9.0、pnpm 12.5.1、本机 Linux Docker socket、Compose ≥2.30；只支持同一主机固定 `haen` Compose 项目和现有 MySQL 8.0.46 正式库，正式库必须已经由操作者建好。
+- Ubuntu 24.04、Node.js 24.9.0、pnpm 12.5.1、本机 Linux Docker socket、Compose ≥2.30；只支持同一主机固定 `radio` Compose 项目（常驻容器 `radio-web`、`radio-api`、`radio-jobs`）和现有 MySQL 8.0.46 正式库，正式库必须已经由操作者建好。
 - 在与 release.json 相同提交的完整干净检出中冻结安装并构建；操作工具需要仓库 scripts、Compose、编译入口和对应依赖。不能从裁剪后的 API 镜像或仅含服务端的日备份包调用。恢复/回退沿用经过审核的工具检出，不生成或重写迁移。
 - release.json 来源必须是已成功、受控分发的任务；通过受控渠道放在本机私有文件，当前用户所有、600。它不是签名文件，来源真实性由传输/审批权限保证，不能把任意同形 JSON 当作已验收产物。
 - 镜像固定平台子 manifest 摘要，实际拉取后核对 revision label 与本机原生架构。运行中的服务必须属于当前状态记录；首次接管不允许已有无记录的容器。不同机器共享同库也须通过此入口，禁止绕开数据库发布锁。
