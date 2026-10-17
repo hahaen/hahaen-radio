@@ -57,14 +57,21 @@ export class RadioBrowserClient implements CatalogSource {
       mirrors?: () => Promise<string[]>;
       pageSize?: number;
       maxStations?: number;
+      timeoutMs?: number;
     } = {},
   ) {}
   async load(signal?: AbortSignal) {
     const pageSize = Math.min(1000, Math.max(1, this.options.pageSize ?? 1000));
     const maxStations = Math.min(150000, Math.max(pageSize, this.options.maxStations ?? 100000));
+    const timeout = z
+      .number()
+      .int()
+      .min(1000)
+      .max(900000)
+      .parse(this.options.timeoutMs ?? 300000);
     const totalSignal = signal
-      ? AbortSignal.any([signal, AbortSignal.timeout(300000)])
-      : AbortSignal.timeout(300000);
+      ? AbortSignal.any([signal, AbortSignal.timeout(timeout)])
+      : AbortSignal.timeout(timeout);
     const mirrors = await (this.options.mirrors ?? discoverDirectoryMirrors)();
     let invalid = false;
     for (const mirror of mirrors.filter(mirrorName).slice(0, 4)) {

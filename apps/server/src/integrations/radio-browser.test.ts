@@ -55,6 +55,24 @@ describe('directory source', () => {
     });
     await expect(client.load()).rejects.toThrow('CATALOG_INVALID_SOURCE');
   });
+  it('cancels an incomplete snapshot at the configured total deadline', async () => {
+    let calls = 0;
+    const client = new RadioBrowserClient({
+      mirrors: async () => ['de1.api.radio-browser.info'],
+      timeoutMs: 1000,
+      pageSize: 1,
+      readJson: async (_url, options) => {
+        if (++calls === 1) return [row(1)];
+        return new Promise<never>((_resolve, reject) => {
+          options.signal!.addEventListener('abort', () => reject(Error('download deadline')), {
+            once: true,
+          });
+        });
+      },
+    });
+    await expect(client.load()).rejects.toThrow('download deadline');
+    expect(calls).toBe(2);
+  });
   it('does not allow a supplier-discovered host to become an arbitrary fetch target', async () => {
     expect(isDirectoryUrl(new URL('https://de1.api.radio-browser.info/json/stations'))).toBe(true);
     for (const value of [

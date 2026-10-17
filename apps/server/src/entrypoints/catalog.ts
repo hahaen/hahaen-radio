@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { StationIdSchema } from '@haen/contracts';
+import { readCatalogConfig } from '../config/catalog.js';
 import { readDatabaseConfig } from '../config/database.js';
 import { openDatabase, type Database } from '../db/connection.js';
 import { RadioBrowserClient } from '../integrations/radio-browser.js';
@@ -28,7 +29,11 @@ try {
   if (command === 'sync')
     console.info(
       JSON.stringify(
-        await synchronizeCatalog(repository, new RadioBrowserClient(), controller.signal),
+        await synchronizeCatalog(
+          repository,
+          new RadioBrowserClient(readCatalogConfig()),
+          controller.signal,
+        ),
       ),
     );
   else if (command === 'status')

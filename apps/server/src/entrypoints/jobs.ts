@@ -1,4 +1,5 @@
 import cron from 'node-cron';
+import { readCatalogConfig } from '../config/catalog.js';
 import { readDatabaseConfig } from '../config/database.js';
 import { openDatabase, type Database } from '../db/connection.js';
 import { RadioBrowserClient } from '../integrations/radio-browser.js';
@@ -11,6 +12,7 @@ let database: Database | undefined;
 let log: ReturnType<typeof createRuntimeLog> | undefined;
 try {
   log = createRuntimeLog('jobs');
+  const catalogConfig = readCatalogConfig();
   database = await openDatabase(readDatabaseConfig());
   const repository = createCatalogRepository(database);
   const controller = new AbortController();
@@ -41,7 +43,11 @@ try {
     '0 2 * * *',
     () => {
       if (active || controller.signal.aborted) return;
-      active = synchronizeCatalog(repository, new RadioBrowserClient(), controller.signal)
+      active = synchronizeCatalog(
+        repository,
+        new RadioBrowserClient(catalogConfig),
+        controller.signal,
+      )
         .then((result) => {
           log!.event('catalog_sync_finished', result);
         })
