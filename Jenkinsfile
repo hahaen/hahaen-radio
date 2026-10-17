@@ -10,7 +10,7 @@ pipeline {
         buildDiscarder(logRotator(daysToKeepStr: '7', numToKeepStr: '20', artifactDaysToKeepStr: '30', artifactNumToKeepStr: '10'))
     }
     parameters {
-        gitParameter(name: 'BRANCH', type: 'PT_BRANCH', branchFilter: 'origin/(.*)', defaultValue: 'main', selectedValue: 'DEFAULT', sortMode: 'ASCENDING_SMART', quickFilterEnabled: true, useRepository: '.*', description: '选择要发布的分支；检查通过后完整部署前后端')
+        gitParameter(name: 'BRANCH', type: 'PT_BRANCH', branchFilter: 'origin/(.*)', defaultValue: 'main', selectedValue: 'DEFAULT', sortMode: 'ASCENDING_SMART', quickFilterEnabled: false, useRepository: '.*', description: '选择要发布的分支；检查通过后完整部署前后端')
     }
     environment {
         CI = 'true'

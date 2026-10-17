@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { imageReference, roles } from './common.mjs';
 import { assertImages } from './images.mjs';
@@ -168,7 +167,6 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
       ),
       '0',
     );
-    const seed = fileURLToPath(new URL('./seed.mjs', import.meta.url));
     await run([
       'run',
       '--name',
@@ -186,12 +184,10 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
       'ALL',
       '--security-opt',
       'no-new-privileges:true',
-      '--mount',
-      `type=bind,src=${seed},dst=/run/haen-seed.mjs,readonly`,
       '--entrypoint',
       'node',
       build.images.migration.id,
-      '/run/haen-seed.mjs',
+      '/work/deploy/scripts/release/seed.mjs',
     ]);
     await run(appArgs('server', apiName));
     await retry(async () =>
