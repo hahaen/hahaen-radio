@@ -24,6 +24,7 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 | `DB_USER`、`DB_PASSWORD` | 当前进程所需的运行或迁移身份，由受控环境注入 |
 | `DB_CONNECTION_LIMIT` | 当前 API 或任务进程的连接池上限 |
 | `DB_TLS`、`DB_TLS_CA_PATH` | TLS 默认 required；私有 CA 的本机文件路径，校验证书链与主机名 |
+| `MIGRATION_INITIALIZE_EMPTY` | 首次初始化专用确认，默认拒绝；只有完整可见性及真实空库状态可接受 |
 | `MIGRATION_WRITES_STOPPED` | 迁移入口要求 true，声明所有写入方已停止；不是自动停写开关 |
 | `REMOTE_DNS_MODE` | system 为默认系统解析；https 为可选的加密 DNS，详见目录管线 |
 
@@ -51,6 +52,8 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 启动和运维入口应显式选择环境，核对库名；不能在开发配置缺失时自动回退到正式库。数据库地址和身份只保存在私有连接配置中，结构分析得到的适用约定单独归档。
 
 应用连接池和隔离迁移已在 MySQL 8.0.46 通过验收。生产身份、服务器 TLS 和发布运行环境仍待部署时配置。库、表和连接的字符约定见[建表规范](../data/database/table-options-and-collations.md)。
+
+迁移身份还需具备完整元数据可见性；只读 status、历史/表集合核对和初始化条件见[目标预检](../data/migrations/target-preflight.md)。
 
 备份创建与迁移共用的会话锁、额外连接预算和失锁处理见[数据库维护协调](database-maintenance.md)。
 

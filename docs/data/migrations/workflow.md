@@ -7,6 +7,7 @@
 ```bash
 pnpm db:generate --name=<change-name>
 pnpm db:generate --custom --name=<change-name>
+pnpm db:migrate status
 pnpm db:migrate
 ```
 
@@ -21,6 +22,8 @@ pnpm db:migrate
 首条生成 SQL 与后续表选项迁移必须作为完整初始化序列执行，完成前不启动业务。迁移历史表由 Drizzle Kit 创建，本项目在自定义迁移中约束其表选项；不手工伪造迁移记录。JSON 字段使用 MySQL 原生 JSON 语义，不误当普通 varchar 列转换。
 
 本地迁移专用 `.env.migration.local` 与 API `.env.local`、任务 `.env.jobs.local` 分开，全部须被 Git 排除且权限为 600。部署时由环境注入相同变量，不把本机私有文件打入镜像。变量与身份范围见[配置文档](../../operations/configuration-and-logging.md)。
+
+目标历史前缀、表集合与首次初始化确认见[迁移预检](target-preflight.md)。完整目标发布执行器仍在推进，状态查询不代替维护、停写或备份。
 
 维护锁、停写确认与取消边界见[维护协调](../../operations/database-maintenance.md)。锁不代替实际停写和外层完整发布互斥。
 

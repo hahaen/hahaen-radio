@@ -85,7 +85,7 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
     );
     await writeFile(
       appEnv,
-      `NODE_ENV=test\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_NAME=${database}\nDB_USER=root\nDB_PASSWORD=${password}\nDB_TLS=disabled\nHOST=0.0.0.0\nPORT=3001\nAPI_DOCS_ENABLED=false\nRECOGNITION_ENABLED=false\nMIGRATION_WRITES_STOPPED=true\n`,
+      `NODE_ENV=test\nDB_HOST=127.0.0.1\nDB_PORT=3306\nDB_NAME=${database}\nDB_USER=root\nDB_PASSWORD=${password}\nDB_TLS=disabled\nHOST=0.0.0.0\nPORT=3001\nAPI_DOCS_ENABLED=false\nRECOGNITION_ENABLED=false\nMIGRATION_WRITES_STOPPED=true\nMIGRATION_INITIALIZE_EMPTY=true\n`,
       { flag: 'wx', mode: 0o600 },
     );
     await run(['pull', mysqlImage], { capture: false, timeout: 900000 });

@@ -2,7 +2,16 @@ import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { openSync, closeSync } from 'node:fs';
-import { mkdir, mkdtemp, rm, writeFile, readdir, readFile } from 'node:fs/promises';
+import {
+  mkdir,
+  mkdtemp,
+  rm,
+  writeFile,
+  readdir,
+  readFile,
+  copyFile,
+  chmod,
+} from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -25,9 +34,11 @@ const root = fileURLToPath(new URL('../../../../', import.meta.url)),
 let admin: Connection | undefined,
   sourceCreated = false,
   restoreOwned = false,
+  upgradeOwned = false,
   work: string | undefined;
 let api: ReturnType<typeof spawn> | undefined, apiExited: Promise<number | null> | undefined;
 const restoreName = 'ha_radio_test_restore_' + randomBytes(6).toString('hex');
+const upgradeName = 'ha_radio_test_backup_upgrade_' + randomBytes(6).toString('hex');
 let source = '';
 const maintenanceController = new AbortController();
 let maintenance: Promise<boolean> | undefined;
@@ -63,27 +74,167 @@ try {
     'CREATE DATABASE `' + source + '` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci',
   );
   sourceCreated = true;
-  const migrate = async (stopped: boolean, success: boolean) => {
-    const outcome = await exec(process.execPath, ['dist/entrypoints/migrate.js'], {
+  const privateRoot = join(root, '.local/archive/backup-tests');
+  await mkdir(privateRoot, { recursive: true, mode: 0o700 });
+  work = await mkdtemp(join(privateRoot, 'run-'));
+
+  const compiledMigration = async (
+    args: string[],
+    success: boolean,
+    extra: NodeJS.ProcessEnv = {},
+  ) => {
+    const outcome = await exec(process.execPath, ['dist/entrypoints/migrate.js', ...args], {
       cwd: server,
-      env: { ...process.env, MIGRATION_WRITES_STOPPED: String(stopped) },
+      env: { ...process.env, ...extra },
       timeout: 120000,
       maxBuffer: 32768,
     }).then(
-      () => true,
-      () => false,
+      (result) => ({ success: true, stdout: result.stdout }),
+      () => ({ success: false, stdout: '' }),
     );
-    assert.equal(outcome, success);
+    assert.equal(outcome.success, success);
+    return outcome.success
+      ? (JSON.parse(outcome.stdout.trim()) as {
+          empty: boolean;
+          tables: number;
+          applied: number | unknown[];
+          pending: unknown[];
+          expected: unknown[];
+        })
+      : undefined;
   };
+  const migrate = (stopped: boolean, success: boolean, initialize = true) =>
+    compiledMigration([], success, {
+      MIGRATION_WRITES_STOPPED: String(stopped),
+      MIGRATION_INITIALIZE_EMPTY: String(initialize),
+    });
+  const initial = await compiledMigration(['status'], true);
+  assert(initial?.empty && initial.tables === 0 && initial.pending.length === 3);
   await migrate(false, false);
-  await withMaintenanceLock(config, () => migrate(true, false));
+  await migrate(true, false, false);
+  await withMaintenanceLock(config, async () => {
+    await migrate(true, false);
+  });
   const [empty] = await admin.execute<RowDataPacket[]>(
     'SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=?',
     [source],
   );
   assert.equal(empty.length, 0);
+  await admin.query(
+    'CREATE TABLE `' + source + '`.unmanaged_preflight_fixture(id int) ENGINE=InnoDB',
+  );
+  try {
+    await compiledMigration(['status'], false);
+    await migrate(true, false);
+  } finally {
+    await admin.query('DROP TABLE `' + source + '`.unmanaged_preflight_fixture');
+  }
   await migrate(true, true);
-  await migrate(true, true);
+  const repeated = await migrate(true, true);
+  assert.equal(repeated?.applied, 0);
+  const current = await compiledMigration(['status'], true);
+  assert(!current?.empty && current?.tables === 11 && current.pending.length === 0);
+  const [recorded] = await admin.query<RowDataPacket[]>(
+    'SELECT id,hash,created_at FROM `' + source + '`.__drizzle_migrations ORDER BY id LIMIT 1',
+  );
+  const first = recorded[0]!;
+  await admin.execute('UPDATE `' + source + '`.__drizzle_migrations SET hash=? WHERE id=?', [
+    'c'.repeat(64),
+    first.id,
+  ]);
+  try {
+    await compiledMigration(['status'], false);
+    await migrate(true, false);
+  } finally {
+    await admin.execute('UPDATE `' + source + '`.__drizzle_migrations SET hash=? WHERE id=?', [
+      first.hash,
+      first.id,
+    ]);
+  }
+  await admin.execute('UPDATE `' + source + '`.__drizzle_migrations SET created_at=? WHERE id=?', [
+    String(BigInt(first.created_at) + 1n),
+    first.id,
+  ]);
+  try {
+    await compiledMigration(['status'], false);
+    await migrate(true, false);
+  } finally {
+    await admin.execute(
+      'UPDATE `' + source + '`.__drizzle_migrations SET created_at=? WHERE id=?',
+      [first.created_at, first.id],
+    );
+  }
+  await admin.query(
+    'CREATE TABLE `' + source + '`.unmanaged_preflight_fixture(id int) ENGINE=InnoDB',
+  );
+  try {
+    await compiledMigration(['status'], false);
+    await migrate(true, false);
+  } finally {
+    await admin.query('DROP TABLE `' + source + '`.unmanaged_preflight_fixture');
+  }
+  await compiledMigration(['status'], true);
+  assert(!(await exists(upgradeName)));
+  await admin.query(
+    'CREATE DATABASE `' + upgradeName + '` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci',
+  );
+  upgradeOwned = true;
+  const prior = join(work, 'prior-migrations');
+  await mkdir(join(prior, 'meta'), { recursive: true, mode: 0o700 });
+  const journal = JSON.parse(
+    await readFile(join(root, 'migrations/meta/_journal.json'), 'utf8'),
+  ) as { entries: { tag: string }[] };
+  const baseline = journal.entries.slice(0, -1);
+  assert(baseline.length > 0);
+  for (const entry of baseline) {
+    assert(/^\d{4}_[a-z0-9_]+$/.test(entry.tag));
+    const path = join(prior, entry.tag + '.sql');
+    await copyFile(join(root, 'migrations', entry.tag + '.sql'), path);
+    await chmod(path, 0o600);
+  }
+  await writeFile(
+    join(prior, 'meta/_journal.json'),
+    JSON.stringify({ ...journal, entries: baseline }),
+    { mode: 0o600 },
+  );
+  await exec(
+    process.execPath,
+    ['node_modules/drizzle-kit/bin.cjs', 'migrate', '--config=drizzle.test.config.ts'],
+    {
+      cwd: server,
+      env: { ...process.env, DB_NAME: upgradeName, DB_TEST_MIGRATIONS_PATH: prior },
+      timeout: 120000,
+      maxBuffer: 32768,
+    },
+  );
+  await admin.execute(
+    'INSERT INTO `' +
+      upgradeName +
+      '`.station_overrides(station_id,blocked,reason,updated_at) VALUES(?,1,?,UTC_TIMESTAMP(3))',
+    ['00000000-0000-4000-8000-000000000097', '升级保留 🌊'],
+  );
+  const pendingUpgrade = await compiledMigration(['status'], true, { DB_NAME: upgradeName });
+  assert(pendingUpgrade?.pending.length === 1 && !pendingUpgrade.empty);
+  await admin.query('CREATE TABLE `' + upgradeName + '`.diagnostic_limits(id int) ENGINE=InnoDB');
+  try {
+    await compiledMigration(['status'], false, { DB_NAME: upgradeName });
+    await compiledMigration([], false, { DB_NAME: upgradeName, MIGRATION_WRITES_STOPPED: 'true' });
+  } finally {
+    await admin.query('DROP TABLE `' + upgradeName + '`.diagnostic_limits');
+  }
+
+  await compiledMigration([], true, {
+    DB_NAME: upgradeName,
+    MIGRATION_WRITES_STOPPED: 'true',
+    MIGRATION_INITIALIZE_EMPTY: 'false',
+  });
+  const upgraded = await compiledMigration(['status'], true, { DB_NAME: upgradeName });
+  assert(upgraded?.pending.length === 0 && upgraded.tables === 11);
+  const [kept] = await admin.execute<RowDataPacket[]>(
+    'SELECT reason FROM `' + upgradeName + '`.station_overrides WHERE station_id=?',
+    ['00000000-0000-4000-8000-000000000097'],
+  );
+  assert.equal(kept[0]!.reason, '升级保留 🌊');
   const database = await openDatabase(config);
   const station = normalizeStation({
     stationuuid: '00000000-0000-4000-8000-000000000001',
@@ -110,9 +261,7 @@ try {
       source +
       '`.diagnostic_limits SET accepted_count=7,period_day=DATE_FORMAT(UTC_TIMESTAMP(),"%Y-%m-%d") WHERE id=1',
   );
-  const privateRoot = join(root, '.local/archive/backup-tests');
-  await mkdir(privateRoot, { recursive: true, mode: 0o700 });
-  work = await mkdtemp(join(privateRoot, 'run-'));
+
   const primary = join(work, 'primary'),
     secondary = join(work, 'independent-copy');
   await mkdir(primary, { mode: 0o700 });
@@ -395,6 +544,13 @@ try {
       overlappingDailyRefused: true,
       copyFailurePreservesPrimary: true,
       retainedBackupRecoveryId: true,
+      migrationPreflight: true,
+      upgradePreflight: true,
+      partialTableCreationRefused: true,
+      emptyInitializationProtected: true,
+      hashDriftRefused: true,
+      timestampDriftRefused: true,
+      unmanagedTablesRefused: true,
     }),
   );
 } catch (error) {
@@ -416,17 +572,19 @@ try {
     clearTimeout(timer);
   }
   const cleaned = await Promise.allSettled(
-    [...(restoreOwned ? [restoreName] : []), ...(sourceCreated ? [source] : [])].map(
-      async (name) => {
-        assert(/^ha_radio_test_(backup|restore)_[a-z0-9_]+$/.test(name));
-        await admin!.query('DROP DATABASE `' + name + '`');
-        const [rows] = await admin!.execute<RowDataPacket[]>(
-          'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME=?',
-          [name],
-        );
-        assert.equal(rows.length, 0);
-      },
-    ),
+    [
+      ...(restoreOwned ? [restoreName] : []),
+      ...(sourceCreated ? [source] : []),
+      ...(upgradeOwned ? [upgradeName] : []),
+    ].map(async (name) => {
+      assert(/^ha_radio_test_(backup|restore)_[a-z0-9_]+$/.test(name));
+      await admin!.query('DROP DATABASE `' + name + '`');
+      const [rows] = await admin!.execute<RowDataPacket[]>(
+        'SELECT SCHEMA_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME=?',
+        [name],
+      );
+      assert.equal(rows.length, 0);
+    }),
   );
   await admin?.end();
   if (cleaned.some((item) => item.status === 'rejected')) {
@@ -438,6 +596,7 @@ try {
     JSON.stringify({
       event: 'backup_test_cleanup',
       sourceRemoved: sourceCreated,
+      upgradeRemoved: upgradeOwned,
       restoreRemoved: restoreOwned,
       ownedApiStopped: !api || api.exitCode !== null || api.signalCode !== null,
     }),
