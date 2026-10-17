@@ -29,6 +29,7 @@
 | BACKUP-02 | 每日流程与受控副本复制 | 已通过 | 本机文件与真实 MySQL 验收见[每日归档](../iterations/2026-10-17-backup-schedule/README.md)；systemd 定时及独立物理存储仍待目标 Linux 验收 |
 | MIGRATE-01 | 迁移状态、前缀核验与空库保护 | 已通过 | 4 项新增普通测试及真实 MySQL 8.0.46 的空库、重复执行返回 0、两条到三条升级保留、摘要/时间漂移与未管理表/半完成建表拒绝，见[预检归档](../iterations/2026-10-17-migration-preflight/README.md)；不是完整列/索引/约束漂移检测，正式库未执行 |
 | CI-01 | Jenkins 镜像构建、验收与分发 | 待外部条件 | 确定提交、镜像 ID/摘要链、隔离检查脚本和手动分发已实现，7 项模拟 CLI/原生边界测试通过；实际 Jenkins/Docker/仓库及目标发布执行器见[产物记录](../iterations/2026-10-17-release-images/README.md) |
+| RECOVER-01 | 正式恢复操作材料 | 待外部条件 | [手册](../data/backup/formal-recovery-runbook.md)与[记录](../iterations/2026-10-17-formal-recovery/README.md)已补齐；MySQL 8.0.46人工夹具的归档/导入通过，正式库、Linux锁交接和两种完整应用分支未执行 |
 | LOG-01 | 普通日志七天与容量保留 | 待外部条件 | 原生文件/Fastify、当前启动探针及编译API通过，见[归档](../iterations/2026-10-17-runtime-log/README.md)；Linux命名卷、自然清理和磁盘故障仍待目标验收 |
 | CI-02 | 独立目标审批与跨节点交接 | 待外部条件 | 209项普通检查、14项定向原生CLI/文件验证及源码Review见[本轮记录](../iterations/2026-10-17-jenkins-target/README.md)；实际Jenkins DSL/CPS/input/stash/凭据和Linux发布未执行 |
 | DEPLOY-02 | 目标执行器、维护与受控恢复 | 待外部条件 | 实现、203项普通检查、原生Caddy的9组布局及3组200%文字、实际MySQL维护/备份见[归档](../iterations/2026-10-17-target-deployment/README.md)；流程IO为模拟，Linux/Docker/sudo与Jenkins目标阶段仍待验收 |

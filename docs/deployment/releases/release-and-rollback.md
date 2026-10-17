@@ -41,4 +41,4 @@ MySQL DDL 可能隐式提交，迁移失败后必须核对实际结构与迁移�
 
 至少包含目标环境、域名或服务名、提交、镜像、配置变更、SQL 准备和执行情况、发布顺序、验收结果及遗留问题。不能把“镜像启动成功”表述为全部业务已验收。
 
-备份与恢复见[数据文档](../../data/backup/backup-and-restore.md)。返回[部署导航](../README.md)。
+备份与隔离恢复见[数据文档](../../data/backup/backup-and-restore.md)，正式数据库管理员操作见[恢复手册](../../data/backup/formal-recovery-runbook.md)。recover不会恢复SQL或运行待执行迁移，不编辑attempt来绕过结构验收；原表留存、数据损失确认与两种持久状态分支按手册分别执行。返回[部署导航](../README.md)。

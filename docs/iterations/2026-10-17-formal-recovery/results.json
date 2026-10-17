@@ -1,0 +1,38 @@
+{
+  "mysql": "8.0.46",
+  "fixtureOnly": true,
+  "nativeBackupVerified": true,
+  "archiveAndImport": true,
+  "unicodePreserved": true,
+  "foreignKeysScoped": true,
+  "firstErrorStopsBatch": true,
+  "failedRenameAtomic": true,
+  "productionWrites": false,
+  "date": "2026-10-17",
+  "applicationBaseCommit": "075ddf831a63a52be99d0c03c5ba2a2de4191679",
+  "temporaryDatabasesCleaned": true,
+  "fullFormalProcedureRun": false,
+  "formalSqlRun": false,
+  "developmentWrites": false,
+  "dockerRun": false,
+  "linuxFlockHandoffRun": false,
+  "productionTlsVerified": false,
+  "ordinaryTestsRun": false,
+  "changes": "Documentation only; no application source, schema or migration change",
+  "reviewedInputs": {
+    "apps/server/src/operations/backup.ts": "d5d6a900c5675180f089fecdb68c2f8b0c0978452958e87a8e5fc12a3e8db738",
+    "apps/server/src/operations/maintenance.ts": "7e352d620b0701f5fa2f715b90dd13b444664e458d36a114a6ab4a0ec58d368b",
+    "apps/server/src/entrypoints/deploy.ts": "26f7cdb7cdc7822e2a5b06710c188c9f94682ec9a3c3316c55877d5d4cbf2176",
+    "scripts/deploy/flow.mjs": "48cf02776e02a31517444ebff41ea071787b53437a1992adfb327b2ff5710232",
+    "scripts/deploy/target.mjs": "90ace7b446e5dcc8e7c29a895cf887399c9f2b5a98594ee856667a1ce37fca91",
+    "scripts/deploy/runtime-logs.mjs": "1d0374242112623b5d68622a33a02123d7ef22a7777d0246e878569dff440f73"
+  },
+  "generatedPlanFromRunbook": true,
+  "shellExamplesParsed": 11,
+  "reviewedSqlGeneratorSha256": "ba6f2c7eeb46130e94804c11a685fe32937d4a04c13f850753e6bf687e490e30",
+  "upstreamSync": "No upstream change; 12 documentation files restored with original bytes and modes, scoped re-review and syntax/link checks repeated",
+  "postSyncDocs": {
+    "markdown": 101,
+    "localLinks": 622
+  }
+}

@@ -13,3 +13,5 @@
 - [发布与回退](../deployment/releases/release-and-rollback.md)：版本关系与恢复边界。
 
 返回[文档导航](../README.md)。
+
+正式数据库故障的恢复点、值守锁和恢复后验收见[管理员手册](../data/backup/formal-recovery-runbook.md)。

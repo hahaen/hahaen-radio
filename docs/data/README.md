@@ -13,3 +13,5 @@
 | `backup/` | [备份与恢复](backup/backup-and-restore.md) | 一致性快照、保留、校验与恢复 |
 
 运行目录与卷见[容器与存储](../deployment/containers/topology-and-storage.md)。返回[文档导航](../README.md)。
+
+[正式数据库恢复手册](backup/formal-recovery-runbook.md)：管理员接管、故障现场留存、原生导入、持久状态分支和目标演练。

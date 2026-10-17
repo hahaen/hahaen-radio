@@ -72,7 +72,7 @@ backup.env 必须配置正式库、独立主/副存储及已验证原生客户�
 5. 检查目录就绪；确无目录且获得首次同步确认时才同步真实数据。先 API 就绪，再 Web 同域代理、index与实际脚本资源，再启动并从日志卷确认当前容器StartedAt之后、对应服务端提交的scheduler_started和运行状态。候选服务端须声明文件日志能力，prepare在维护attempt和停写前拒绝旧镜像；仅Web更新及回退也须满足此兼容边界，见[普通日志与目标验收](../../operations/runtime-logs.md)。
 6. 写入版本记录及当前/上一镜像组合，再清除维护；检查公网 HTTPS 首页和健康接口成功后才完成持久记录。
 
-Web 单独更新要求迁移清单一致，保留 API/jobs，仍执行维护与资源/健康检查。server 更新保留旧 Web，要求操作者审核接口兼容。rollback 需明确兼容确认，只允许上一组合与当前迁移清单完全相同，不运行迁移，不把镜像回退当作数据库回退。
+Web 单独更新要求迁移清单一致，保留 API/jobs，仍执行维护与资源/健康检查。server 更新保留旧 Web，要求操作者审核接口兼容。rollback 需明确兼容确认，只允许上一组合与当前迁移清单完全相同，不运行迁移，不把镜像回退当作数据库回退。正式SQL恢复与管理员接管见[操作手册](../../data/backup/formal-recovery-runbook.md)，不得把recover误用为导入或前向迁移。
 
 发生失败会尽力恢复维护标记、停止自身写入方，并将失败阶段及 cleanupConfirmed 持久化。Docker、磁盘、节点强杀或锁连接故障时，不能保证清理一定执行，cleanupConfirmed=false 或中断 attempt 必须现场核对。普通 apply/rollback 遇到未完成 attempt 会拒绝；不自动删锁、历史、备份、卷或失败记录。
 
