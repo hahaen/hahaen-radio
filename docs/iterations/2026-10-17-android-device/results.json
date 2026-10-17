@@ -1,0 +1,199 @@
+{
+  "date": "2026-10-17T06:36:07.748Z",
+  "commit": "01d0206c100c95b90a29a2d9c6c6ab6e37817733",
+  "device": {
+    "model": "23127PN0CC",
+    "android": "16",
+    "chrome": "155.0.8059.39",
+    "viewport": [400, 789],
+    "dpr": 3
+  },
+  "scope": "development-server, real catalog and external streams, USB loopback",
+  "checks": [
+    {
+      "id": "speaker",
+      "result": "passed",
+      "method": "user-confirmed",
+      "volume": 0.12,
+      "station": "SomaFM Groove Salad (256k MP3)"
+    },
+    {
+      "id": "touch-drag",
+      "result": "passed",
+      "canvasChanged": true,
+      "scrollBefore": 0,
+      "scrollAfter": 0
+    },
+    {
+      "id": "touch-pinch",
+      "result": "passed",
+      "canvasChanged": true,
+      "pageScale": 1
+    },
+    {
+      "id": "initial-no-autoplay",
+      "result": "passed",
+      "audioElements": 0,
+      "overflow": false
+    },
+    {
+      "id": "real-search",
+      "result": "passed",
+      "matches": 14
+    },
+    {
+      "id": "mp3-decode",
+      "result": "passed",
+      "currentTimeSamples": [0.18576, 16.036112, 72.355107],
+      "volume": 0.12,
+      "readyState": 4,
+      "mediaError": null
+    },
+    {
+      "id": "touch-pause-resume",
+      "result": "passed"
+    },
+    {
+      "id": "globe-genre-audio-continuity",
+      "result": "passed"
+    },
+    {
+      "id": "screen-off-audio",
+      "result": "pending-user-observation"
+    },
+    {
+      "id": "native-media-key-pause-resume",
+      "result": "passed",
+      "method": "Android KEYCODE_MEDIA_PAUSE/PLAY to uniquely matched current Chrome media session, while screen off"
+    },
+    {
+      "id": "hidden-decode-window",
+      "result": "passed",
+      "wallSeconds": 102.083,
+      "mediaSeconds": 102.093011,
+      "bothSamplesHidden": true,
+      "bothSamplesUnpaused": true,
+      "note": "Read-only raw CDP sampling; actual audible continuity remains pending user observation."
+    }
+  ],
+  "environment": {
+    "serviceMode": "Vite development + Fastify development",
+    "database": "ha_radio_dev",
+    "databaseVersion": "8.0.46",
+    "catalogCount": 68816,
+    "unfilteredAvailableCandidates": 40567,
+    "matchingSomaFMGrooveSalad": 14,
+    "transport": "USB loopback; no public deployment; streams directly requested by phone",
+    "secureContext": true,
+    "webglPanelState": "ready",
+    "maxTouchPoints": 5,
+    "inputMethod": "CDP trusted touch on actual device; search text and Enter via CDP keyboard; volume via range keyboard"
+  },
+  "nativeObservation": {
+    "debuggerAttachedVisibility": "visible even after Android launcher foreground; excluded as hidden-page proof",
+    "detachedBackground": {
+      "wallTime": "2026-10-17T06:40:09.016739+00:00",
+      "projectMediaSession": true,
+      "foregroundLauncher": true,
+      "scopedChromePlaybackState": "PLAYING(3)"
+    },
+    "screenOff": {
+      "wallTime": "2026-10-17T06:40:33.287655+00:00",
+      "wakefulness": "Dozing",
+      "projectMediaSession": true
+    },
+    "note": "System media session position is not a live playback clock and is not treated as continuity proof."
+  },
+  "databaseAudit": {
+    "method": "read-only metadata and grants",
+    "appliedMigrations": 2,
+    "tablesIncludingHistory": 9,
+    "pendingMigration": "0002_playback_diagnostics.sql",
+    "migrationStatus": "refused by metadata-visibility grant validation",
+    "missingVisibility": [
+      "SHOW VIEW",
+      "TRIGGER",
+      "EVENT",
+      "global SHOW_ROUTINE or equivalent existing visibility"
+    ],
+    "writesPerformed": false,
+    "formalDatabaseTouched": false
+  },
+  "screenshots": [
+    {
+      "path": "assets/initial.png",
+      "sha256": "777539594d73956eb23848e4e4a3869e8175244c2922ff135b7deab9fafe3ca8",
+      "width": 1200,
+      "height": 2367
+    },
+    {
+      "path": "assets/playing.png",
+      "sha256": "96466198510244529aa07d25b745be83e2efcf8f302e4f1d0ce351da310df9d0",
+      "width": 1200,
+      "height": 2367
+    }
+  ],
+  "notValidated": [
+    "iOS Safari",
+    "actual phone call/audio-focus interruption",
+    "real device file picker import/export",
+    "TalkBack/VoiceOver",
+    "public HTTPS and cellular network",
+    "real device sustained frame rate and arbitrary duration",
+    "Docker/Jenkins/target Linux deployment",
+    "new diagnostic migration in development and formal databases"
+  ],
+  "nativeMediaControls": [
+    {
+      "phase": "before",
+      "state": "PLAYING(3)",
+      "wallTime": "2026-10-17T06:44:23.199124+00:00"
+    },
+    {
+      "phase": "pause",
+      "state": "PAUSED(2)",
+      "expected": "PAUSED(2)",
+      "passed": true,
+      "wallTime": "2026-10-17T06:44:23.364368+00:00"
+    },
+    {
+      "phase": "resume",
+      "state": "PLAYING(3)",
+      "expected": "PLAYING(3)",
+      "passed": true,
+      "wallTime": "2026-10-17T06:44:24.011326+00:00"
+    }
+  ],
+  "rawCdpScreenOffSamples": [
+    {
+      "wallTime": "2026-10-17T06:45:13.439Z",
+      "visibility": "hidden",
+      "focus": false,
+      "status": "playing",
+      "audio": [
+        {
+          "paused": false,
+          "time": 577.558838,
+          "ready": 4,
+          "error": null,
+          "volume": 0.12
+        }
+      ]
+    },
+    {
+      "wallTime": "2026-10-17T06:46:55.522Z",
+      "visibility": "hidden",
+      "focus": false,
+      "status": "playing",
+      "audio": [
+        {
+          "paused": false,
+          "time": 679.651849,
+          "ready": 4,
+          "error": null,
+          "volume": 0.12
+        }
+      ]
+    }
+  ]
+}

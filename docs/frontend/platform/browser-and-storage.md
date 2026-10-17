@@ -42,4 +42,6 @@
 
 兼容性结果在实现后记录浏览器、系统、设备与验证范围；WebKit 自动化结果不能替代真实 iOS 音频验收。
 
+真实设备步骤与结果入口见[手机验收](../../engineering/real-device-acceptance.md)。
+
 返回[前端导航](../README.md)。

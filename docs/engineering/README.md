@@ -5,6 +5,7 @@
 - [环境与依赖](environment-and-dependencies.md)：运行时、版本冻结、本地 IDE 配置、共享包与脚本约定。
 - [质量与测试](quality-and-testing.md)：静态检查、分层测试与验收证据。
 - [规模与稳定性](scale-and-stability.md)：3 万条目录与连续切换的回归入口、采样及阈值。
+- [真实手机验收](real-device-acceptance.md)：连接准备、触摸/播放/系统媒体、后台听音和证据边界。
 - [可访问性](accessibility.md)：双语多状态扫描、模态焦点、触控目标和人工复核边界。
 
 - [资源预算与持续运行](resource-budgets.md)：生产包上限、原生WebGL句柄和双端Chromium计时验收。

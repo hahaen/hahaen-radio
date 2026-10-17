@@ -21,7 +21,7 @@
 | INFO-01 | 关于、隐私、署名、帮助与反馈说明 | 已通过 | 双语主题、本地许可、显式预览/复制、拒绝降级、焦点与布局已通过 12 项浏览器用例，见[产品说明记录](../iterations/2026-10-17-product-information/README.md)；未配置公开联系渠道，不编造账号或自动发送 |
 | OBS-01 | 有限故障报告、持久限制与保留清理 | 已通过 | 164 项普通、10 项隔离 MySQL、编译入口与 233 项全量浏览器验证通过，见[诊断记录](../iterations/2026-10-17-playback-diagnostics/README.md)；新迁移尚未在开发或正式环境执行，真实手机另验 |
 | COMPAT-01 | 双语、布局、键盘、焦点和减少动态效果 | 未验证 | 探索阶段已检查双语、五种视口、200% 文字与地点焦点返回；完整产品及真实手机仍待后续验收；Firefox 曾有 1 次媒体时钟停滞，追加诊断与 12 次复验未重现，根因与长期稳定性继续观察；本轮另有 1 次 HLS 暂停恢复时钟停滞，定向检查未重现，另见[产品说明记录](../iterations/2026-10-17-product-information/README.md)与[增强记录](../iterations/2026-10-17-audio-enhancement/README.md) |
-| DEVICE-01 | Android Chrome 真实设备 | 未验证 | 待核心功能与设备连接 |
+| DEVICE-01 | Android Chrome 真实设备 | 未验证 | 小米23127PN0CC / Android16 / Chrome155：真实触摸、MP3与用户确认出声、暂停恢复、系统媒体按键及隐藏解码已有证据，见[真机记录](../iterations/2026-10-17-android-device/README.md)；息屏听音、解锁恢复及其余场景继续验收，不能将子项通过当作整项完成 |
 | DEVICE-02 | iOS Safari 真实设备 | 未验证 | 待核心功能与设备条件 |
 | PERF-01 | 3 万条目录与连续切换稳定性 | 未验证 | 已完成 68,816 条真实目录加载；另有 30000 条合成目录、搜索筛选、缓存与 60 轮切换的四项目检查通过，Chromium 堆/节点/监听器与其他浏览器 DOM 记录见[规模归档](../iterations/2026-10-17-scale-stability/README.md)；生产资源预算与计时持续检查见[独立入口](../engineering/resource-budgets.md)，本机结果另见PERF-02；任意长时、物理显存与真机帧率仍待验收 |
 | PERF-02 | 生产包预算、原生句柄与十分钟持续运行 | 已通过 | [本轮证据](../iterations/2026-10-17-resource-budgets/README.md)：六项独立检查、48次重建、双端Chromium各20次GC采样与135/136次切台；节点/监听器增量0，堆增长低于既定上限，四项原规模回归通过；不代表物理显存、真机帧率或任意时长稳定性 |
