@@ -15,6 +15,13 @@
       "when": 1792169600370,
       "tag": "0001_explicit_table_options",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1792194106615,
+      "tag": "0002_playback_diagnostics",
+      "breakpoints": true
     }
   ]
 }

@@ -26,3 +26,4 @@ export * from './scene.js';
 export * from './tracks.js';
 
 export * from './recognition.js';
+export * from './diagnostics.js';

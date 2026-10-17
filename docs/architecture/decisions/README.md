@@ -8,6 +8,7 @@
 | ADR-0002 | [MySQL 与 Drizzle Kit](0002-mysql-and-drizzle-kit.md) | 版本及字符配置由 ADR-0003 修订，其余适用 |
 | ADR-0003 | [建表选项与实际目标环境](0003-table-options-and-target-environment.md) | 元数据已核对，规范已确定，应用待实施 |
 | ADR-0004 | [识曲采用显式预算与持久化预扣](0004-recognition-allowance.md) | 单实例运维状态与可控验证已接入，真实服务待授权条件 |
+| ADR-0005 | [匿名诊断采用事务额度与固定容量](0005-bounded-playback-diagnostics.md) | 实现已接入，适用验收见任务记录 |
 
 ## 记录格式
 

@@ -28,7 +28,8 @@
     "catalog": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server catalog",
     "jobs": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server jobs",
     "places": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server places",
-    "recognition:quota": "pnpm --filter @haen/server recognition:quota"
+    "recognition:quota": "pnpm --filter @haen/server recognition:quota",
+    "diagnostics": "pnpm --filter @haen/server diagnostics"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

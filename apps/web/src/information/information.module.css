@@ -117,6 +117,22 @@
 .copy:disabled {
   opacity: 0.5;
 }
+.report {
+  margin-top: 32px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+}
+.reportDetails div {
+  margin-block: 12px;
+}
+.reportDetails dt {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+.reportDetails dd {
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
 @media (width < 480px) {
   .shortcuts div {
     grid-template-columns: minmax(0, 1fr);

@@ -15,7 +15,8 @@
     "start:jobs": "node --env-file-if-exists=../../.env.jobs.local dist/entrypoints/jobs.js",
     "test:mysql": "node --env-file-if-exists=../../.env.migration.local --import tsx src/testing/run-mysql.ts",
     "places": "node --env-file-if-exists=../../.env.jobs.local --import tsx src/entrypoints/places.ts",
-    "recognition:quota": "node --env-file-if-exists=../../.env.local --import tsx src/entrypoints/recognition-quota.ts"
+    "recognition:quota": "node --env-file-if-exists=../../.env.local --import tsx src/entrypoints/recognition-quota.ts",
+    "diagnostics": "node --env-file-if-exists=../../.env.jobs.local --import tsx src/entrypoints/diagnostics.ts"
   },
   "dependencies": {
     "@fastify/swagger": "9.9.2",

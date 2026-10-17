@@ -20,7 +20,7 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
   afterAll(async () => {
     await database?.close();
   });
-  it('verifies every table option, ASCII identifiers, retained Unicode data and two migration records', async () => {
+  it('verifies every table option, ASCII identifiers, retained Unicode data and three migration records', async () => {
     await database.run(async (session) => {
       const [tables] = await session.execute(
         sql`SELECT TABLE_NAME, ENGINE, TABLE_COLLATION, ROW_FORMAT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()`,
@@ -31,7 +31,7 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
         TABLE_COLLATION: string;
         ROW_FORMAT: string;
       }[];
-      expect(rows).toHaveLength(9);
+      expect(rows).toHaveLength(11);
       for (const row of rows)
         expect(row).toMatchObject({
           ENGINE: 'InnoDB',
@@ -46,7 +46,7 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
       const [history] = await session.execute(
         sql`SELECT COUNT(*) AS count FROM __drizzle_migrations`,
       );
-      expect(history).toEqual([{ count: 2 }]);
+      expect(history).toEqual([{ count: 3 }]);
     });
   });
   it('publishes repeatable snapshots, retains a successful head after failure and prevents competing workers', async () => {

@@ -7,6 +7,8 @@ import { createCatalogService } from '../modules/catalog/service.js';
 import { readRecognitionConfig } from '../config/recognition.js';
 import { openRecognitionQuota, type RecognitionQuota } from '../modules/recognition/quota.js';
 import { createRecognitionService } from '../modules/recognition/service.js';
+import { createDiagnosticRepository } from '../modules/diagnostics/repository.js';
+import { createDiagnosticService } from '../modules/diagnostics/service.js';
 
 let database: Database | undefined;
 let app: ReturnType<typeof buildApp> | undefined;
@@ -19,6 +21,10 @@ try {
   const catalog = database ? createCatalogService(createCatalogRepository(database)) : undefined;
   if (recognitionConfig.enabled) quota = await openRecognitionQuota(recognitionConfig);
   app = buildApp(config, true, catalog, {
+    diagnostics: createDiagnosticService(
+      catalog,
+      database ? createDiagnosticRepository(database) : undefined,
+    ),
     recognition: createRecognitionService(
       catalog,
       recognitionConfig.enabled ? { token: recognitionConfig.token, quota: quota! } : {},

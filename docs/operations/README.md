@@ -4,6 +4,7 @@
 
 - [配置与日志](configuration-and-logging.md)：环境变量、敏感信息边界和日志维护。
 - [健康与排障](health-and-troubleshooting.md)：分层检查、故障定位和发布验收。
+- [播放诊断](playback-diagnostics.md)：精简报告、固定容量、保留清理与受控摘要。
 - [识曲额度](recognition-quota.md)：可选凭据、显式预算、初始化及异常恢复。
 - [数据库备份与恢复](../data/backup/backup-and-restore.md)：数据快照和恢复流程。
 - [发布与回退](../deployment/releases/release-and-rollback.md)：版本关系与恢复边界。

@@ -4,6 +4,24 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   zh: {
     translation: {
+      diagnostics: {
+        title: '精简播放故障报告',
+        disclosure:
+          '仅点击提交后，向本站发送当前故障的电台标识、线路标识、固定故障类型和本次回执号。服务器记录收到时间，报告有效期为 7 天，并由后台定期清理；达到存储上限时可能提前替换旧记录。报告正文不包含上方问题说明、收藏、浏览记录、音源地址或音频；不将 IP 等网络信息写入报告。',
+        station: '电台标识',
+        stream: '线路标识',
+        failure: '故障类型',
+        noFailure: '当前没有带有效线路的播放失败。你仍可复制上方的问题说明。',
+        send: '提交精简故障报告',
+        sending: '正在提交…',
+        receiptUnavailable: '当前环境无法生成回执，请复制上方问题说明。',
+        uncertain:
+          '未确认服务器是否收到。可以稍后手动重试，本面板会沿用同一回执号避免重复记录；也可复制问题说明。',
+        unavailable: '报告服务暂不可用。可以稍后手动重试或复制问题说明，收听操作不受影响。',
+        limited: '提交过于频繁或今日容量已满，请至少等待 {{seconds}} 秒后手动重试。',
+        accepted: '已收到这条故障报告。它是待核实的反馈，不会自动下线电台。',
+        receipt: '回执 {{id}} · 记录有效至 {{date}}。',
+      },
       informationTitle: '关于与帮助',
       informationTopics: '说明主题',
       information: {
@@ -33,7 +51,7 @@ const resources = {
           '识曲默认关闭。服务启用后，只有点击识曲才由本站服务器采集当前电台短片段并提交给 AudD；不使用你的麦克风，也不保存音频文件。',
         privacyOperationsTitle: '运行与排障',
         privacyOperations:
-          '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。问题说明只在你选择复制后写入剪贴板，不会自动发送。',
+          '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。问题说明只在你选择复制后写入剪贴板，不会自动发送。另有自愿提交的精简播放故障报告，只保存电台与线路标识、固定故障类型、一次性回执号和服务器收到时间；有效期 7 天，后台定期清理并受容量上限约束，不改变电台状态。',
         creditsIntro:
           '感谢以下数据、服务与资源。电台节目、歌曲和歌词均来自各自提供者；目录与地理信息不保证始终准确或完整。',
         creditsRadio:
@@ -82,7 +100,7 @@ const resources = {
         feedbackIntro:
           '请记录重现步骤、预期结果、实际结果，以及你使用的浏览器和设备。不要填写密码、令牌、私人音频或带凭据的网址。',
         feedbackContact:
-          '本站暂未配置在线联系渠道。可以把问题说明复制后转交给提供本站访问地址的人；此面板不会提交到远程服务。',
+          '本站暂未配置在线联系渠道。可以把问题说明复制后转交给提供本站访问地址的人；问题说明不会自动发送；你可在下方单独提交精简播放故障报告。',
         feedbackPreview: '问题说明（仅在本机生成）',
         feedbackTemplate:
           '重现步骤：\n预期结果：\n实际结果：\n浏览器与设备：\n\n以下为打开反馈面板时的收听状态：',
@@ -396,6 +414,29 @@ const resources = {
   },
   en: {
     translation: {
+      diagnostics: {
+        title: 'Minimal playback failure report',
+        disclosure:
+          'Only after you submit, HAEN receives the current failed station ID, stream ID, fixed failure type, and a receipt ID for this report. The server adds the received time. Reports have a 7-day validity period and are periodically deleted; the storage limit may replace older entries sooner. The report body contains no note, favorites, browsing history, stream URL, or audio. Network information such as your IP address is not stored in the report.',
+        station: 'Station ID',
+        stream: 'Stream ID',
+        failure: 'Failure type',
+        noFailure:
+          'There is no current playback failure with a valid stream. You can still copy the note above.',
+        send: 'Submit minimal failure report',
+        sending: 'Submitting…',
+        receiptUnavailable:
+          'Your environment cannot create a report receipt. You can copy the feedback note above.',
+        uncertain:
+          'Receipt could not be confirmed. Retry manually later; this panel reuses the same receipt ID to avoid duplicates. You can also copy the feedback note.',
+        unavailable:
+          'Reporting is unavailable. Retry manually later or copy the feedback note. Listening controls still work.',
+        limited:
+          'Too many attempts or today’s capacity is full. Wait at least {{seconds}} seconds before retrying manually.',
+        accepted:
+          'This failure report was received. It is unverified feedback and will not take a station offline automatically.',
+        receipt: 'Receipt {{id}} · Record valid until {{date}}.',
+      },
       informationTitle: 'About and help',
       informationTopics: 'Information topics',
       information: {
@@ -425,7 +466,7 @@ const resources = {
           'Song identification is off by default. When enabled, only a click asks our server to capture a short station sample and send it to AudD. Your microphone is never used and audio files are not saved.',
         privacyOperationsTitle: 'Operation and troubleshooting',
         privacyOperations:
-          'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio. Feedback notes are written to your clipboard only when you choose to copy them and are never sent automatically.',
+          'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio. Feedback notes are written to your clipboard only when you choose to copy them and are never sent automatically. Separately, voluntary minimal playback reports store station and stream IDs, a fixed failure type, a one-time receipt ID, and the server’s received time. Reports have a 7-day validity period, periodic deletion, and a storage cap. They do not change station availability.',
         creditsIntro:
           'Thanks to the following data, services, and resources. Programs, songs, and lyrics come from their respective providers. Directory and geographic information may be incomplete or out of date.',
         creditsRadio:
@@ -476,7 +517,7 @@ const resources = {
         feedbackIntro:
           'Describe the steps, expected result, actual result, and your browser and device. Do not include passwords, tokens, private audio, or credential-bearing URLs.',
         feedbackContact:
-          'No online contact channel is configured for this site yet. Copy the note and pass it to the person who gave you this site’s address. This panel does not submit to a remote service.',
+          'No online contact channel is configured for this site yet. Copy the note and pass it to the person who gave you this site’s address. The note is never sent automatically. You can separately submit a minimal playback failure report below.',
         feedbackPreview: 'Feedback note (generated on this device only)',
         feedbackTemplate:
           'Steps to reproduce:\nExpected result:\nActual result:\nBrowser and device:\n\nListening state when the feedback panel opened:',

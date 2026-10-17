@@ -1,6 +1,6 @@
 # 后端应用
 
-状态：已实现 Fastify API、MySQL 连接池、目录同步与查询、独立任务和迁移入口。曲目、歌词及默认关闭的手动识曲适配已接入，真实识曲服务、诊断与完整交付继续推进。
+状态：已实现 Fastify API、MySQL 连接池、目录同步与查询、独立任务和迁移入口。曲目、歌词及默认关闭的手动识曲适配已接入，有限播放诊断与清理已接入，真实识曲服务与完整交付继续推进。
 
 ## 目录职责
 
@@ -16,7 +16,7 @@
 
 API 和后台任务共用工程，使用不同入口。通过 mysql2 连接池和 Drizzle ORM 访问 MySQL 8.0.46，API 与任务不挂载数据库数据卷。迁移由独立 Drizzle Kit 工具入口执行。入口和权限见[配置文档](../../docs/operations/configuration-and-logging.md)。
 
-根目录命令为 `pnpm db:generate`、`pnpm db:migrate`、`pnpm catalog sync`、`pnpm catalog status`、`pnpm jobs`、`pnpm test:mysql` 和 `pnpm recognition:quota init`。生产 API 与任务分别运行编译入口 `start` 和 `start:jobs`；迁移镜像仍须包含配置、Schema、SQL 及固定工具依赖。
+根目录命令为 `pnpm db:generate`、`pnpm db:migrate`、`pnpm catalog sync`、`pnpm catalog status`、`pnpm jobs`、`pnpm test:mysql`、`pnpm recognition:quota init`、`pnpm diagnostics summary` 和 `pnpm diagnostics cleanup`。生产 API 与任务分别运行编译入口 `start` 和 `start:jobs`；迁移镜像仍须包含配置、Schema、SQL 及固定工具依赖。
 
 识曲采用服务端私有配置、独占持久额度与上传前预扣，不自动开通或补充授权；初始化与恢复见[额度运维](../../docs/operations/recognition-quota.md)。
 

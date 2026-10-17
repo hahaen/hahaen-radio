@@ -65,4 +65,6 @@ Docker 配置日志轮转和磁盘上限，避免日志占满数据库磁盘。J
 
 可选识曲的 `RECOGNITION_ENABLED`、`AUDD_API_TOKEN`、`RECOGNITION_REQUEST_LIMIT`、`RECOGNITION_BUDGET_ID` 与 `RECOGNITION_STATE_PATH` 均为服务端变量；完整启用与持久状态流程见[额度运维](recognition-quota.md)。关闭时不要求或创建额度文件。
 
+精简播放报告采用独立固定字段与持久额度，不记录 IP、任意日志或音频。API 与任务需随新迁移配置最小表权限；有效期、定期清理和受控命令见[诊断运维](playback-diagnostics.md)。
+
 返回[运维导航](README.md)。

@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { supportNote } from './support-note';
+import { supportNote, reportableFailure } from './support-note';
 
 it('creates an allowlisted local snapshot without copying a page URL, stream URL or unrelated personal content', () => {
   const context = {
@@ -36,4 +36,21 @@ it('does not mistake unvalidated URLs for station or stream identifiers', () => 
   expect(note.stationId).toBeNull();
   expect(note.streamId).toBeNull();
   expect(note.interfaceLanguage).toBe('zh');
+});
+it('offers a report only for an actual failed state with validated identifiers and a fixed failure type', () => {
+  const context = {
+    stationId: '00000000-0000-4000-8000-000000000001',
+    streamId: 'a'.repeat(24),
+    status: 'failed' as const,
+    failure: 'timeout' as const,
+  };
+  expect(reportableFailure({ ...context, status: 'playing' })).toBeNull();
+  expect(reportableFailure({ ...context, streamId: null })).toBeNull();
+  expect(reportableFailure({ ...context, failure: null })).toBeNull();
+  expect(reportableFailure({ ...context, stationId: 'https://private.example/' })).toBeNull();
+  expect(reportableFailure(context)).toEqual({
+    stationId: context.stationId,
+    streamId: context.streamId,
+    failure: 'timeout',
+  });
 });

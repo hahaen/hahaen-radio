@@ -10,7 +10,10 @@ import {
   varchar,
   boolean,
   double,
+  check,
+  uniqueIndex,
 } from 'drizzle-orm/mysql-core';
+import { sql } from 'drizzle-orm';
 import type { CatalogManifest, StationDetail } from '@haen/contracts';
 const ascii = customType<{
   data: string;
@@ -91,4 +94,44 @@ export const places = mysqlTable(
     importedAt: instant('imported_at').notNull(),
   },
   (table) => [index('places_country_idx').on(table.countryCode)],
+);
+
+export const diagnosticLimits = mysqlTable(
+  'diagnostic_limits',
+  {
+    id: int('id', { unsigned: true }).primaryKey(),
+    periodDay: ascii('period_day', { length: 10 }).notNull(),
+    acceptedCount: int('accepted_count', { unsigned: true }).notNull(),
+    nextSlot: int('next_slot', { unsigned: true }).notNull(),
+  },
+  (table) => [
+    check('diagnostic_limits_singleton', sql`${table.id} = 1`),
+    check('diagnostic_limits_count', sql`${table.acceptedCount} <= 1000`),
+    check('diagnostic_limits_slot', sql`${table.nextSlot} < 10000`),
+  ],
+);
+export const playbackReports = mysqlTable(
+  'playback_reports',
+  {
+    slot: int('slot', { unsigned: true }).primaryKey(),
+    reportId: ascii('report_id', { length: 36 }).notNull(),
+    stationId: ascii('station_id', { length: 36 }).notNull(),
+    streamId: ascii('stream_id', { length: 24 }).notNull(),
+    failure: ascii('failure', { length: 16 }).notNull(),
+    createdAt: instant('created_at').notNull(),
+    expiresAt: instant('expires_at').notNull(),
+  },
+  (table) => [
+    uniqueIndex('playback_reports_receipt_idx').on(table.reportId),
+    index('playback_reports_expiry_idx').on(table.expiresAt),
+    check('playback_reports_slot_bound', sql`${table.slot} < 10000`),
+    check(
+      'playback_reports_failure',
+      sql`${table.failure} IN ('network', 'timeout', 'unsupported', 'unavailable', 'offline')`,
+    ),
+    check(
+      'playback_reports_validity',
+      sql`${table.expiresAt} > ${table.createdAt} AND ${table.expiresAt} <= DATE_ADD(${table.createdAt}, INTERVAL 7 DAY)`,
+    ),
+  ],
 );

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Copy } from 'lucide-react';
 import { Modal } from '../app/Modal';
 import { supportNote, type SupportContext } from './support-note';
+import { PlaybackReport } from './PlaybackReport';
 import styles from './information.module.css';
 
 const topics = ['about', 'privacy', 'credits', 'help', 'feedback'] as const;
@@ -56,6 +57,10 @@ function Feedback({ context }: { context: SupportContext }) {
             ? t('information.feedbackManual')
             : ''}
       </p>
+      <PlaybackReport
+        key={[context.stationId, context.streamId, context.status, context.failure].join(':')}
+        context={context}
+      />
     </>
   );
 }

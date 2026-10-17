@@ -46,12 +46,16 @@ try {
   const journal = JSON.parse(
     await readFile(join(root, 'migrations/meta/_journal.json'), 'utf8'),
   ) as { entries: { tag: string }[] };
-  const first = journal.entries[0];
-  if (!first) throw new Error('No initial migration');
-  await copyFile(join(root, 'migrations', `${first.tag}.sql`), join(temporary, `${first.tag}.sql`));
+  const baseline = journal.entries.length > 1 ? journal.entries.slice(0, -1) : journal.entries;
+  if (!baseline.length) throw new Error('No initial migration');
+  for (const entry of baseline)
+    await copyFile(
+      join(root, 'migrations', `${entry.tag}.sql`),
+      join(temporary, `${entry.tag}.sql`),
+    );
   await writeFile(
     join(temporary, 'meta/_journal.json'),
-    JSON.stringify({ ...journal, entries: [first] }),
+    JSON.stringify({ ...journal, entries: baseline }),
     { mode: 0o600 },
   );
   const migrate = (path: string) =>
@@ -74,7 +78,14 @@ try {
   await migrate(join(root, 'migrations'));
   await exec(
     'pnpm',
-    ['exec', 'vitest', 'run', 'apps/server/src/db/catalog.mysql.test.ts', '--maxWorkers=1'],
+    [
+      'exec',
+      'vitest',
+      'run',
+      'apps/server/src/db/catalog.mysql.test.ts',
+      'apps/server/src/db/diagnostics.mysql.test.ts',
+      '--maxWorkers=1',
+    ],
     {
       cwd: root,
       env: { ...process.env, HAEN_MYSQL_TESTS: '1' },
