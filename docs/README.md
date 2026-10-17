@@ -1,6 +1,6 @@
 # 技术文档导航
 
-正式环境部署进展见[正式部署记录](iterations/2026-10-17-production-deployment/README.md)，服务器路径见[项目目录](deployment/containers/server-layout.md)。
+正式环境部署进展见[正式部署记录](iterations/2026-10-17-production-deployment/README.md)，服务器路径见[项目目录](deployment/containers/server-layout.md)，具体配置见[服务器配置与产物清单](deployment/containers/server-inventory.md)。
 
 本次目标已按调整后的功能可用标准收尾，证据、数据库状态及后续专项见[目标收尾](iterations/2026-10-17-goal-completion/README.md)。
 

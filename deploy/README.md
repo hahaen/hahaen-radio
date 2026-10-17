@@ -1,6 +1,6 @@
 # 部署配置目录
 
-状态：已实现同提交产物链、共享 Nginx 静态发布、API/jobs Compose、目标迁移与恢复入口；原生节点与隔离镜像已验证，首次正式上线状态见[记录](../docs/iterations/2026-10-17-production-deployment/README.md)。每日独立副本仍需实际存储配置，未启用定时器。
+状态：已实现同提交产物链、共享 Nginx 静态发布、API/jobs Compose、目标迁移与恢复入口；原生节点、隔离镜像与三个独立正式任务已验证成功，实际结果见[记录](../docs/iterations/2026-10-17-production-deployment/README.md)。每日独立副本仍需实际存储配置，未启用定时器。
 
 | 目录 | 用途 |
 | --- | --- |

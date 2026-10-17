@@ -11,12 +11,12 @@
 | 任务环境变量 | 输入要求 |
 | --- | --- |
 | HAEN_IMAGE_REPOSITORY | 镜像仓库/项目路径，例如命名结构为 registry-host/team；不含账号、口令、scheme 或 query |
-| HAEN_RELEASE_WEB_BASE_PATH | 非敏感发布路径，默认 `/`；镜像构建阶段显式传入 `HAEN_WEB_BASE_PATH`，如 `/radio/`；常规检查仍使用根路径 |
+| HAEN_REGISTRY_CA_FILE | 管理员保管、不可被组/其他用户写入的公开仓库 CA；用于显式 HTTPS manifest 校验 |
 | HAEN_RELEASE_PLATFORM | linux/amd64 或 linux/arm64，与原生引擎及目标机一致 |
-| HAEN_TEST_MYSQL_IMAGE | 已核对来源的完整 MySQL 8.0.46 镜像@sha256 引用；不使用浮动标签 |
-| HAEN_RELEASE_APPROVERS | 获授权发起完整发布的 Jenkins 用户 ID，以逗号分隔；同时须在目标清单内 |
+| HAEN_TEST_MYSQL_IMAGE | 独立容器专项使用的 MySQL 8.0.46 固定摘要，日常组件任务不重复该专项 |
+| HAEN_RELEASE_APPROVERS | 获授权发起组件发布的 Jenkins 用户 ID，以逗号分隔；同时须在目标清单内 |
 
-BRANCH 是唯一界面参数；完整提交、分发和 full 目标范围由流水线固定，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
+BRANCH 是唯一界面参数；完整提交和分发由流水线固定，范围由三个任务名分别确定，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
 
 ## 无头音频测试
 
@@ -38,7 +38,7 @@ Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供
 
 auth 为账号与访问令牌的 Docker Basic 认证编码，编码后仍是秘密。由操作者在私有环境准备，不能从个人全量配置直接复制或写入仓库、镜像和普通日志。仓库地址需与 HAEN_IMAGE_REPOSITORY 的首段完全一致；服务使用可信 HTTPS，不配置远程 insecure registry。推送身份只授予本项目仓库的必要权限。
 
-工具分发时写临时 700 目录及 600 config.json，凭据只通过 DOCKER_CONFIG 提供给 Docker/Buildx，finally 删除；临时目录不在归档清单。进程被强杀时 finally 可能未执行，应先核对本轮进程与目录归属，再清理残留；不自动删除其他活动任务资料。Jenkins Credentials 的原始文件由插件控制生命周期，勿把整个 workspace@tmp 或 `.local/` 归档。
+工具分发时写临时 700 目录及 600 config.json，Docker 通过 DOCKER_CONFIG 读取凭据，显式 HTTPS manifest 校验器在内存读取同一份私有 auth，finally 删除；临时目录不在归档清单。进程被强杀时 finally 可能未执行，应先核对本轮进程与目录归属，再清理残留；不自动删除其他活动任务资料。Jenkins Credentials 的原始文件由插件控制生命周期，勿把整个 workspace@tmp 或 `.local/` 归档。
 
 ## 首次目标节点验收
 
@@ -50,13 +50,13 @@ curl --fail --netrc-file "$JENKINS_NETRC_FILE" -F 'jenkinsfile=<Jenkinsfile' "$J
 
 JENKINS_URL 使用已核对的 HTTPS 地址，不在 URL 中携带凭据。上述命令只做语法验证，不创建或运行任务；接口行为见 [Jenkins Linter](https://www.jenkins.io/doc/book/pipeline/development/#linter)。实际版本、插件、凭据域、SCM 和 submitter 解析由目标实例验收，不以普通 Groovy 或模拟 CLI 通过代替。
 
-首次使用 PUBLISH_IMAGES=false，完整执行工程与容器检查并检查资源归属/清理及脱敏产物。随后在获授权的人工构建中打开分发参数，由指定审批人确认，实际验证镜像仓库的摘要解析与认证清理。拒绝缺少验收、标签变动和清理失败的产物，并在未授权用户、非人工 Cause 下确认无法分发，并确认从阶段重启不可用、不能跳过审批。
+先完成适用的工程与隔离镜像验证；获授权人工发起对应组件任务，实际验证分发、摘要解析与认证清理。当前没有额外分发开关；只有存在待迁移项时才确认数据库变更。拒绝缺少验收、标签变动和清理失败的产物，并在未授权用户、非人工 Cause 下确认无法分发，并确认从阶段重启不可用、不能跳过审批。
 
 ## 目标应用服务器
 
-已接入独立haen-linux-target人工更新阶段。独立审批、站点/数据库配置指纹、外部私有环境与只读拉取凭据haen-image-registry-pull-config见[目标阶段](target-stage.md)。构建节点不加载目标数据库配置，目标节点在交接核验后才显式加载；不将凭据文件或目标状态复制至stash/归档。
+已接入独立haen-linux-target人工更新阶段。数据库变更确认、站点/数据库配置指纹、外部私有环境与只读拉取凭据haen-image-registry-pull-config见[目标阶段](target-stage.md)。构建节点不加载目标数据库配置，目标预检和更新通过显式 env-file 加载并核对目标指纹；不将凭据文件或目标状态复制至stash/归档。
 
-Ubuntu 24.04 LTS、Docker Compose、持久存储、域名/HTTPS、MySQL 8.0.46、可信CA、角色权限、固定备份helper与共享锁由操作者按[执行器](../releases/target-executor.md)准备；目标真实演练仍待执行。本轮没有创建节点、任务、连接、镜像仓库或服务器资源。当前直接使用目标agent，不增加SSH链路；未来采用SSH时仍须核验主机密钥。
+Ubuntu 24.04 LTS、Docker Compose、持久存储、域名/HTTPS、MySQL 8.0.46、可信CA、角色权限、固定备份helper与共享锁由操作者按[执行器](../releases/target-executor.md)准备；三个目标任务已实际成功上线，结果见[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。当前直接使用目标agent，不增加SSH链路；未来采用SSH时仍须核验主机密钥。
 
 
 返回[部署导航](../README.md)。
