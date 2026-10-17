@@ -14,9 +14,9 @@
 | HAEN_RELEASE_WEB_BASE_PATH | 非敏感发布路径，默认 `/`；镜像构建阶段显式传入 `HAEN_WEB_BASE_PATH`，如 `/radio/`；常规检查仍使用根路径 |
 | HAEN_RELEASE_PLATFORM | linux/amd64 或 linux/arm64，与原生引擎及目标机一致 |
 | HAEN_TEST_MYSQL_IMAGE | 已核对来源的完整 MySQL 8.0.46 镜像@sha256 引用；不使用浮动标签 |
-| HAEN_RELEASE_APPROVERS | 获授权的 Jenkins 用户或组，交给 input 的 submitter；未设置则不能分发 |
+| HAEN_RELEASE_APPROVERS | 获授权发起完整发布的 Jenkins 用户 ID，以逗号分隔；同时须在目标清单内 |
 
-SOURCE_COMMIT、PUBLISH_IMAGES、DEPLOY_TARGET 与 DEPLOY_SCOPE 是界面参数，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
+BRANCH 是唯一界面参数；完整提交、分发和 full 目标范围由流水线固定，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
 
 ## 无头音频测试
 
@@ -28,7 +28,7 @@ Linux 构建节点的 Firefox 图形检查使用带认证、禁止 TCP 监听的
 
 ## 镜像仓库认证
 
-Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供人工分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
+Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供验收通过后的分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
 
 示意结构只说明字段，不能把真实值填入可提交文件：
 

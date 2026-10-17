@@ -10,10 +10,7 @@ pipeline {
         buildDiscarder(logRotator(daysToKeepStr: '7', numToKeepStr: '20', artifactDaysToKeepStr: '30', artifactNumToKeepStr: '10'))
     }
     parameters {
-        string(name: 'SOURCE_COMMIT', defaultValue: '', description: '必填：已审核的完整 40 位 Git 提交号')
-        booleanParam(name: 'PUBLISH_IMAGES', defaultValue: false, description: '验收通过后人工分发镜像；目标更新由独立参数和审批决定')
-        booleanParam(name: 'DEPLOY_TARGET', defaultValue: false, description: '分发后，另经人工确认更新指定目标主机')
-        choice(name: 'DEPLOY_SCOPE', choices: ['full', 'web', 'server'], description: '目标更新范围；分端更新需确认兼容性')
+        gitParameter(name: 'BRANCH', type: 'PT_BRANCH', branchFilter: 'origin/(.*)', defaultValue: 'main', selectedValue: 'DEFAULT', sortMode: 'ASCENDING_SMART', quickFilterEnabled: true, useRepository: '.*', description: '选择要发布的分支；检查通过后完整部署前后端')
     }
     environment {
         CI = 'true'
@@ -24,27 +21,34 @@ pipeline {
             steps {
                 deleteDir()
                 script {
-                    if (!(params.SOURCE_COMMIT ==~ /[a-f0-9]{40}/)) {
-                        error('SOURCE_COMMIT 必须是完整提交号')
+                    def initiators = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
+                    for (def key : ['HAEN_RELEASE_APPROVERS', 'HAEN_DEPLOY_APPROVERS']) {
+                        def allowed = (env[key] ?: '').split(',').collect { it.trim() }.findAll { it }
+                        if (!initiators.any { allowed.contains(it.userId) }) {
+                            error('只有配置的发布用户可发起此完整发布任务')
+                        }
                     }
-                    if (params.DEPLOY_TARGET && !params.PUBLISH_IMAGES) {
-                        error('目标发布必须先分发同一任务已验收的镜像')
+                    def branch = params.BRANCH?.trim()
+                    if (!branch || !(branch ==~ /[A-Za-z0-9][A-Za-z0-9._\/-]{0,127}/)) {
+                        error('请选择有效的远端分支')
                     }
-                    if (params.DEPLOY_TARGET && !['full', 'web', 'server'].contains(params.DEPLOY_SCOPE)) {
-                        error('无效的目标更新范围')
+                    withEnv(["HAEN_SOURCE_BRANCH=${branch}"]) {
+                        sh 'git check-ref-format "refs/heads/$HAEN_SOURCE_BRANCH"'
+                        checkout([$class: 'GitSCM', branches: [[name: "refs/remotes/origin/${branch}"]], userRemoteConfigs: scm.userRemoteConfigs, extensions: [[$class: 'CloneOption', noTags: true, shallow: false]]])
+                        env.HAEN_SOURCE_COMMIT = sh(returnStdout: true, script: 'node deploy/scripts/release/source-selection.mjs').trim()
                     }
+                    if (!(env.HAEN_SOURCE_COMMIT ==~ /[a-f0-9]{40}/)) {
+                        error('无法固定所选分支的完整提交')
+                    }
+                    env.HAEN_SOURCE_BRANCH = branch
+                    currentBuild.description = "${branch} · ${env.HAEN_SOURCE_COMMIT.take(12)}"
                 }
-                checkout([$class: 'GitSCM', branches: [[name: params.SOURCE_COMMIT]], userRemoteConfigs: scm.userRemoteConfigs, extensions: [[$class: 'CloneOption', noTags: true, shallow: false]]])
-                withEnv(["HAEN_SOURCE_COMMIT=${params.SOURCE_COMMIT}"]) {
-                    sh '''#!/bin/sh
+                sh '''#!/bin/sh
 set -eu
 set +x
-test "$(git rev-parse HEAD)" = "$HAEN_SOURCE_COMMIT"
 node -e 'if(process.version!=="v24.9.0")process.exit(1)'
 test "$(pnpm --version)" = '12.5.1'
 '''
-                }
-                script { env.HAEN_SOURCE_COMMIT = params.SOURCE_COMMIT }
             }
         }
         stage('工程检查') {
@@ -75,39 +79,17 @@ pnpm test:e2e
         stage('隔离容器验收') {
             steps { sh 'node deploy/scripts/release/pipeline.mjs test-images' }
         }
-        stage('人工确认分发') {
-            when { expression { params.PUBLISH_IMAGES } }
-            steps {
-                script {
-                    if (currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause').isEmpty()) {
-                        error('镜像分发要求人工发起构建')
-                    }
-                    if (!env.HAEN_RELEASE_APPROVERS?.trim()) {
-                        error('请先配置获授权的镜像分发审批人或组')
-                    }
-                    input(message: "将已验收提交 ${params.SOURCE_COMMIT} 的镜像分发到配置仓库？", submitter: env.HAEN_RELEASE_APPROVERS)
-                }
-            }
-        }
         stage('分发不可变产物') {
-            when { expression { params.PUBLISH_IMAGES } }
             steps {
                 withCredentials([file(credentialsId: 'haen-image-registry-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) {
                     sh 'node deploy/scripts/release/pipeline.mjs publish'
                 }
             }
         }
-        stage('人工确认目标发布') {
-            when { expression { params.DEPLOY_TARGET } }
+        stage('冻结目标与交接') {
             steps {
                 script {
-                    if (currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause').isEmpty()) {
-                        error('目标发布要求人工发起构建')
-                    }
-                    if (!env.HAEN_DEPLOY_APPROVERS?.trim()) {
-                        error('请先配置目标发布审批人或组')
-                    }
-                    env.HAEN_DEPLOY_SCOPE = params.DEPLOY_SCOPE
+                    env.HAEN_DEPLOY_SCOPE = 'full'
                     def handoffDigest = sh(returnStdout: true, script: '''#!/bin/sh
 set -eu
 set +x
@@ -117,22 +99,11 @@ node deploy/scripts/release/handoff.mjs seal
                         error('无效的交接材料摘要')
                     }
                     stash(name: 'haen-target-handoff', includes: '.local/archive/release-pipeline/deploy-handoff.json', useDefaultExcludes: false)
-                    def proposed = [name: env.HAEN_TARGET_NAME, site: env.HAEN_TARGET_SITE, databaseFingerprint: env.HAEN_TARGET_DATABASE_FINGERPRINT, platform: env.HAEN_RELEASE_PLATFORM, source: params.SOURCE_COMMIT, scope: params.DEPLOY_SCOPE, digest: handoffDigest]
-                    def approved = input(message: "更新 ${proposed.name} (${proposed.site})，范围 ${proposed.scope}，提交 ${proposed.source}，交接摘要 ${proposed.digest}。目标数据库指纹 ${proposed.databaseFingerprint}。", submitter: env.HAEN_DEPLOY_APPROVERS, parameters: [
-                        booleanParam(name: 'OTHER_WRITERS_STOPPED', defaultValue: false, description: '需要迁移或首次同步时：已核对其他写入方、连接和长事务已停止'),
-                        booleanParam(name: 'CONTRACT_COMPATIBLE', defaultValue: false, description: '分端更新时：保留的一端与新接口、结构及数据兼容'),
-                        booleanParam(name: 'INITIALIZE_EMPTY', defaultValue: false, description: '首次部署时：允许初始化已预建且经预检证明为空的库'),
-                        booleanParam(name: 'BOOTSTRAP_CATALOG', defaultValue: false, description: '没有就绪目录时：允许同步真实电台目录')
-                    ])
-                    approvedTarget = proposed + [otherWriters: (approved.OTHER_WRITERS_STOPPED == true).toString(), compatible: (approved.CONTRACT_COMPATIBLE == true).toString(), initialize: (approved.INITIALIZE_EMPTY == true).toString(), catalog: (approved.BOOTSTRAP_CATALOG == true).toString()]
+                    approvedTarget = [name: env.HAEN_TARGET_NAME, site: env.HAEN_TARGET_SITE, databaseFingerprint: env.HAEN_TARGET_DATABASE_FINGERPRINT, platform: env.HAEN_RELEASE_PLATFORM, source: env.HAEN_SOURCE_COMMIT, scope: 'full', digest: handoffDigest]
                 }
             }
         }
         stage('目标主机更新') {
-            when {
-                beforeAgent true
-                expression { params.DEPLOY_TARGET }
-            }
             agent { label 'haen-linux-target' }
             steps {
                 script {
@@ -150,10 +121,6 @@ node deploy/scripts/release/handoff.mjs seal
                         "HAEN_TARGET_DATABASE_FINGERPRINT=${approvedTarget.databaseFingerprint}",
                         "HAEN_DEPLOY_SCOPE=${approvedTarget.scope}",
                         "HAEN_APPROVED_HANDOFF_SHA256=${approvedTarget.digest}",
-                        "HAEN_OTHER_WRITERS_STOPPED=${approvedTarget.otherWriters}",
-                        "HAEN_CONTRACT_COMPATIBILITY_CONFIRMED=${approvedTarget.compatible}",
-                        "MIGRATION_INITIALIZE_EMPTY=${approvedTarget.initialize}",
-                        "HAEN_BOOTSTRAP_CATALOG=${approvedTarget.catalog}",
                         'NODE_OPTIONS=',
                         'NODE_DEBUG=',
                         'NODE_DEBUG_NATIVE=',
@@ -194,12 +161,33 @@ node deploy/scripts/release/handoff.mjs accept
                                 "HAEN_EXPECTED_SITE=${approvedTarget.site}",
                                 "HAEN_RELEASE_FILE=${pwd()}/.local/archive/release-pipeline/target-release.json"
                             ]) {
-                                withCredentials([file(credentialsId: 'haen-image-registry-pull-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) {
-                                    sh '''#!/bin/sh
+                                def planText = sh(returnStdout: true, script: '''#!/bin/sh
+set -eu
+set +x
+node --env-file="$HAEN_DEPLOY_ENV_FILE" deploy/scripts/release/target-plan.mjs
+''').trim()
+                                if (!(planText ==~ /(true|false) [0-9]+/)) {
+                                    error('无效的数据库只读预检结果')
+                                }
+                                def fields = planText.tokenize(' ')
+                                def plan = [empty: fields[0] == 'true', pending: fields[1].toInteger()]
+                                def needsMigration = plan.pending > 0
+                                if (needsMigration) {
+                                    input(message: "${approvedTarget.site} / ${env.HAEN_SOURCE_BRANCH} / ${approvedTarget.source}：${plan.empty ? '首次空库初始化并同步真实目录' : '执行 ' + plan.pending + ' 项迁移，先完成备份和独立副本校验'}。确认其他写入方及长事务已停止后发布。", submitter: env.HAEN_DEPLOY_APPROVERS, ok: '确认数据库变更并发布')
+                                }
+                                withEnv([
+                                    "HAEN_OTHER_WRITERS_STOPPED=${needsMigration}",
+                                    'HAEN_CONTRACT_COMPATIBILITY_CONFIRMED=false',
+                                    "MIGRATION_INITIALIZE_EMPTY=${plan.empty}",
+                                    "HAEN_BOOTSTRAP_CATALOG=${plan.empty}"
+                                ]) {
+                                    withCredentials([file(credentialsId: 'haen-image-registry-pull-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) {
+                                        sh '''#!/bin/sh
 set -eu
 set +x
 node --env-file="$HAEN_DEPLOY_ENV_FILE" apps/server/dist/entrypoints/deploy.js
 '''
+                                    }
                                 }
                             }
                         }
@@ -210,7 +198,7 @@ node --env-file="$HAEN_DEPLOY_ENV_FILE" apps/server/dist/entrypoints/deploy.js
     }
     post {
         always {
-            archiveArtifacts(artifacts: '.local/archive/release-pipeline/build.json,.local/archive/release-pipeline/image-check.json,.local/archive/release-pipeline/release.json,.local/archive/release-pipeline/deploy-handoff.json', allowEmptyArchive: true, fingerprint: true)
+            archiveArtifacts(artifacts: '.local/archive/release-pipeline/source.json,.local/archive/release-pipeline/build.json,.local/archive/release-pipeline/image-check.json,.local/archive/release-pipeline/release.json,.local/archive/release-pipeline/deploy-handoff.json', allowEmptyArchive: true, fingerprint: true)
         }
     }
 }

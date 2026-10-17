@@ -5,6 +5,7 @@
 | 路径 | 用途 |
 | --- | --- |
 | `release/pipeline.mjs` | 固定提交镜像构建、隔离镜像验收与人工分发入口，由根 Jenkinsfile 调用 |
+| `release/source-selection.mjs`、`release/target-plan.mjs` | 固定所选分支的实际提交、只读判断数据库变更确认 |
 | `release/handoff.mjs` | 同任务跨节点交接、目标准备及材料验收 |
 | `release/common.mjs`、`release/images.mjs`、`release/smoke.mjs`、`release/seed.mjs` | 公共校验、迁移清单、镜像检查及隔离样例工具 |
 | `target.mjs`、`flow.mjs` | 目标发布执行器与步骤状态管理，由后端受控运维入口调用 |

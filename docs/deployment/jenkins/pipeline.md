@@ -1,31 +1,25 @@
 # Jenkins 流水线
 
-已实现根 [Jenkinsfile](../../../Jenkinsfile) 的确定提交、工程检查、三类镜像构建、隔离容器验收与可选人工分发。目标主机人工更新阶段已接入[目标交接与执行](target-stage.md)，默认关闭；只有另行目标审批后才调用执行器，不把镜像分发等同为应用部署。
+根 [Jenkinsfile](../../../Jenkinsfile) 支持手动选择分支，一次完成检查、镜像构建、分发和完整部署前后端。实际首次上线状态见[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。
 
-## 手动执行与参数
+## 日常发版
 
-使用 Pipeline from SCM，SCM 为本项目 Git 仓库，读取已审核分支上的 Jenkinsfile。代码通过 Git 插件使用任务配置的仓库凭据检出指定提交，不在 shell 中重新拼接真实连接信息。文件没有 cron、轮询或 webhook 触发声明；任务侧也保持手动，普通代码推送不是上线指令。
+在 Jenkins 文件夹内打开构建任务，点击构建入口，在唯一的 `BRANCH` 下拉框中选择分支（默认 `main`），开始构建。无需手填 40 位提交号、镜像上传、目标更新或分端范围参数。Git Parameter 插件从任务的 SCM 与凭据读取分支列表，不在页面或 shell 中拼接真实连接凭据。
 
-| 参数 | 行为 |
-| --- | --- |
-| SOURCE_COMMIT | 必填，完整 40 位小写提交号；检出后实际核对 HEAD，拒绝模糊分支名和脏工作区 |
-| DEPLOY_TARGET | 默认 false，要求本任务先分发镜像及单独目标审批；之后才分配目标节点 |
-| DEPLOY_SCOPE | full/web/server，默认full；分端更新另确认兼容 |
-| PUBLISH_IMAGES | 默认 false；true 时在验收后要求人工发起构建且由已配置审批人确认，才分发镜像 |
+任务须使用 Pipeline from SCM，控制 Jenkinsfile 的分支由管理员固定，应用分支通过下拉框选择。仅允许已审核、包含当前发布工具的可信分支。代码推送不触发发布，任务不配置 cron、轮询或 webhook；只有同时列于分发和目标发布用户清单的人工发起者才能发布。
 
-构建开始时清理构建节点的独占工作区，防止归档旧产物；目标阶段使用新的独占空工作区，不删除旧目录。脚本只在该检出的 Git info/exclude 中加入自己的私有产物目录，先拒绝已跟踪的产物路径，不改变共享忽略规则；不能把共享开发目录用作这个工作区。禁用同任务并发和从阶段重启，避免跳过独立审批阶段，90 分钟总上限。构建日志默认 7 天/最多 20 份，所列产物默认 30 天/最多 10 份；这不代替应用普通日志的时间保留。
+## 当前阶段
 
-## 当前可执行阶段
+1. 固定源码：校验分支并抓取，实际核对 HEAD 与抓取引用，记录 `source.json` 中的分支和完整提交。构建说明显示分支与短提交；后续全程使用完整提交，不再次追随分支变化。
+2. 工程检查：冻结安装、`pnpm check`、文档检查和完整浏览器回归。Node.js 固定 24.9.0，pnpm 固定 12.5.1，Playwright 浏览器与系统依赖由受控构建节点提供。
+3. 持续运行：`HAEN_SOAK_SECONDS=600` 执行既有生产资源与双端切台检查，失败阻止镜像构建。
+4. 构建镜像：同一提交构建 Web、server 和 migration，核对原生架构、镜像 ID、revision label 和迁移摘要，生成 build.json。
+5. 隔离验收：在独立临时 MySQL 8.0.46 中执行并重复迁移，核对历史、表选项、API、任务、Web 和静态资源，优雅退出并检查清理，生成 image-check.json。
+6. 分发产物：使用独立 Secret file 上传已验收镜像，读取平台 manifest，核对 config digest 等于验收镜像 ID，生成不可变 release.json。
+7. 冻结交接：固定 `full` 范围、站点、数据库指纹、平台和提交，生成并 stash 交接材料。
+8. 目标更新：独立目标节点重新检出同提交，验证交接和私有环境；只读预检无待执行迁移时自动继续，有迁移或空库初始化时仅作一次数据库变更确认，再执行原有备份、迁移与启动验收。详见[目标阶段](target-stage.md)。
 
-1. 固定源码：Git 插件检出 SOURCE_COMMIT，实际比对 HEAD；检查 Node.js 24.9.0 与 pnpm 12.5.1。
-2. 工程检查：冻结安装、`pnpm check`、`pnpm docs:check`，安装锁定 Playwright 对应浏览器后执行 `pnpm test:e2e`。Linux 系统库由构建节点预先准备，流水线不临时授予 root 安装权限。
-3. 生产客户端持续运行：显式HAEN_SOAK_SECONDS=600执行pnpm test:performance，包含四项目句柄/按需绘制及双端Chromium十分钟检查；失败阻止镜像构建。方法见[资源预算](../../engineering/resource-budgets.md)。
-4. 镜像构建：`node deploy/scripts/release/pipeline.mjs build`，构建 Web/server/migration，统一应用提交标签；采用独有构建后缀，实际核对镜像 ID、revision label、Linux 原生架构和迁移文件摘要，写 build.json。
-5. 隔离验收：`node deploy/scripts/release/pipeline.mjs test-images`，启动独立内部网络与临时 MySQL，应用并重复迁移，检查迁移哈希及表选项；使用明确的单台测试目录，经实际 API、任务进程、Web 代理与静态资源完成基础检查，再优雅退出应用并验证清理，写 image-check.json。
-6. 人工分发：仅 PUBLISH_IMAGES=true 且具备人工构建 Cause、审批人配置与确认后，绑定独立镜像仓库 Secret file，执行 `node deploy/scripts/release/pipeline.mjs publish`。逐镜像再次核对本地 ID，上传后按不可变摘要从仓库读取 manifest，证明 config digest 等于实际验收镜像 ID，最后写 release.json。
-7. 目标审批与交接：仅DEPLOY_TARGET=true时seal脱敏交接材料并stash，目标审批冻结上下文；在独立目标agent重新检出、accept核验后绑定只读拉取凭据，调用编译的发布入口，详见[目标阶段](target-stage.md)。
-
-上述脚本只调用已实现的入口，没有部署任务占位命令。镜像分发步骤本身不创建数据库或更新容器；后续更新仍需DEPLOY_TARGET及独立审批，同一流水线内完成，不触发另一个任务。目标执行器只消费同任务已验收且明确批准的交接材料，并再次核对配置指纹和站点。
+禁用并发和阶段重启，90 分钟总上限；没有给迁移或状态性阶段添加自动重试。构建节点开始时清理独占工作区，目标节点使用新空目录。保留原有日志和产物期限：构建日志 7 天/最多 20 份，明确列出的产物 30 天/最多 10 份。旧目标工作区和失败现场不由新发布盲删。
 
 ## 隔离镜像检查的范围
 
@@ -39,7 +33,7 @@
 
 ## 产物与失败
 
-只归档 `.local/archive/release-pipeline/` 下明确的 build.json、image-check.json、release.json，以及选择目标更新时的deploy-handoff.json，禁止扩大成整个私有目录。上述文件只记录提交、镜像、目标站点/配置指纹与验证元数据，不含私密变量值、账号、口令、SQL、真实数据库或临时 Docker 认证配置。
+只归档 `.local/archive/release-pipeline/` 下明确的 build.json、image-check.json、release.json，source.json 和 deploy-handoff.json，禁止扩大成整个私有目录。上述文件只记录提交、镜像、目标站点/配置指纹与验证元数据，不含私密变量值、账号、口令、SQL、真实数据库或临时 Docker 认证配置。
 
 release.json 固定提交、原生平台、Web/server/migration 不可变引用、迁移文件与 SHA256，以及对应验收 run。仓库返回 OCI index 时选择唯一匹配平台的子 manifest 并验证 config digest；最终引用固定到该已验收平台的内容，不依赖可覆盖的标签。
 
