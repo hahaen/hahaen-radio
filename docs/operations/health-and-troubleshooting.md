@@ -35,6 +35,16 @@
 
 记录系统、浏览器、设备、时间、版本、失败范围和重现步骤。检查项目按已通过、失败和未验证区分，修复后仅扩大到受影响的验证范围。
 
+## Git 远程列表核对（2026-10-17）
+
+- 需求：解释 IDE 中两个远程及 `HEAD`、`main` 的含义，核对是否存在分支异常。
+- `origin` 对应 GitHub，`gitee` 对应 Gitee；本地 `main` 的 upstream 为 `origin/main`。普通无参数推送不代表同时推送两个平台。
+- 本地 `origin/HEAD` 与 `gitee/HEAD` 均为指向各自 `main` 的符号引用，表示远程默认分支，不是额外的开发分支。IDE 列表未显示某条引用，不代表 Git 中没有该引用。
+- IDE 分支星标表示收藏，参见 [JetBrains 分支管理说明](https://www.jetbrains.com/help/idea/manage-branches.html)。
+- 验证：使用 `git remote -v`、`git branch -avv`、本地配置及两个远程的 `git ls-remote --symref` 检查。查询时本地 `main` 和两个平台的 `main` 均指向 `2484965dc4de86cbc2dddad05af08f0493c18dfa`，两个平台的默认分支均为 `main`。
+- 实际变更：仅归档分析结果，未调整远程地址、upstream、分支或 IDE 设置。
+- 未完成事项：截图中两个远程的 `HEAD` 显示差异尚未在 IDE 内复现；Git 配置核对未发现需要修复的问题。本次不涉及应用验证、配置变更、SQL 或部署。
+
 生产故障涉及数据恢复时转入[备份与恢复](../data/backup/backup-and-restore.md)，不以反复重启替代原因判断。
 
 返回[运维导航](README.md)。
