@@ -2,38 +2,51 @@
 
 ## 构建节点
 
-需要 Git、可用的 Docker 构建环境和访问代码仓库、依赖源、基础镜像及镜像仓库的网络条件。Node.js 和 pnpm 版本在项目构建环境中固定。
+根 Jenkinsfile 使用专用标签 haen-linux-build。节点需要 Node.js 24.9.0、pnpm 12.5.1、Git、Docker CLI/Buildx 及本机 Linux Docker 引擎；Playwright 的 Linux 系统库预先准备，浏览器版本随锁定包下载。CPU 架构与 HAEN_RELEASE_PLATFORM 一致，不默认使用模拟器或远端构建。
 
-调用 Docker 的权限放在受控构建节点上，避免让不可信任务共享高权限执行环境。Jenkins 主服务不承担应用运行职责。
+脚本仅接受本机 `/var/run/docker.sock`，DOCKER_CONTEXT 不设置，DOCKER_HOST 为空或 unix:///var/run/docker.sock；拒绝非 Linux 引擎、架构不符和额外 insecure registry 配置。专用节点拥有 Docker 权限，不让不可信 PR、其他用户或其他业务共享这份高权限环境。节点容量需覆盖三类镜像、构建缓存及临时 MySQL 的 1GiB 内存数据挂载，按实测配置，不能挤占正式数据库磁盘。
 
-## 目标服务器
+构建节点不挂载正式或开发服务配置，不设置 DB_*、AUDD_* 等全局运行凭据；不把已有项目目录、数据库卷、个人 Docker 配置或个人环境文件复制进检出。Jenkins 服务本身不运行应用。
 
-应用服务器基线为 Ubuntu 24.04 LTS，安装 Docker 与 Compose，具备必要持久存储、可用域名和 HTTPS 所需访问条件。MySQL 8.0.46 可以连接现有实例，或另行配置自管服务；自管数据库准备独立持久卷，应用容器不访问其数据目录。
+| 任务环境变量 | 输入要求 |
+| --- | --- |
+| HAEN_IMAGE_REPOSITORY | 镜像仓库/项目路径，例如命名结构为 registry-host/team；不含账号、口令、scheme 或 query |
+| HAEN_RELEASE_PLATFORM | linux/amd64 或 linux/arm64，与原生引擎及目标机一致 |
+| HAEN_TEST_MYSQL_IMAGE | 已核对来源的完整 MySQL 8.0.46 镜像@sha256 引用；不使用浮动标签 |
+| HAEN_RELEASE_APPROVERS | 获授权的 Jenkins 用户或组，交给 input 的 submitter；未设置则不能分发 |
 
-部署用户具备指定应用目录、服务更新与镜像拉取所需权限；数据库、备份和运行配置由明确角色管理。运行账户和迁移账户分别配置权限，迁移阶段才注入所需 DDL 权限。首次配置时确认现有服务、端口、反向代理占用、数据库可达性与 TLS。
+SOURCE_COMMIT 与 PUBLISH_IMAGES 是界面参数，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
 
-## 配置分类
+## 镜像仓库认证
 
-| 类别 | 示例 | 保存方式 |
-| --- | --- | --- |
-| 普通发布参数 | 环境名称、目标架构、镜像名、发布范围 | Jenkins 参数或版本化配置 |
-| 连接凭据 | 仓库凭据、部署 SSH 密钥 | Jenkins Credentials |
-| 镜像仓库凭据 | 推送和拉取权限 | 对应节点的受控凭据配置 |
-| 运行私密配置 | 外部服务密钥 | 目标环境注入 |
-| 公开前端配置 | API 公共路径、公开站点信息 | 前端构建配置 |
+Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，只供人工分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
 
-真实凭据不写入 Jenkinsfile、仓库、镜像层或构建日志。SSH 连接校验目标主机，不通过关闭主机校验简化发布。
+示意结构只说明字段，不能把真实值填入可提交文件：
 
-## 上线前待确认项
+```json
+{"auths":{"<registry-host>":{"auth":""}}}
+```
 
-- Jenkins 的版本、节点标签、插件与 Docker 调用方式。
-- 代码仓库、部署分支或版本选择方式。
-- 生产服务器系统、CPU 架构、端口、域名与磁盘空间。
-- MySQL 8.0.46 的部署位置、目标库、连接预算、TLS、运行与迁移权限，以及隔离测试库。
-- 镜像仓库位置、保留策略和访问凭据。
-- 部署目录、持久卷、备份副本位置及运行用户。
-- 维护窗口、回退版本和数据库恢复演练结果。
+auth 为账号与访问令牌的 Docker Basic 认证编码，编码后仍是秘密。由操作者在私有环境准备，不能从个人全量配置直接复制或写入仓库、镜像和普通日志。仓库地址需与 HAEN_IMAGE_REPOSITORY 的首段完全一致；服务使用可信 HTTPS，不配置远程 insecure registry。推送身份只授予本项目仓库的必要权限。
 
-以上均为配置输入，当前文档不代表这些资源已创建、连接成功或取得额外权限。
+工具分发时写临时 700 目录及 600 config.json，凭据只通过 DOCKER_CONFIG 提供给 Docker/Buildx，finally 删除；临时目录不在归档清单。进程被强杀时 finally 可能未执行，应先核对本轮进程与目录归属，再清理残留；不自动删除其他活动任务资料。Jenkins Credentials 的原始文件由插件控制生命周期，勿把整个 workspace@tmp 或 `.local/` 归档。
+
+## 首次目标节点验收
+
+先在目标 Jenkins 使用 Declarative Linter 检查当前 Jenkinsfile，并核对 Pipeline Declarative、Git、Credentials Binding、Input 与 Supporting APIs 插件。可以在受控终端使用权限 600 的私有 netrc（账号与 API token 仅在其中保存）验证：
+
+```sh
+curl --fail --netrc-file "$JENKINS_NETRC_FILE" -F 'jenkinsfile=<Jenkinsfile' "$JENKINS_URL/pipeline-model-converter/validate"
+```
+
+JENKINS_URL 使用已核对的 HTTPS 地址，不在 URL 中携带凭据。上述命令只做语法验证，不创建或运行任务；接口行为见 [Jenkins Linter](https://www.jenkins.io/doc/book/pipeline/development/#linter)。实际版本、插件、凭据域、SCM 和 submitter 解析由目标实例验收，不以普通 Groovy 或模拟 CLI 通过代替。
+
+首次使用 PUBLISH_IMAGES=false，完整执行工程与容器检查并检查资源归属/清理及脱敏产物。随后在获授权的人工构建中打开分发参数，由指定审批人确认，实际验证镜像仓库的摘要解析与认证清理。拒绝缺少验收、标签变动和清理失败的产物，并在未授权用户、非人工 Cause 下确认无法分发，并确认从阶段重启不可用、不能跳过审批。
+
+## 目标应用服务器
+
+Ubuntu 24.04 LTS、Docker Compose、持久存储、域名/HTTPS、MySQL 8.0.46、可信 CA、独立运行和迁移身份仍由目标环境配置。发布用户、远程执行方式、维护锁、备份权限与同提交迁移入口需要随目标发布执行器落实；本轮没有创建节点、任务、连接、镜像仓库或服务器资源。
+
+目标服务器凭据只在发布节点或目标环境管理，不交给上述构建任务。采用 SSH 时必须验证主机密钥，不能关闭校验。完整环境、镜像保留、维护窗口与恢复演练要求见[发布与回退](../releases/release-and-rollback.md)和[每日备份](../../operations/daily-backups.md)。
 
 返回[部署导航](../README.md)。

@@ -6,7 +6,11 @@ export default defineConfig({
         test: {
           name: 'server',
           environment: 'node',
-          include: ['apps/server/src/**/*.test.ts', 'packages/contracts/src/**/*.test.ts'],
+          include: [
+            'apps/server/src/**/*.test.ts',
+            'packages/contracts/src/**/*.test.ts',
+            'tests/deployment/**/*.test.mjs',
+          ],
         },
       },
       { test: { name: 'web', environment: 'jsdom', include: ['apps/web/src/**/*.test.{ts,tsx}'] } },

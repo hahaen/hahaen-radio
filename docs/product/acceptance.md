@@ -4,7 +4,7 @@
 
 | 编号 | 范围 | 当前状态 | 证据 |
 | --- | --- | --- | --- |
-| ENG-01 | 冻结依赖安装、检查、测试与构建 | 已通过 | Node.js 24.9.0 / pnpm 12.5.1；格式、Lint、类型检查、181 项普通测试、前后端生产构建；10 项 MySQL 用例历史验收见 OBS-01；本轮另执行 BACKUP-01 专用真实恢复入口 |
+| ENG-01 | 冻结依赖安装、检查、测试与构建 | 已通过 | Node.js 24.9.0 / pnpm 12.5.1；格式、Lint、类型检查、188 项普通测试、前后端生产构建；10 项 MySQL 用例历史验收见 OBS-01；本轮另执行 BACKUP-01 专用真实恢复入口 |
 | ENG-02 | API 契约、错误与配置加载 | 已通过 | Fastify inject；编译后 API 实际启动；临时环境文件加载与生产文档隐藏检查 |
 | WEB-01 | 三浏览器与手机视口基础入口 | 已通过 | Chromium 156、Firefox 157、WebKit 27.2 和 Pixel 7 模拟视口共 8 项测试；中文与英文切换、刷新持久化、无横向溢出及真实同域代理；不代表真实手机验收 |
 | DATA-01 | MySQL 8.0.46 初始化、迁移与数据保留 | 已通过 | 两条迁移；专用临时库初始化、升级保留、重复迁移、事务回滚及连接池超时恢复，共 6 项 MySQL 验收通过；开发库已应用，正式库未执行 |
@@ -27,6 +27,7 @@
 | BACKUP-01 | 备份 CLI、完整性与隔离恢复 | 已通过 | 172 项普通检查及专用 MySQL 8.0.46 原生恢复入口通过，11 表、3 迁移、约束/额度和编译 API 见[恢复归档](../iterations/2026-10-17-backup-recovery/README.md)；日调度、真实异盘/远端和目标 Linux 仍待部署验收 |
 | MAINT-01 | 备份/迁移共享锁与失锁取消 | 已通过 | 176 项普通测试；实际 MySQL 编译入口竞争、重复迁移与本轮锁会话中断后子进程退出见[维护归档](../iterations/2026-10-17-maintenance-coordination/README.md)；外层完整发布协调仍待补齐 |
 | BACKUP-02 | 每日流程与受控副本复制 | 已通过 | 本机文件与真实 MySQL 验收见[每日归档](../iterations/2026-10-17-backup-schedule/README.md)；systemd 定时及独立物理存储仍待目标 Linux 验收 |
-| DEPLOY-01 | 镜像、Compose、迁移、恢复与手动发布 | 待外部条件 | 用户于 2026-10-17 明确允许本机不测 Docker；镜像/Compose/Caddy 基础见[容器归档](../iterations/2026-10-17-container-foundation/README.md)，备份工具见[恢复归档](../iterations/2026-10-17-backup-recovery/README.md)；每日调度材料见[说明](../operations/daily-backups.md)；Jenkins、真实副本/定时与日志保留仍需验收，实际部署环境执行容器检查 |
+| CI-01 | Jenkins 镜像构建、验收与分发 | 待外部条件 | 确定提交、镜像 ID/摘要链、隔离检查脚本和手动分发已实现，7 项模拟 CLI/原生边界测试通过；实际 Jenkins/Docker/仓库及目标发布执行器见[产物记录](../iterations/2026-10-17-release-images/README.md) |
+| DEPLOY-01 | 镜像、Compose、迁移、恢复与手动发布 | 待外部条件 | 用户于 2026-10-17 明确允许本机不测 Docker；镜像/Compose/Caddy 基础见[容器归档](../iterations/2026-10-17-container-foundation/README.md)，备份工具见[恢复归档](../iterations/2026-10-17-backup-recovery/README.md)；每日调度材料见[说明](../operations/daily-backups.md)；Jenkins 构建分发材料已接入，目标发布执行器仍需完成，真实副本/定时与日志保留继续验收，实际部署环境执行容器检查 |
 
 返回[实施进度](progress.md)。

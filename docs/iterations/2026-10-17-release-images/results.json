@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "cf95e8bd72a6030ec11851dcf491cf6db619420d",
+  "ordinaryTests": 188,
+  "ordinaryMysqlSkipped": 10,
+  "newTests": 7,
+  "scope": "Simulated Docker CLI orchestration plus native Node child-process boundaries; no Docker daemon, registry, MySQL container or Jenkins execution",
+  "dockerRun": false,
+  "jenkinsRun": false,
+  "productionWrites": false,
+  "inputs": {
+    "Jenkinsfile": "fe1e139c8f45a280e447886a5ff986e73132788b44ecf2c90a255f698329f0d5",
+    "scripts/release/common.mjs": "84a407c7f9ef32e2f113927159a2033132eb3908aac8b32e648060b4ef63495b",
+    "scripts/release/images.mjs": "2a8484fa210eeee046d0ffd5dee8db0cc6255a7faa4cf00ef0ed801658df4e10",
+    "scripts/release/pipeline.mjs": "d6b878f27a234d30ff165cfdd210b24cbf2046a08414e015c4fa0bef5965046a",
+    "scripts/release/seed.mjs": "a9a79d7c00b06d99b9ad17cfdc7a109584a90ebf649a5a55108d81ccae637f2a",
+    "scripts/release/smoke.mjs": "b872d2b9e2c9daf036ffa3f7fb21e1cf060ac872b6585e3b9ce1e0aa34e8baee",
+    "tests/deployment/fake-docker.mjs": "1dba8baa3a7f89c4dd8342068b2945bbf29bf41b6300d87f81574d5983c71f24",
+    "tests/deployment/pipeline.test.mjs": "587eccf666620f13d1326803f88763ade2dfa83e53e00b59bbfba7edaac9e286",
+    "vitest.config.ts": "0df1921929c58c0a1e178ec69e07e87cfac9bddf23e9866d994ebf1b6c34d30a"
+  },
+  "registryPush": false
+}
