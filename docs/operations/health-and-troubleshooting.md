@@ -44,6 +44,7 @@
 - 验证：使用 `git remote -v`、`git branch -avv`、本地配置及两个远程的 `git ls-remote --symref` 检查。查询时本地 `main` 和两个平台的 `main` 均指向 `2484965dc4de86cbc2dddad05af08f0493c18dfa`，两个平台的默认分支均为 `main`。
 - 实际变更：仅归档分析结果，未调整远程地址、upstream、分支或 IDE 设置。
 - 未完成事项：截图中两个远程的 `HEAD` 显示差异尚未在 IDE 内复现；Git 配置核对未发现需要修复的问题。本次不涉及应用验证、配置变更、SQL 或部署。
+- 后续操作：按用户要求执行 `git remote set-head gitee -d` 和 `git remote set-head origin -d`，删除两个本地远程默认分支指针。当前 Git 2.50.1 默认会在 Fetch 时重建缺失的指针，因此在本仓库的本地配置中将 `remote.gitee.followRemoteHEAD` 和 `remote.origin.followRemoteHEAD` 均设为 `never`。再次 Fetch 后通过 `git for-each-ref` 确认指针仍未出现，本地 `main`、`origin/main` 和 `gitee/main` 的提交未变，upstream 仍为 `origin/main`；未修改远程仓库默认分支。IDE 刷新后的显示仍待用户确认。
 
 生产故障涉及数据恢复时转入[备份与恢复](../data/backup/backup-and-restore.md)，不以反复重启替代原因判断。
 
