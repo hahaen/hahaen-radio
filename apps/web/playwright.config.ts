@@ -33,7 +33,7 @@ export default defineConfig({
   webServer: [
     {
       cwd: repositoryRoot,
-      command: 'pnpm --filter @haen/server dev',
+      command: 'pnpm --filter @haen/server exec node --import tsx src/entrypoints/api.ts',
       env: { RECOGNITION_ENABLED: 'false' },
       url: 'http://127.0.0.1:3001/api/v1/health/live',
       timeout: 30000,
