@@ -55,7 +55,7 @@ pnpm exec prettier --check 'deploy/**/*.{mjs,json,yaml}' 'packages/contracts/src
 pnpm exec eslint deploy/scripts deploy/tests packages/contracts/src "apps/$app/src" --max-warnings 0
 pnpm --filter @haen/contracts build
 pnpm --filter "@haen/$app" typecheck
-pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/component-state.test.mjs deploy/tests/component-release.test.mjs deploy/tests/runtime-environment.test.mjs deploy/tests/static-web.test.mjs --maxWorkers=1
+pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/component-state.test.mjs deploy/tests/component-release.test.mjs deploy/tests/runtime-environment.test.mjs deploy/tests/registry-manifest.test.mjs deploy/tests/static-web.test.mjs --maxWorkers=1
 '''
             }
             post {

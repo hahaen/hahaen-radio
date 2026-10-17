@@ -20,6 +20,7 @@ import {
 } from './release/images.mjs';
 import { componentRelease, components, webRelease } from './component-state.mjs';
 import { prepareStaticWeb } from './static-web.mjs';
+import { registryManifest } from './registry-manifest.mjs';
 import { checkedDeployEnvironment } from './release/handoff.mjs';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 export async function sourceDescriptor(env) {
@@ -69,7 +70,7 @@ function context(env) {
     databaseFingerprint: env.HAEN_TARGET_DATABASE_FINGERPRINT,
   };
 }
-async function publishImage(run, item, revision, targetPlatform) {
+async function publishImage(run, item, revision, targetPlatform, auth, caFile) {
   await run(['push', item.tag], { capture: false, timeout: 900000 });
   const image = await imageIdentity(run, item.tag, revision, targetPlatform);
   assert.equal(image.Id, item.id);
@@ -79,14 +80,14 @@ async function publishImage(run, item, revision, targetPlatform) {
   );
   assert.equal(references.length, 1);
   let reference = references[0],
-    remote = JSON.parse(await run(['buildx', 'imagetools', 'inspect', '--raw', reference]));
+    remote = await registryManifest(reference, auth, caFile);
   if (remote.manifests) {
     const matched = remote.manifests.filter(
       (value) => value.platform.os + '/' + value.platform.architecture === targetPlatform,
     );
     assert.equal(matched.length, 1);
     reference = repository + '@' + matched[0].digest;
-    remote = JSON.parse(await run(['buildx', 'imagetools', 'inspect', '--raw', reference]));
+    remote = await registryManifest(reference, auth, caFile);
   }
   assert.equal(remote.config.digest, item.id);
   return reference;
@@ -271,9 +272,18 @@ export async function componentPipeline(stage, env) {
       build.images.image,
       build.revision,
       build.platform,
+      auth,
+      env.HAEN_REGISTRY_CA_FILE,
     );
     const migrationImage = build.images.migration
-      ? await publishImage(authenticated, build.images.migration, build.revision, build.platform)
+      ? await publishImage(
+          authenticated,
+          build.images.migration,
+          build.revision,
+          build.platform,
+          auth,
+          env.HAEN_REGISTRY_CA_FILE,
+        )
       : null;
     await save(
       join(directory, 'component-release.json'),
