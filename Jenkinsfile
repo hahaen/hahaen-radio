@@ -66,10 +66,10 @@ pnpm test:e2e
             }
         }
         stage('构建同版本镜像') {
-            steps { sh 'node scripts/release/pipeline.mjs build' }
+            steps { sh 'node deploy/scripts/release/pipeline.mjs build' }
         }
         stage('隔离容器验收') {
-            steps { sh 'node scripts/release/pipeline.mjs test-images' }
+            steps { sh 'node deploy/scripts/release/pipeline.mjs test-images' }
         }
         stage('人工确认分发') {
             when { expression { params.PUBLISH_IMAGES } }
@@ -89,7 +89,7 @@ pnpm test:e2e
             when { expression { params.PUBLISH_IMAGES } }
             steps {
                 withCredentials([file(credentialsId: 'haen-image-registry-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) {
-                    sh 'node scripts/release/pipeline.mjs publish'
+                    sh 'node deploy/scripts/release/pipeline.mjs publish'
                 }
             }
         }
@@ -107,7 +107,7 @@ pnpm test:e2e
                     def handoffDigest = sh(returnStdout: true, script: '''#!/bin/sh
 set -eu
 set +x
-node scripts/release/handoff.mjs seal
+node deploy/scripts/release/handoff.mjs seal
 ''').trim()
                     if (!(handoffDigest ==~ /[a-f0-9]{64}/)) {
                         error('无效的交接材料摘要')
@@ -168,7 +168,7 @@ set -eu
 set +x
 node -e 'if(process.version!=="v24.9.0")process.exit(1)'
 test "$(pnpm --version)" = '12.5.1'
-node scripts/release/handoff.mjs prepare-target
+node deploy/scripts/release/handoff.mjs prepare-target
 pnpm install --frozen-lockfile
 pnpm --filter @haen/contracts build
 pnpm --filter @haen/server build
@@ -177,7 +177,7 @@ pnpm --filter @haen/server build
                             def releaseDigest = sh(returnStdout: true, script: '''#!/bin/sh
 set -eu
 set +x
-node scripts/release/handoff.mjs accept
+node deploy/scripts/release/handoff.mjs accept
 ''').trim()
                             if (!(releaseDigest ==~ /[a-f0-9]{64}/)) {
                                 error('目标交接材料未通过核验')

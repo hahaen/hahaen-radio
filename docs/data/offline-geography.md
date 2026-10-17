@@ -35,7 +35,7 @@
 从 `source.json` 的固定 HTTPS 地址下载对应 GeoJSON，再在根目录运行：
 
 ```sh
-node scripts/prepare-land.mjs /absolute/path/ne_110m_land.geojson
+node apps/web/scripts/prepare-land.mjs /absolute/path/ne_110m_land.geojson
 ```
 
 脚本核对固定版本的 SHA-256，再校验多边形和坐标，只输出到上述固定目录。点阵通过大陆包含关系生成并排除孔洞，不使用随机地理形状。`land.json` 保留确定的紧凑序列化以核对摘要，因此只针对该生成文件排除格式化；生成脚本继续接受 Lint 与格式检查。

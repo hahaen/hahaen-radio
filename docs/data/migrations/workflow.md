@@ -11,7 +11,7 @@ pnpm db:migrate status
 pnpm db:migrate
 ```
 
-生成入口使用 `apps/server/drizzle.config.ts`，输出至根目录 `migrations/`。迁移入口要求 `MIGRATION_WRITES_STOPPED=true`，先校验环境库名、MySQL 版本、连接字符集和 UTC，取得数据库维护锁后再启动固定 Drizzle Kit；应用启动不会自动执行迁移。迁移错误可能带 SQL 或连接信息，普通输出只报告状态，失败后先检查目标结构与工具历史表。
+生成入口使用 `apps/server/drizzle.config.ts`，输出至后端目录 `apps/server/migrations/`。迁移入口要求 `MIGRATION_WRITES_STOPPED=true`，先校验环境库名、MySQL 版本、连接字符集和 UTC，取得数据库维护锁后再启动固定 Drizzle Kit；应用启动不会自动执行迁移。迁移错误可能带 SQL 或连接信息，普通输出只报告状态，失败后先检查目标结构与工具历史表。
 
 | 迁移 | 职责 |
 | --- | --- |

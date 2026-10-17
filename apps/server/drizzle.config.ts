@@ -7,7 +7,7 @@ const connection = migrating ? readDatabaseConfig() : undefined;
 export default defineConfig({
   dialect: 'mysql',
   schema: './src/db/schema.ts',
-  out: '../../migrations',
+  out: './migrations',
   ...(connection
     ? {
         dbCredentials: { url: migrationConnectionUrl(connection) },

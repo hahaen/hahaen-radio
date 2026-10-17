@@ -9,7 +9,7 @@ export default defineConfig({
           include: [
             'apps/server/src/**/*.test.ts',
             'packages/contracts/src/**/*.test.ts',
-            'tests/deployment/**/*.test.mjs',
+            'deploy/tests/**/*.test.mjs',
           ],
         },
       },

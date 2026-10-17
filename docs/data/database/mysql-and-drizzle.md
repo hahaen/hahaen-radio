@@ -22,7 +22,7 @@ API 与任务通过网络访问数据库，不挂载 MySQL 数据卷。仅数据
 
 ## Schema 与事务
 
-结构定义位于 `apps/server/src/db/`，使用 Drizzle MySQL 方言。迁移与元数据集中输出到 `migrations/`，具体文件布局由锁定的 Drizzle Kit 版本产生。
+结构定义位于 `apps/server/src/db/`，使用 Drizzle MySQL 方言。迁移与元数据集中输出到 `apps/server/migrations/`，具体文件布局由锁定的 Drizzle Kit 版本产生。
 
 按查询建立索引和约束，查询参数化，数据库行映射为对外 DTO。时间、数值精度和 mysql2 返回类型需要在字段设计时统一，不依赖隐式类型转换。
 

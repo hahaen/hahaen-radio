@@ -1,21 +1,10 @@
-# 工程脚本目录
+# 共享工程脚本
 
-已提供 `check-docs.mjs` 检查 Markdown 本地链接，以及 `clean-dist.mjs` 在服务端和共享契约构建前清理其各自 dist，避免已删除或测试辅助模块残留到产物。清理脚本只允许上述两个包目录，不接受任意删除路径。
+本目录保留跨应用工具：
 
-已提供 `generate-audio-fixtures.mjs` 生成自制测试音，以及 `prepare-land.mjs` 从固定摘要的 Natural Earth 输入生成本地大陆资源。后者步骤见[离线地理](../docs/data/offline-geography.md)。
+- `check-docs.mjs`：检查根说明、分类文档及各应用、共享包、部署和脚本目录中的 Markdown 本地链接，跳过依赖与生成物。
+- `clean-dist.mjs`：在后端和共享契约构建前清理各自 `dist`，避免删除过的模块残留；仅允许这两个包目录，不接受任意删除路径。
 
-已提供 `prepare-fonts.mjs` 生成三种本地字体子集、许可、摘要与 CSS，手动执行 `node scripts/prepare-fonts.mjs`，具体前提见[字体说明](../docs/frontend/design/fonts.md)。常规构建不联网生成字体。
+前端专用资源工具位于 [apps/web/scripts](../apps/web/scripts/README.md)，镜像构建、节点交接和目标部署工具位于 [deploy/scripts](../deploy/scripts/README.md)。
 
-`release/` 已提供确定提交的三类镜像构建、隔离容器基础验收、人工分发与不可变产物校验。实际入口为 `node scripts/release/pipeline.mjs build`、`test-images`、`publish`，由根 Jenkinsfile 顺序调用；配置、凭据、归档和未完成的目标部署编排见[流水线](../docs/deployment/jenkins/pipeline.md)。本机编排测试通过模拟 Docker CLI 执行，不作为实际镜像验收证据。
-
-`deploy/` 提供目标主机发布执行器，由 `pnpm deploy:target` 通过 Linux 文件锁与数据库发布锁调用；完整/分端更新、维护和受控恢复见[执行说明](../docs/deployment/releases/target-executor.md)。不在本机 macOS 执行生产入口。
-
-按实际任务加入开发辅助、数据检查、备份和发布辅助脚本。脚本应具有明确输入、失败退出状态与环境边界，不内嵌凭据或默认访问生产数据。
-
-只有脚本实现并验证后，才在文档和流水线中声明对应命令可用。
-
-相关约定见[工程环境与依赖](../docs/engineering/environment-and-dependencies.md)。
-
-`release/handoff.mjs seal|prepare-target|accept` 为Jenkins同任务跨节点交接提供固定入口，实际目标更新仍由既有编译入口执行；配置及验收边界见[目标阶段](../docs/deployment/jenkins/target-stage.md)。
-
-check-web-budget.mjs读取Web生产产物，输出体积/gzip/SHA256并拒绝超限或缺失资源；pnpm check与独立性能入口使用同一脚本，具体上限见[资源预算](../docs/engineering/resource-budgets.md)。
+工具使用环境变量或显式私有配置，不内嵌凭据。相关约定见[工程环境与依赖](../docs/engineering/environment-and-dependencies.md)。

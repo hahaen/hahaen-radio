@@ -13,7 +13,7 @@ export default tseslint.config(
       '**/playwright-report/**',
       '**/test-results/**',
       '.local/**',
-      'tests/fixtures/audio/*.ts',
+      'apps/web/tests/fixtures/audio/*.ts',
     ],
   },
   js.configs.recommended,

@@ -10,7 +10,7 @@ import { openDatabase } from '../db/connection.js';
 import { validateBackupGrants } from './backup.js';
 import { MaintenanceError, withMaintenanceLock } from './maintenance.js';
 
-export const migrationFolder = fileURLToPath(new URL('../../../../migrations/', import.meta.url));
+export const migrationFolder = fileURLToPath(new URL('../../migrations/', import.meta.url));
 const Hash = z.string().regex(/^[a-f0-9]{64}$/);
 const Time = z.string().regex(/^[1-9][0-9]*$/);
 const History = z.array(z.object({ hash: Hash, createdAt: Time })).max(1000);

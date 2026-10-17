@@ -55,3 +55,13 @@ it('detects a changed released SQL file against its recorded history', async () 
   const changed = await expectedMigrations(root);
   expect(() => pendingMigrations(changed, released)).toThrow();
 });
+
+it('loads the application migration history without a database connection', async () => {
+  const plan = await expectedMigrations();
+  expect(plan.map((entry) => entry.file)).toEqual([
+    '0000_catalog_foundation.sql',
+    '0001_explicit_table_options.sql',
+    '0002_playback_diagnostics.sql',
+  ]);
+  expect(plan.at(-1)!.tables).toContain('playback_reports');
+});

@@ -75,7 +75,7 @@ try {
     const config = readDatabaseConfig();
     const fingerprint = databaseTargetFingerprint(config);
     verifyDeploymentExpectations(process.env, fingerprint);
-    const script = new URL('../../../../scripts/deploy/target.mjs', import.meta.url);
+    const script = new URL('../../../../deploy/scripts/target.mjs', import.meta.url);
     const module = (await import(script.href)) as {
       executeTarget: (
         env: NodeJS.ProcessEnv,
@@ -86,7 +86,7 @@ try {
     };
     process.chdir(fileURLToPath(new URL('../../../../', import.meta.url)));
     // A locked target runs from the complete, checked-out source tree, never an API image.
-    if (!fileURLToPath(script).endsWith('/scripts/deploy/target.mjs'))
+    if (!fileURLToPath(script).endsWith('/deploy/scripts/target.mjs'))
       throw Error('Invalid operations tree');
     const result = await withReleaseLock(
       config,

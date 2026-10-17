@@ -7,8 +7,6 @@
 !apps/**
 !packages/
 !packages/**
-!migrations/
-!migrations/**
 !scripts/
 !scripts/clean-dist.mjs
 !deploy/
@@ -36,3 +34,8 @@
 **/*.log
 **/*.dump
 **/*.bak
+**/tests/**
+**/playwright-report/**
+**/test-results/**
+**/playwright*.config.ts
+**/tsconfig.tools.json

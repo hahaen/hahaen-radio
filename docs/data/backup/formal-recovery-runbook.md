@@ -186,7 +186,7 @@ docker compose --project-name haen --env-file "$RESTORE_COMPOSE_ENV" --file depl
 读取jobs的单一容器ID与State.StartedAt（只读取这些字段），由操作者把日期及实际服务端提交设置为HAEN_RESTORE_STARTED_AT、HAEN_RESTORE_SERVER_REVISION。在同提交工作区生成现有共享探针，文件权限600，再从stdin交给容器Node执行：
 
 ```sh
-node --input-type=module -e 'import {runtimeLogProbe} from "./scripts/deploy/runtime-logs.mjs"; console.info(runtimeLogProbe("jobs",process.env.HAEN_RESTORE_SERVER_REVISION,"scheduler_started",Date.parse(process.env.HAEN_RESTORE_STARTED_AT)))' > "$PRIVATE_WORK/jobs-probe.mjs"
+node --input-type=module -e 'import {runtimeLogProbe} from "./deploy/scripts/runtime-logs.mjs"; console.info(runtimeLogProbe("jobs",process.env.HAEN_RESTORE_SERVER_REVISION,"scheduler_started",Date.parse(process.env.HAEN_RESTORE_STARTED_AT)))' > "$PRIVATE_WORK/jobs-probe.mjs"
 docker compose --project-name haen --env-file "$RESTORE_COMPOSE_ENV" --file deploy/compose/compose.yaml exec --no-TTY jobs node --input-type=module < "$PRIVATE_WORK/jobs-probe.mjs"
 ```
 

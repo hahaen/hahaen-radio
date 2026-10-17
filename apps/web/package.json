@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "tsc --project tsconfig.json && vite build",
-    "typecheck": "tsc --project tsconfig.json",
-    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort"
+    "typecheck": "tsc --project tsconfig.json && tsc --project tsconfig.tools.json",
+    "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
+    "test:e2e": "playwright test",
+    "test:performance": "pnpm build && pnpm check:budget && playwright test --config playwright.performance.config.ts",
+    "check:budget": "node scripts/check-web-budget.mjs"
   },
   "dependencies": {
     "@haen/contracts": "workspace:*",

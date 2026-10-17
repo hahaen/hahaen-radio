@@ -55,9 +55,7 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('isolated MySQL diagnostic
         cwd: fileURLToPath(new URL('../../', import.meta.url)),
         env: {
           ...process.env,
-          DB_TEST_MIGRATIONS_PATH: fileURLToPath(
-            new URL('../../../../migrations', import.meta.url),
-          ),
+          DB_TEST_MIGRATIONS_PATH: fileURLToPath(new URL('../../migrations', import.meta.url)),
         },
         timeout: 120000,
         maxBuffer: 128 * 1024,

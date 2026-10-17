@@ -39,10 +39,10 @@
 | [apps/server](apps/server/README.md) | 后端 API、任务和数据库访问 |
 | [packages/contracts](packages/contracts/README.md) | 前后端共享数据契约 |
 | [packages/config](packages/config/README.md) | 共享工程配置 |
-| [migrations](migrations/README.md) | 数据库迁移 |
+| [apps/server/migrations](apps/server/migrations/README.md) | 数据库迁移 |
 | [scripts](scripts/README.md) | 开发与运维脚本 |
 | [deploy](deploy/README.md) | Docker、Compose 与 Caddy 配置 |
-| [tests/e2e](tests/e2e/README.md) | 浏览器端到端测试 |
+| [apps/web/tests/e2e](apps/web/tests/e2e/README.md) | 浏览器端到端测试 |
 
 前后端、共享契约、数据迁移和发布工具均已有实现，具体职责及完成范围见各目录说明。
 

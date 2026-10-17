@@ -77,11 +77,11 @@
 - Caddy 提供前端静态资源，将 `/api/*` 原样代理给后端；生产前端不要求单独的 Node.js 服务。
 - API 和任务分别作为一个实例运行，基线部署在一台具有持久磁盘的 Linux 服务器。
 - 音频默认由浏览器直连电台服务器，后端提供数据和播放信息。不得未经专项评估将全部音频改为后端代理或转码。
-- `apps/web`：前端应用；`apps/server`：API、任务和迁移入口。
+- `apps/web`：前端应用、浏览器测试、前端资源脚本及测试产物；`apps/server`：API、任务、表结构定义和迁移入口。
 - `packages/contracts`：可公开共享的 DTO、Zod Schema 和错误码。
-- `packages/config`：共享工程配置；`migrations`：数据库迁移及元数据。
+- `packages/config`：共享工程配置；`apps/server/migrations`：数据库迁移及元数据。
 - `deploy/docker`、`deploy/compose`、`deploy/caddy`：容器与运行配置。
-- `scripts`：工程与运维脚本；`tests/e2e`：端到端测试；`docs`：分类技术文档。
+- `scripts`：跨应用文档检查与构建清理；`deploy/scripts`：发布与运维脚本；`apps/web/tests`：浏览器测试与素材；`deploy/tests`：部署测试；`docs`：分类技术文档。
 - 根据实际任务逐步建立目录，不提前创建没有职责的业务模块或空目录。
 
 ## 4. 开发规则

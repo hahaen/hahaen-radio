@@ -5,7 +5,7 @@
 ## 执行入口与数据
 
 ```sh
-pnpm test:e2e tests/e2e/accessibility.spec.ts --workers=2 --retries=0
+pnpm test:e2e apps/web/tests/e2e/accessibility.spec.ts --workers=2 --retries=0
 ```
 
 根开发依赖固定@axe-core/playwright与axe-core 4.14.0，使用现有Playwright 1.64.1和Node.js 24.9.0；它们不进入前端运行包。仅测试上下文拦截目录、曲目、歌词和自制可解码音源，生产没有默认假电台。测试不调用真实识曲供应商、不发送外部反馈或改变用户数据。

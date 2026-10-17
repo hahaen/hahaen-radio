@@ -187,14 +187,14 @@ try {
   const prior = join(work, 'prior-migrations');
   await mkdir(join(prior, 'meta'), { recursive: true, mode: 0o700 });
   const journal = JSON.parse(
-    await readFile(join(root, 'migrations/meta/_journal.json'), 'utf8'),
+    await readFile(join(root, 'apps/server/migrations/meta/_journal.json'), 'utf8'),
   ) as { entries: { tag: string }[] };
   const baseline = journal.entries.slice(0, -1);
   assert(baseline.length > 0);
   for (const entry of baseline) {
     assert(/^\d{4}_[a-z0-9_]+$/.test(entry.tag));
     const path = join(prior, entry.tag + '.sql');
-    await copyFile(join(root, 'migrations', entry.tag + '.sql'), path);
+    await copyFile(join(root, 'apps/server/migrations', entry.tag + '.sql'), path);
     await chmod(path, 0o600);
   }
   await writeFile(

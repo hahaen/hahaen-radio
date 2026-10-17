@@ -25,3 +25,7 @@ API 和后台任务共用工程，使用不同入口。通过 mysql2 连接池�
 占位目录由 `.gitkeep` 保留；增加实际文件后可删除相应占位文件。
 
 技术约定见[后端文档](../../docs/backend/README.md)和[数据文档](../../docs/data/README.md)。
+
+## 数据库材料归属
+
+表结构定义位于 `src/db/schema.ts`；版本化 SQL 与 Drizzle 元数据位于 [migrations](migrations/README.md)。生成、预检、迁移、备份核对及隔离数据库测试统一读取该目录；源码与编译产物采用同一相对路径。根目录数据库命令保持可用。

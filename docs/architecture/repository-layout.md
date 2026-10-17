@@ -1,69 +1,62 @@
-# 仓库目录规划
+# 仓库目录与职责
 
-状态：前后端基础入口、工作区配置、共享契约和检查脚本已建立；数据库、真实目录、播放、探索与个人工具已接入；曲目与可选音频增强已接入，发布流水线继续实施。
-
-## 顶层结构
+代码、配置、测试和生成物按所属应用归类。根目录保留工作区入口、共享包、跨应用工具、部署配置和分类文档。
 
 ```text
 hahaen-radio/
 ├── apps/
 │   ├── web/
-│   │   ├── src/
-│   │   │   ├── app/          应用入口、路由、全局 Provider
-│   │   │   ├── components/   共用界面组件
-│   │   │   ├── features/     按业务模块归属的代码
-│   │   │   ├── engines/
-│   │   │   │   ├── graphics/ Three.js 场景和资源管理
-│   │   │   │   └── audio/    音频引擎和播放适配
-│   │   │   ├── services/     HTTP 客户端和数据查询
-│   │   │   ├── stores/       客户端状态
-│   │   │   ├── workers/      浏览器计算任务
-│   │   │   ├── locales/      国际化文案
-│   │   │   └── styles/       设计变量和全局样式
-│   │   └── public/           不经打包转换的公开资源
+│   │   ├── src/                         前端页面、状态、图形与音频
+│   │   ├── public/                      公开静态资源
+│   │   ├── scripts/                     字体、地理、测试音源及资源预算工具
+│   │   ├── tests/
+│   │   │   ├── e2e/                     浏览器功能测试
+│   │   │   ├── performance/             生产资源与持续运行检查
+│   │   │   └── fixtures/                可控测试素材
+│   │   ├── playwright.config.ts         功能测试配置
+│   │   ├── playwright.performance.config.ts
+│   │   ├── tsconfig.tools.json          测试与工具类型检查
+│   │   ├── playwright-report/           本地 HTML 报告，Git 忽略
+│   │   └── test-results/                本地测试运行产物，Git 忽略
 │   └── server/
-│       └── src/
-│           ├── entrypoints/  API、任务、迁移等进程入口
-│           ├── plugins/      Fastify 基础设施插件
-│           ├── modules/      路由、业务服务和数据仓储
-│           ├── integrations/ 外部服务适配器
-│           ├── jobs/         任务实现、调度和互斥
-│           ├── db/           Schema、连接与数据库配置
-│           └── config/       环境变量校验
+│       ├── src/
+│       │   ├── entrypoints/             API、任务及受控运维入口
+│       │   ├── modules/                 业务服务、路由与仓储
+│       │   ├── integrations/            外部服务适配
+│       │   ├── jobs/                    后台调度与任务
+│       │   ├── db/                      表结构定义与数据库连接
+│       │   ├── config/                  环境校验
+│       │   ├── operations/              迁移预检、备份与维护
+│       │   └── testing/                 隔离数据库测试工具
+│       ├── migrations/                  版本化 SQL、快照与迁移日志
+│       └── drizzle.config.ts            后端迁移生成配置
 ├── packages/
-│   ├── contracts/
-│   │   └── src/              共享 DTO、Schema 和错误码
-│   └── config/               TypeScript、Lint 等共享配置
-├── migrations/               版本化 SQL 和迁移元数据
-├── scripts/                  工程和运维脚本
+│   ├── contracts/                       前后端共享 DTO、Zod Schema、错误码
+│   └── config/                          共享工程配置
 ├── deploy/
-│   ├── docker/               Dockerfile 和构建辅助文件
-│   ├── compose/              Compose 配置
-│   └── caddy/                Web 入口配置
-├── tests/e2e/                浏览器验收测试
-├── docs/                     技术文档
-├── Jenkinsfile               发布流水线入口
-├── package.json
+│   ├── docker/                          Dockerfile
+│   ├── compose/                         服务编排
+│   ├── caddy/                           Web 入口
+│   ├── jenkins/                         流水线辅助配置
+│   ├── maintenance/                     维护页面
+│   ├── systemd/                         运维定时任务
+│   ├── scripts/                         镜像、交接、目标更新及日志探测
+│   └── tests/                           跨应用部署工具测试
+├── scripts/                             跨应用文档检查与构建清理工具
+├── docs/                                产品、技术、运维和任务记录
+├── Jenkinsfile                          手动发布流水线
+├── package.json                         统一命令入口
 ├── pnpm-workspace.yaml
 └── pnpm-lock.yaml
 ```
 
-工程初始化已创建 `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml` 与应用入口；`Jenkinsfile` 仍待部署阶段实施。未实施职责继续使用 `.gitkeep` 保留。说明文件、具体模块与检查配置未在树中逐项展开。
+## 应用与共享包边界
 
-`packages/contracts/src` 已预留共享契约源码目录；`packages/config` 的具体配置文件在工具链初始化时创建。具体业务模块名称待需求确定后建立。
+- 前端当前业务入口主要位于 `src/graphics`、`src/audio`、`src/catalog`、`src/library`、`src/tracks`、`src/platform` 与 `src/information`。部分预留目录仍仅含 `.gitkeep`，不能视为已有业务实现。
+- 单元和组件测试靠近源码；浏览器测试、性能测试和音源归属于前端。部署工具测试归属于 `deploy/tests`，由根 Vitest 配置统一发现。
+- 数据库结构定义位于 `apps/server/src/db/schema.ts`；迁移及元数据位于 `apps/server/migrations`。迁移、预检、备份核对与发布清单均使用该目录，既有 SQL 和元数据内容不变。
+- Web 和 Server 可依赖 `contracts`，共享包不反向依赖应用；公开契约不导入数据库驱动、服务器私有配置或 Node.js 专用模块。`config` 不承载业务代码。
+- 根目录 `pnpm test:e2e`、`pnpm test:performance` 转发到 Web；数据库命令继续转发到 Server。根目录统一检查和 Jenkins 入口保持可用。
+- 本地凭据、私有归档、依赖、编译产物和测试报告不纳入 Git。数据库实际数据不放在源码或迁移目录中。
 
-当前前端实际业务位于 `src/graphics`、`src/audio`、`src/catalog` 和 `src/library`，曲目、歌词与歌曲工具位于 `src/tracks`，系统媒体、快捷键、睡眠与闲置的生命周期位于 `src/platform`；树中的 `engines`、`features` 等为规划职责，不能视为已有实现入口。
-
-## 包边界
-
-- `web` 和 `server` 可以依赖 `contracts`；`contracts` 不反向依赖应用。
-- `contracts` 不导入数据库驱动、后端环境变量、Node.js 专用模块或私密配置。
-- 数据库实体不直接作为对外 API 返回类型，返回值通过契约映射。
-- `config` 提供工程配置，不承载业务代码。
-- 共用源码以工作区包显式导出；生产前编译后端及其依赖包，检查 ESM 导入路径和扩展名解析。
-
-## 文件归属
-
-单元测试优先靠近被测模块；端到端测试集中管理。生产数据库、备份、日志和真实环境变量位于服务器运行目录，独立于仓库与构建产物。
-
-文档目录以[总导航](../README.md)为准。返回[架构导航](README.md)。
+各应用说明见[前端](../../apps/web/README.md)、[后端](../../apps/server/README.md)。返回[架构导航](README.md)或[文档总导航](../README.md)。

@@ -25,3 +25,12 @@
 占位目录由 `.gitkeep` 保留；增加实际文件后可删除相应占位文件。前端目录不保存服务端密钥、数据库或真实环境配置。
 
 技术约定见[前端文档](../../docs/frontend/README.md)，完整结构见[仓库目录](../../docs/architecture/repository-layout.md)。
+
+## 测试与资源工具
+
+- `tests/e2e/`：浏览器功能回归；`tests/performance/`：生产资源与持续运行检查；`tests/fixtures/`：可控测试素材。
+- `playwright.config.ts`、`playwright.performance.config.ts`：浏览器测试配置；`tsconfig.tools.json`：测试与配置的类型检查。
+- `scripts/`：本地字体、地理资源、测试音源生成与生产资源预算检查。
+- `playwright-report/`、`test-results/`：被 Git 忽略的测试产物，固定输出到本应用内。
+
+从仓库根继续使用 `pnpm test:e2e`、`pnpm test:performance`；也可用 `pnpm --filter @haen/web test:e2e` 或 `test:performance`，此前先构建共享契约。测试会自行启动所需服务，并显式以仓库根作为服务工作目录。

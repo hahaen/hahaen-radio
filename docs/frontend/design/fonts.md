@@ -17,7 +17,7 @@
 新增或修改中文界面文案后，在开发环境手动执行：
 
 ```sh
-node scripts/prepare-fonts.mjs
+node apps/web/scripts/prepare-fonts.mjs
 pnpm exec prettier --write apps/web/src/styles/fonts.css apps/web/public/fonts/source.json
 ```
 

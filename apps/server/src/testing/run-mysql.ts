@@ -44,13 +44,13 @@ try {
   temporary = await mkdtemp(join(root, '.local', 'mysql-test-'));
   await mkdir(join(temporary, 'meta'), { mode: 0o700 });
   const journal = JSON.parse(
-    await readFile(join(root, 'migrations/meta/_journal.json'), 'utf8'),
+    await readFile(join(root, 'apps/server/migrations/meta/_journal.json'), 'utf8'),
   ) as { entries: { tag: string }[] };
   const baseline = journal.entries.length > 1 ? journal.entries.slice(0, -1) : journal.entries;
   if (!baseline.length) throw new Error('No initial migration');
   for (const entry of baseline)
     await copyFile(
-      join(root, 'migrations', `${entry.tag}.sql`),
+      join(root, 'apps/server/migrations', `${entry.tag}.sql`),
       join(temporary, `${entry.tag}.sql`),
     );
   await writeFile(
@@ -74,8 +74,8 @@ try {
     `INSERT INTO \`${database}\`.station_overrides (station_id, blocked, reason, updated_at) VALUES (?, 1, ?, UTC_TIMESTAMP(3))`,
     ['00000000-0000-4000-8000-000000000098', '迁移保留验证 🌊'],
   );
-  await migrate(join(root, 'migrations'));
-  await migrate(join(root, 'migrations'));
+  await migrate(join(root, 'apps/server/migrations'));
+  await migrate(join(root, 'apps/server/migrations'));
   await exec(
     'pnpm',
     [

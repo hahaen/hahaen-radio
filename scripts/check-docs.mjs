@@ -5,7 +5,11 @@ async function walk(path) {
   const files = await Promise.all(
     entries.map((entry) =>
       entry.isDirectory()
-        ? walk(join(path, entry.name))
+        ? ['node_modules', 'dist', 'playwright-report', 'test-results', 'coverage'].includes(
+            entry.name,
+          )
+          ? []
+          : walk(join(path, entry.name))
         : entry.name.endsWith('.md')
           ? [join(path, entry.name)]
           : [],
@@ -13,7 +17,15 @@ async function walk(path) {
   );
   return files.flat();
 }
-const files = ['README.md', 'AGENTS.md', ...(await walk('docs'))];
+const files = [
+  'README.md',
+  'AGENTS.md',
+  ...(await walk('docs')),
+  ...(await walk('apps')),
+  ...(await walk('packages')),
+  ...(await walk('deploy')),
+  ...(await walk('scripts')),
+];
 let links = 0;
 for (const file of files) {
   const content = await readFile(file, 'utf8');
