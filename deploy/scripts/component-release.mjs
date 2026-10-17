@@ -20,6 +20,7 @@ import {
 } from './release/images.mjs';
 import { componentRelease, components, webRelease } from './component-state.mjs';
 import { prepareStaticWeb } from './static-web.mjs';
+import { verifyPublishedImage } from './published-image.mjs';
 import { registryManifest } from './registry-manifest.mjs';
 import { checkedDeployEnvironment } from './release/handoff.mjs';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
@@ -89,7 +90,10 @@ async function publishImage(run, item, revision, targetPlatform, auth, caFile) {
     reference = repository + '@' + matched[0].digest;
     remote = await registryManifest(reference, auth, caFile);
   }
-  assert.equal(remote.config.digest, item.id);
+  const native = image.Descriptor
+    ? JSON.parse(await run(['image', 'inspect', '--platform', targetPlatform, item.tag]))[0]
+    : image;
+  verifyPublishedImage(image, native, reference, remote, revision, targetPlatform);
   return reference;
 }
 export async function componentPipeline(stage, env) {

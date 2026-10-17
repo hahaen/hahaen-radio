@@ -89,3 +89,5 @@ Linux WebKit 的实际媒体音量存在约 `5e-6` 的后端舍入差异，两�
 三任务差异人工 Review 与复审已完成：修正迁移状态事件、递归契约摘要、Docker 子进程私密变量过滤、回退配置快照及选择性角色写入；新增独立版本、兼容拒绝、单次 SQL、失败停写、回退和交接摘要回归。45 项部署/发布配置回归、服务端类型检查、ESLint、格式及文档 128 文件/800 链接检查通过。原生 Declarative Linter 通过。此处仍为上线前验证，不代表正式 SQL 已执行。
 
 首个独立 API 构建已通过 129 项应用/契约/发布工具检查（10 项数据库专项按独立入口跳过），只读目标预检通过、API/迁移镜像构建和模块检查通过，但分发阶段的 buildx imagetools 对回环私库发出 HTTP 请求，被 HTTPS 网关拒绝。正式目标阶段未开始、未执行 SQL。实际最小复现定位后改为显式 HTTPS 请求，认证来自私有配置，严格 CA/主机名校验，并校验原始 manifest 字节摘要与 config digest；新增真实本地 HTTPS 验证覆盖未信任 CA、错误身份与错误摘要拒绝。
+
+服务器实际 Docker 为 29.1.3，采用 containerd 镜像存储；本地 image Id 对应 index/manifest，不能当作 config digest。第二次构建的 HTTPS 读取已通过，但原先传统存储比较方式正确地阻止分发。调整为同时校验已验收 index 身份、明确平台的本地 manifest、远端原始 manifest 摘要及 revision；传统存储仍校验 config digest。对应差异加入发布身份回归；正式 SQL 此时仍未执行。

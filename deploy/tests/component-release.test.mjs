@@ -2,6 +2,7 @@ import { afterEach, expect, it } from 'vitest';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
+import { verifyPublishedImage } from '../scripts/published-image.mjs';
 import { execFileSync } from 'node:child_process';
 const roots = [],
   script = resolve('deploy/scripts/component-release.mjs');
@@ -104,4 +105,69 @@ it('binds immutable component metadata to the approved digest and target context
   expect(
     JSON.parse(await readFile(join(f.directory, 'target-release.json'), 'utf8')).component,
   ).toBe('frontend');
+});
+
+it('binds Docker containerd index identities to the native manifest, while retaining legacy config digest checks', () => {
+  const revision = 'a'.repeat(40),
+    reference = 'registry.example/radio/api@sha256:' + 'b'.repeat(64);
+  const native = {
+    Id: 'sha256:' + 'b'.repeat(64),
+    Descriptor: {
+      digest: 'sha256:' + 'b'.repeat(64),
+      mediaType: 'application/vnd.oci.image.manifest.v1+json',
+    },
+    Config: { Labels: { 'org.opencontainers.image.revision': revision } },
+    Os: 'linux',
+    Architecture: 'amd64',
+  };
+  const index = {
+    ...native,
+    Id: 'sha256:' + 'c'.repeat(64),
+    Descriptor: {
+      digest: 'sha256:' + 'c'.repeat(64),
+      mediaType: 'application/vnd.oci.image.index.v1+json',
+    },
+  };
+  expect(() =>
+    verifyPublishedImage(
+      index,
+      native,
+      reference,
+      { config: { digest: 'sha256:' + 'd'.repeat(64) } },
+      revision,
+      'linux/amd64',
+    ),
+  ).not.toThrow();
+  expect(() =>
+    verifyPublishedImage(
+      index,
+      native,
+      reference.replace('b'.repeat(64), 'e'.repeat(64)),
+      {},
+      revision,
+      'linux/amd64',
+    ),
+  ).toThrow();
+  const legacy = { ...native, Id: 'sha256:' + 'd'.repeat(64) };
+  delete legacy.Descriptor;
+  expect(() =>
+    verifyPublishedImage(
+      legacy,
+      legacy,
+      reference,
+      { config: { digest: legacy.Id } },
+      revision,
+      'linux/amd64',
+    ),
+  ).not.toThrow();
+  expect(() =>
+    verifyPublishedImage(
+      legacy,
+      legacy,
+      reference,
+      { config: { digest: 'sha256:' + 'e'.repeat(64) } },
+      revision,
+      'linux/amd64',
+    ),
+  ).toThrow();
 });
