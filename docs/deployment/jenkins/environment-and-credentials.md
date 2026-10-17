@@ -18,6 +18,12 @@
 
 SOURCE_COMMIT、PUBLISH_IMAGES、DEPLOY_TARGET 与 DEPLOY_SCOPE 是界面参数，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
 
+## 无头音频测试
+
+没有声卡的 Linux 构建节点需要为构建身份准备隔离的虚拟音频输出。例如运行该身份拥有的 PulseAudio null sink，通过 `PULSE_SERVER` 指向仅该身份可访问的 Unix socket。服务和 socket 随节点启动，使用私有运行目录与默认身份认证，不开放公网音频端口，也不把该变量注入生产容器。
+
+仅安装音频解码库不能证明音频输出端可用。已观察到 Firefox 能识别 MP3 但返回 `OnMediaSinkAudioError`，导致电台自动切换和后续界面断言超时；虚拟输出建立后，应先用受控 MP3 及原失败浏览器用例复验。当前四核节点的浏览器回归使用两个 worker，普通测试仍使用一个 worker。
+
 ## 镜像仓库认证
 
 Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供人工分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
