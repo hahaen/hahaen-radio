@@ -78,6 +78,7 @@ function TimedLyrics({ record, playing }: { record: LyricsRecord; playing: boole
       <div
         ref={viewport}
         className={styles.lyricsScroll}
+        role="region"
         tabIndex={0}
         aria-label={t('timedLyrics')}
         onWheel={() => setFollow(false)}

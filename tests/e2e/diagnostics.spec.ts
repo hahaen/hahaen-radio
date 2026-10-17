@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { first, second, install } from './listening-fixture.js';
+import { first, second, install, listenButton } from './listening-fixture.js';
 import type { PlaybackReportRequest } from '../../packages/contracts/src/diagnostics.js';
 async function setup(page: Page, english = false) {
   await install(page);
@@ -71,7 +71,7 @@ test('submits only after an explicit click, exposes the exact minimal fields and
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(first.name);
-  await expect(page.getByRole('button', { name: '收听 ' + first.name, exact: true })).toBeEnabled();
+  await expect(listenButton(page, first.name)).toBeEnabled();
   await page.getByRole('button', { name: 'EN', exact: true }).click();
   const enlarged = await feedback(page, true);
   await page.addStyleTag({
@@ -161,7 +161,7 @@ test('aborts a dismissed request and never displays its late receipt after selec
   await report.getByRole('button', { name: '提交精简故障报告', exact: true }).click();
   await expect.poll(() => posts).toBe(1);
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: '收听 ' + second.name, exact: true }).click();
+  await listenButton(page, second.name).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'failed');
   const next = await feedback(page);

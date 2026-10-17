@@ -60,13 +60,16 @@ describe('radio application entry', () => {
   it('survives strict lifecycle replay, loads stations without autoplay and preserves language', async () => {
     vi.stubGlobal('fetch', withoutScene(vi.fn(async () => response())));
     mount(true);
-    await screen.findByRole('button', { name: '收听 Test radio 1' });
+    await screen.findByRole('button', { name: '收听 Test radio 1 英国 爵士' });
     expect(screen.getByRole('status')).toHaveTextContent('尚未播放');
     expect(document.querySelectorAll('audio')).toHaveLength(0);
     await userEvent.click(screen.getByRole('button', { name: 'EN' }));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'A wider world. A closer listen.',
     );
+    expect(
+      screen.getByRole('button', { name: 'Listen to Test radio 1 United Kingdom Jazz' }),
+    ).toBeVisible();
     expect(document.documentElement.lang).toBe('en');
     expect(document.title).toBe('HAEN · Listen to the world.');
     expect(localStorage.getItem('haen:language:v1')).toBe('en');
@@ -97,7 +100,7 @@ describe('radio application entry', () => {
       { timeout: 3000 },
     );
     await userEvent.click(retry);
-    await screen.findByRole('button', { name: '收听 Test radio 1' });
+    await screen.findByRole('button', { name: '收听 Test radio 1 英国 爵士' });
   });
   it('selects a station, displays actual media events and pauses through the player', async () => {
     const fetcher = vi.fn(async (input: string | URL | Request) =>
@@ -107,7 +110,9 @@ describe('radio application entry', () => {
     );
     vi.stubGlobal('fetch', withoutScene(fetcher));
     mount();
-    await userEvent.click(await screen.findByRole('button', { name: '收听 Test radio 1' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: '收听 Test radio 1 英国 爵士' }),
+    );
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('正在收听'));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Test radio 1');
     expect(document.querySelectorAll('audio')).toHaveLength(1);

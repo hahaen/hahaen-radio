@@ -26,7 +26,7 @@ export function GenreAtlas({
     [stations],
   );
   return (
-    <div className={styles.genreAtlas} aria-label={t('genreAtlas')}>
+    <div className={styles.genreAtlas} role="group" aria-label={t('genreAtlas')}>
       {groups.map((group) => (
         <button
           key={group.genre}

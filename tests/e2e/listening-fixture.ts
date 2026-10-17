@@ -23,6 +23,12 @@ export const third = {
   bitrate: 64,
 };
 export const originals = [first, second, third];
+export function listenButton(page: Page, name: string, language: 'zh' | 'en' = 'zh') {
+  const label = (language === 'zh' ? '收听 ' : 'Listen to ') + name;
+  return page.getByRole('button', {
+    name: new RegExp('^' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:\\s|$)'),
+  });
+}
 export async function install(page: Page, scene = true) {
   let lookupFailed = false;
   const blocked = new Set<string>();

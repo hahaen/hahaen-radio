@@ -100,10 +100,13 @@
   min-height: 44px;
   padding: 8px 12px;
   color: var(--color-text);
-  background: var(--color-surface);
+  background-color: var(--color-surface);
   border: 1px solid var(--color-secondary);
   border-radius: 8px;
   font: inherit;
+}
+.filters select {
+  padding-inline-end: 36px;
 }
 .hint {
   color: var(--color-text-muted);

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { NowPlaying, LyricsResult } from '../../packages/contracts/src/tracks.js';
-import { first, second, install } from './listening-fixture.js';
+import { first, second, install, listenButton } from './listening-fixture.js';
 const song = { artist: 'Harbor Artist', title: 'Night Arrival' };
 const record = {
   id: 1,
@@ -70,7 +70,7 @@ async function setup(page: Page) {
   });
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await expect(page.getByText(rawTitle, { exact: true })).toBeVisible();
   return {
@@ -315,7 +315,7 @@ test('ignores a late metadata response after selecting a different actual statio
   await page.clock.fastForward(16000);
   await expect.poll(() => waiting).toBe(true);
   fixture.setTitle('Second Artist - Second Song');
-  await page.getByRole('button', { name: '收听 ' + second.name, exact: true }).click();
+  await listenButton(page, second.name).click();
   await expect(page.getByText('Second Artist - Second Song', { exact: true })).toBeVisible();
   release();
   const dialog = await panel(page);

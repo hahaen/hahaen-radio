@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
-import { first, second, originals, install } from './listening-fixture.js';
+import { first, second, originals, install, listenButton } from './listening-fixture.js';
 async function setup(page: Page, denied = false) {
   await page.addInitScript(() => {
     if (!localStorage.getItem('haen:personal:v1:preferences'))
@@ -85,7 +85,7 @@ async function setup(page: Page, denied = false) {
   });
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   return { samples: () => samples };
 }
@@ -190,11 +190,11 @@ test('synthesizes only an enabled station change and suppresses sound on mute an
   const dialog = await settings(page);
   await dialog.getByRole('checkbox', { name: '调台音效', exact: true }).check();
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: '收听 ' + second.name, exact: true }).click();
+  await listenButton(page, second.name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await expect.poll(async () => (await probe(page)).tones).toBe(1);
   await page.getByRole('button', { name: '静音', exact: true }).click();
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   expect((await probe(page)).tones).toBe(1);
   await page.getByRole('button', { name: '暂停', exact: true }).click();

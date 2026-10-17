@@ -46,7 +46,12 @@ export function Immersive({
         <button
           className={styles.favorite}
           aria-pressed={favorite}
-          aria-label={t(favorite ? 'unfavoriteStation' : 'favoriteStation', { name: station.name })}
+          aria-label={[
+            favorite ? t('favorited') : '',
+            t(favorite ? 'unfavoriteStation' : 'favoriteStation', { name: station.name }),
+          ]
+            .filter(Boolean)
+            .join(' ')}
           onClick={onFavorite}
         >
           <Star size={20} fill={favorite ? 'currentColor' : 'none'} aria-hidden="true" />

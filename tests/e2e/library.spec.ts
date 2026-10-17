@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { testStation } from '../../apps/web/src/testing/stations.js';
-import { first, second, originals, install } from './listening-fixture.js';
+import { first, second, originals, install, listenButton } from './listening-fixture.js';
 const prefix = 'haen:personal:v1:';
 function transfer(ids: number[], songs = false) {
   return {
@@ -23,7 +23,7 @@ async function enter(page: Page, path = '/') {
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
 }
 async function play(page: Page, name: string) {
-  await page.getByRole('button', { name: '收听 ' + name, exact: true }).click();
+  await listenButton(page, name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await expect
     .poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.currentTime))

@@ -88,9 +88,10 @@
 }
 .version select {
   color: var(--color-text);
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   border: 1px solid var(--color-secondary);
-  padding: 8px;
+  padding: 8px 36px 8px 12px;
+  font: inherit;
   max-width: 100%;
   min-height: 44px;
 }

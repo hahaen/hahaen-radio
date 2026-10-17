@@ -503,10 +503,15 @@ export function App() {
                 {trackSummary()}
                 <div className={styles.stationActions}>
                   <button
-                    aria-label={t(
-                      favoriteIds.has(state.station.id) ? 'unfavoriteStation' : 'favoriteStation',
-                      { name: state.station.name },
-                    )}
+                    aria-label={[
+                      favoriteIds.has(state.station.id) ? t('favorited') : '',
+                      t(
+                        favoriteIds.has(state.station.id) ? 'unfavoriteStation' : 'favoriteStation',
+                        { name: state.station.name },
+                      ),
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
                     aria-pressed={favoriteIds.has(state.station.id)}
                     onClick={() => {
                       if (!state.station) return;
@@ -722,16 +727,20 @@ export function App() {
                   <button
                     className={styles.station}
                     data-station-id={station.id}
-                    aria-label={t('listenStation', { name: station.name })}
+                    aria-label={[
+                      t('listenStation', { name: station.name }),
+                      location(station),
+                      t('genre.' + station.genre),
+                    ].join(' ')}
                     aria-current={state.station?.id === station.id ? 'true' : undefined}
                     onClick={() => {
                       void player.select(station);
                     }}
                   >
                     <span className={styles.stationText}>
-                      <span className={styles.stationName}>{station.name}</span>
+                      <span className={styles.stationName}>{station.name}</span>{' '}
                       <span className={styles.stationLocation}>{location(station)}</span>
-                    </span>
+                    </span>{' '}
                     <span className={styles.stationKind}>{t('genre.' + station.genre)}</span>
                     <Play size={18} aria-hidden="true" />
                   </button>

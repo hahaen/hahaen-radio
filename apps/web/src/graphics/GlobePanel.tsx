@@ -136,7 +136,7 @@ export function GlobePanel({
             )}
           </div>
         )}
-        <div className={styles.mapControls} aria-label={t('globeControls')}>
+        <div className={styles.mapControls} role="group" aria-label={t('globeControls')}>
           <button
             disabled={disabled}
             aria-label={t('zoomIn')}

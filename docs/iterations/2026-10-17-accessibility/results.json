@@ -1,0 +1,237 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "b481066618aff1b8d5b28671184a7faaeb1637dd",
+  "targetedTests": 20,
+  "stateScans": 140,
+  "axeCore": "4.14.0",
+  "ruleTags": ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa", "best-practice"],
+  "rulesDisabled": [],
+  "regionsExcluded": [],
+  "scans": [
+    {
+      "project": "chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "language": "en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 10
+    },
+    {
+      "project": "chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "language": "zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 6
+    },
+    {
+      "project": "firefox",
+      "browser": "firefox",
+      "version": "157.0",
+      "language": "en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 10
+    },
+    {
+      "project": "firefox",
+      "browser": "firefox",
+      "version": "157.0",
+      "language": "zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 6
+    },
+    {
+      "project": "mobile-chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "language": "en",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 7
+    },
+    {
+      "project": "mobile-chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "language": "zh",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 9
+    },
+    {
+      "project": "webkit",
+      "browser": "webkit",
+      "version": "27.2",
+      "language": "en",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 10
+    },
+    {
+      "project": "webkit",
+      "browser": "webkit",
+      "version": "27.2",
+      "language": "zh",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "scans": 17,
+      "violations": 0,
+      "colorContrastIncomplete": 6
+    }
+  ],
+  "contrastReview": {
+    "incompleteCounts": {
+      "color-contrast": 64
+    },
+    "contextsReviewed": 72,
+    "opaquePairs": [
+      {
+        "foreground": "rgb(232, 233, 225)",
+        "background": [21.0, 37.0, 45.0],
+        "ratio": 12.8701
+      },
+      {
+        "foreground": "rgb(232, 233, 225)",
+        "background": [11.0, 21.0, 27.0],
+        "ratio": 15.1004
+      },
+      {
+        "foreground": "rgb(166, 183, 184)",
+        "background": [21.0, 37.0, 45.0],
+        "ratio": 7.5591
+      }
+    ],
+    "minimumRatio": 7.559120630115303,
+    "ancestorOpacityOneAndNoFilters": true,
+    "imagesOnlySelectArrows": true,
+    "scope": "Computed colors and opaque backgrounds for reported targets, plus CSS padding/arrow and screenshot review; not a general WCAG certificate"
+  },
+  "initialFullBrowser": {
+    "passed": 249,
+    "failed": 8,
+    "skipped": 3,
+    "failure": "The new immersive favorite name audit; corrected and targeted tests repeated"
+  },
+  "engineeringStatus": {
+    "preSync": "passed",
+    "postSync": "passed",
+    "unitTests": {
+      "passed": 219,
+      "skippedDatabase": 10
+    },
+    "checks": ["format", "lint", "typecheck", "unit", "build"],
+    "frozenInstall": "passed",
+    "documentation": {
+      "markdownFiles": 103,
+      "localLinks": 640
+    },
+    "buildWarning": "Three existing JavaScript chunks exceed 500 kB; complete resource budgets remain pending"
+  },
+  "postSyncFullBrowser": {
+    "passed": 257,
+    "failed": 0,
+    "skipped": 3,
+    "flaky": 0,
+    "retries": 0,
+    "workers": 2,
+    "seconds": 462.7,
+    "skippedScope": "Desktop projects: trusted touch synthesis only supported in mobile Chromium project",
+    "reportSha256": "f29a5bfa5965f36e8718bfda416c4e8017fbecab2846be4013305d8194ab1647",
+    "stateScans": 140,
+    "automaticViolations": 0
+  },
+  "databaseTestsRun": false,
+  "databaseWrites": false,
+  "dockerRun": false,
+  "realAssistiveTechnologyRun": false,
+  "realDevicesRun": false,
+  "deployed": false,
+  "releaseTargets": ["web"],
+  "screenshots": [
+    {
+      "file": "assets/settings-desktop-zh.png",
+      "width": 1440,
+      "height": 900,
+      "sha256": "41e5ea61a35dbd6d5a3f6d69bd078a6b58504e2b54e1e4ca7d52ba94b2b70136"
+    },
+    {
+      "file": "assets/settings-mobile-en-text200.png",
+      "width": 780,
+      "height": 1688,
+      "sha256": "4d19fd80868964008acfd8cf17550c45169e03f363e5ef2321be1bbf1783080d"
+    },
+    {
+      "file": "assets/settings-mobile-zh.png",
+      "width": 1024,
+      "height": 2216,
+      "sha256": "7e4b0776239658623118acc8d1fc2d33e1daee05c5930832cd6372cd2bb57261"
+    }
+  ],
+  "inputs": {
+    "apps/web/src/app/App.test.tsx": "000d69742ab6d2ea3f8a2cc90c0d3e11f3774fd9181a921e5106d2ce4703a2db",
+    "apps/web/src/app/App.tsx": "5c6f0321526c698084ec46010f4890310390bd6929913c022818cb860db376ab",
+    "apps/web/src/app/Immersive.tsx": "f0543a61ea53abb76d2fe518559f572614476d8fcffb0023c12293327ecde100",
+    "apps/web/src/app/Modal.tsx": "1b4af52e470ac6635a50e2905c64ae78b4bb0eb6a0b4b3912dcb7f2362a1cdbf",
+    "apps/web/src/app/controls.module.css": "8c0f7be077388a1b4d7d25bd0c27df3a797a32007a561ffe2c420b54f62927a3",
+    "apps/web/src/graphics/GenreAtlas.tsx": "1105321061de38d94599a08c41a63b4d8e29b7644ab2a42ebb1f90e8649ed2b2",
+    "apps/web/src/graphics/GlobePanel.tsx": "337564b4180d1c9ef52b155b9824836b808f0636532692a8f53f5749975b0cec",
+    "apps/web/src/library/library.module.css": "aa7ba391684372d79cb760bfdf7f96405fefae35b4c3bd5511edff9990a687f1",
+    "apps/web/src/styles/global.css": "caf902b7154487f070ff81d9f0ea74ba4d12b3e0bf13c215339297940f0a2600",
+    "apps/web/src/tracks/LyricsView.tsx": "5e53fd527598bee8941270adf6b114274874038e616aeb329e24a8302dde500e",
+    "apps/web/src/tracks/tracks.module.css": "6b7f1125604eb8d6685cbfa46689b8804e29c75f7dcc779c1e3fd94c2522c763",
+    "package.json": "8f2e4c8e4c604ac842bb0061ab9920d5e6c1ac7f5b54449a319e653d0d34c9d8",
+    "pnpm-lock.yaml": "d7c84941cafa89e0c9145de489085a9e674a257485541d4c403f8b712a01231c",
+    "tests/e2e/accessibility.spec.ts": "5b0964dbff052052232e20f46a18d2cc731cea74c88d8938b8e22d1c71f80c4d",
+    "tests/e2e/audio.spec.ts": "c3f50c622de2f3f02bd317499638207d88df68b31e61c57dd33de28d4ffe8ac8",
+    "tests/e2e/controls.spec.ts": "a500c64de32387ea4087863d3f8bb01e6f7776cd771ba5a676083d7230d8006d",
+    "tests/e2e/diagnostics.spec.ts": "9a75bdfaa3cad7a0af82929be943fe3bfeeff209e866f08ab09ae319ec238c10",
+    "tests/e2e/enhancement.spec.ts": "f0ee48c8242774ecb24d304485f0b2917965256ceb703a068963352e2363b551",
+    "tests/e2e/information.spec.ts": "56b9c2a00ce08af1deae8f586d61e7a3638fefe2117b46da3cc831a5e03d1890",
+    "tests/e2e/library.spec.ts": "d49fe6b4f648a86543e9577ff22da937eb968a884f6e3fabfd3739ce2c00261c",
+    "tests/e2e/listening-fixture.ts": "3f52c07c80f26790afbe03ab99374200fd6540a649409735cd7bfa07dccc090d",
+    "tests/e2e/recognition.spec.ts": "fe3f9de8cccd5c955c1723cbb8227d4f89e03a64acdf16ec05a7a031032090f8",
+    "tests/e2e/stability.spec.ts": "98db1a8a5015ee29c88094f849242ce6a066a87a8a7050e3f65ce3a1906007a0",
+    "tests/e2e/tracks.spec.ts": "2c4b405be94c5caad8e765acf4ce3e25f2c6200af1ff504a7ea6ed2571cdb150"
+  },
+  "synchronization": {
+    "baseBefore": "b481066618aff1b8d5b28671184a7faaeb1637dd",
+    "baseAfter": "b481066618aff1b8d5b28671184a7faaeb1637dd",
+    "fileCount": 37,
+    "reviewedAfterSync": true,
+    "restoredBytesAndModesVerified": true
+  }
+}

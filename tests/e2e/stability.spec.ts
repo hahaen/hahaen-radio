@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { encodeSceneEntry } from '../../packages/contracts/src/scene.js';
 import { testScene, testStation } from '../../apps/web/src/testing/stations.js';
-import { first, second, install } from './listening-fixture.js';
+import { first, second, install, listenButton } from './listening-fixture.js';
 
 // Synthetic scale data is restricted to this test; the application has no fixture fallback.
 const stations = Array.from({ length: 30000 }, (_, index) => ({
@@ -127,13 +127,11 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   const search = page.getByRole('searchbox', { name: '搜索电台', exact: true });
   await search.fill('Test radio 29999');
   await search.press('Enter');
-  await expect(
-    page.getByRole('button', { name: '收听 Test radio 29999', exact: true }),
-  ).toBeVisible();
+  await expect(listenButton(page, 'Test radio 29999')).toBeVisible();
   const searchMs = Date.now() - searchStart;
   await search.fill('');
   await search.press('Enter');
-  await expect(page.getByRole('button', { name: '收听 ' + first.name, exact: true })).toBeVisible();
+  await expect(listenButton(page, first.name)).toBeVisible();
   const filterStart = Date.now();
   await page.getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '流行', exact: true }).check();
@@ -142,7 +140,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
   await expect(page.getByText('30,000 / 30,000 个候选电台有坐标', { exact: true })).toBeVisible();
   await page.getByText('筛选电台', { exact: true }).click();
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
   await page.getByRole('slider', { name: '音量', exact: true }).press('Home');
@@ -159,7 +157,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   try {
     for (let index = 0; index < 60; index++) {
       const station = index % 2 ? second : first;
-      await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+      await listenButton(page, station.name).click();
       await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(station.name);
       await page.getByRole('button', { name: '流派', exact: true }).click();

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { first, second, install } from './listening-fixture.js';
+import { first, second, install, listenButton } from './listening-fixture.js';
 const preferences = 'haen:personal:v1:preferences';
 async function enter(page: Page) {
   await install(page);
@@ -8,7 +8,7 @@ async function enter(page: Page) {
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
 }
 async function play(page: Page, name = first.name) {
-  await page.getByRole('button', { name: '收听 ' + name, exact: true }).click();
+  await listenButton(page, name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
 }
 async function settings(page: Page) {
@@ -125,7 +125,7 @@ test('keeps keyboard commands, immersion, focus, and refreshed previous navigati
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await bodyKey(page, 'f');
   await expect(
-    page.getByRole('button', { name: '取消收藏 ' + first.name, exact: true }),
+    page.getByRole('button', { name: '已收藏 取消收藏 ' + first.name, exact: true }),
   ).toHaveAttribute('aria-pressed', 'true');
   await bodyKey(page, 'l');
   await expect(page.getByRole('button', { name: '取消固定', exact: true })).toHaveAttribute(

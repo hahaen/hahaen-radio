@@ -1,3 +1,4 @@
+import { listenButton } from './listening-fixture.js';
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { testStation, testScene } from '../../apps/web/src/testing/stations.js';
@@ -143,7 +144,7 @@ for (const format of ['mp3', 'aac', 'm3u8'] as const) {
   test('decodes controlled ' + format + ' media and supports pause/resume', async ({ page }) => {
     const station = fixture(1, format);
     const requests = await install(page, [station]);
-    await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+    await listenButton(page, station.name).click();
     await expectPlaying(page);
     expect(requests).toContain('tone.' + format);
     await page.getByRole('button', { name: '暂停', exact: true }).click();
@@ -163,7 +164,7 @@ test('switches to a working backup after an invalid stream', async ({ page }) =>
     url: origin + 'unavailable.mp3',
   });
   const requests = await install(page, [station]);
-  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await listenButton(page, station.name).click();
   await expectPlaying(page);
   expect(requests).toContain('unavailable.mp3');
   expect(requests).toContain('tone.mp3');
@@ -173,8 +174,8 @@ test('does not restore a late station response after a rapid selection', async (
   const first = fixture(1, 'mp3'),
     second = fixture(2, 'aac');
   await install(page, [first, second], first.id);
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
-  await page.getByRole('button', { name: '收听 ' + second.name, exact: true }).click();
+  await listenButton(page, first.name).click();
+  await listenButton(page, second.name).click();
   await expectPlaying(page);
   // The first response intentionally finishes after 800ms.
   await page.waitForTimeout(1000);
@@ -188,7 +189,7 @@ test('can pause and resume while an HLS manifest is still loading', async ({ pag
   const station = fixture(1, 'm3u8');
   await install(page, [station], undefined, 'tone.m3u8');
   const manifest = page.waitForRequest(origin + 'tone.m3u8');
-  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await listenButton(page, station.name).click();
   await manifest;
   await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
   await page.getByRole('button', { name: '暂停', exact: true }).click();
@@ -203,9 +204,9 @@ test('continues explicit playback when switching from playing audio to a slow st
   const first = fixture(1, 'mp3'),
     second = fixture(2, 'aac');
   await install(page, [first, second], second.id);
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expectPlaying(page);
-  await page.getByRole('button', { name: '收听 ' + second.name, exact: true }).click();
+  await listenButton(page, second.name).click();
   await expectPlaying(page);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   expect(
@@ -221,7 +222,7 @@ test('keeps actual audio playing across globe and genre views', async ({ page })
     locationPrecision: 'coordinates' as const,
   };
   await install(page, [station], undefined, undefined, true);
-  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await listenButton(page, station.name).click();
   await expectPlaying(page);
   await page.getByRole('button', { name: '流派', exact: true }).click();
   await expectPlaying(page);
@@ -258,7 +259,7 @@ test('retains list playback when WebGL initialization is unavailable', async ({ 
   await expect(
     page.getByText('此设备暂时无法显示地球，仍可通过列表收听。', { exact: true }),
   ).toBeVisible();
-  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await listenButton(page, station.name).click();
   await expectPlaying(page);
 });
 test('pins automatic selection and preserves paused intent after a globe dwell', async ({
@@ -292,7 +293,7 @@ test('pins automatic selection and preserves paused intent after a globe dwell',
     'The browser has no native WebGL 2 context; list fallback is tested separately.',
   );
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expectPlaying(page);
   const canvas = panel.locator('canvas');
   const focus = async () => {
@@ -344,7 +345,7 @@ test('restores a lost globe context without restarting current audio', async ({ 
     'The browser has no native WebGL 2 context; list fallback is tested separately.',
   );
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await listenButton(page, station.name).click();
   await expectPlaying(page);
   const lost = await panel.locator('canvas').evaluate((canvas) => {
     const gl = (canvas as HTMLCanvasElement).getContext('webgl2'),
@@ -400,7 +401,7 @@ test('expands a known-city cluster and cycles its actual stations', async ({ pag
   });
   test.skip(!supported, 'No native WebGL 2 context. List fallback is tested separately.');
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expectPlaying(page);
   const canvas = panel.locator('canvas');
   await canvas.scrollIntoViewIfNeeded();
@@ -436,7 +437,7 @@ test('rotates with a touch and zooms with a two-finger pinch on the mobile viewp
   await install(page, [station], undefined, undefined, true);
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', 'ready', { timeout: 15000 });
-  await page.getByRole('button', { name: '收听 ' + station.name, exact: true }).click();
+  await listenButton(page, station.name).click();
   await expectPlaying(page);
   await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
   const canvas = panel.locator('canvas');

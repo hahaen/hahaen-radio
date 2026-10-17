@@ -30,9 +30,9 @@
 }
 .settingRow select {
   min-height: 44px;
-  padding: 8px 12px;
+  padding: 8px 36px 8px 12px;
   color: var(--color-text);
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   border: 1px solid var(--color-secondary);
   border-radius: 8px;
   font: inherit;

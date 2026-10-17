@@ -1,11 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
-import { first, install } from './listening-fixture.js';
+import { first, install, listenButton } from './listening-fixture.js';
 
 async function setup(page: Page) {
   await install(page);
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
-  await page.getByRole('button', { name: '收听 ' + first.name, exact: true }).click();
+  await listenButton(page, first.name).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await page.getByRole('button', { name: '关于与帮助', exact: true }).click();
   return page.getByRole('dialog', { name: '关于与帮助' });
