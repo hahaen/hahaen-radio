@@ -1,0 +1,172 @@
+{
+  "date": "2026-10-17",
+  "applicationCommit": "eb0144702b98e61471584b6ed6070c777337bf28",
+  "fixture": "synthetic-30000-and-local-mp3",
+  "testSha256": "903b058e031b4e7aa29630b2cc68d657086199a421c1ecdc65149b8314930aee",
+  "runtime": {
+    "node": "v24.9.0",
+    "pnpm": "12.5.1"
+  },
+  "projects": {
+    "chromium": {
+      "syntheticEntries": 30000,
+      "loadMs": 3320,
+      "searchMs": 298,
+      "filterMs": 545,
+      "samples": [
+        {
+          "switches": 10,
+          "heap": 47389860,
+          "nodes": 1949,
+          "listeners": 291,
+          "media": 11,
+          "details": 11
+        },
+        {
+          "switches": 30,
+          "heap": 47089452,
+          "nodes": 1949,
+          "listeners": 291,
+          "media": 31,
+          "details": 31
+        },
+        {
+          "switches": 60,
+          "heap": 48414284,
+          "nodes": 1949,
+          "listeners": 291,
+          "media": 61,
+          "details": 61
+        }
+      ],
+      "counts": {
+        "chunks": 30,
+        "details": 63,
+        "searches": 4,
+        "media": 61,
+        "other": 95
+      },
+      "errors": []
+    },
+    "firefox": {
+      "syntheticEntries": 30000,
+      "loadMs": 2851,
+      "searchMs": 150,
+      "filterMs": 1001,
+      "samples": [
+        {
+          "switches": 10,
+          "heap": null,
+          "nodes": 485,
+          "listeners": null,
+          "media": 11,
+          "details": 11
+        },
+        {
+          "switches": 30,
+          "heap": null,
+          "nodes": 485,
+          "listeners": null,
+          "media": 31,
+          "details": 31
+        },
+        {
+          "switches": 60,
+          "heap": null,
+          "nodes": 485,
+          "listeners": null,
+          "media": 61,
+          "details": 61
+        }
+      ],
+      "counts": {
+        "chunks": 30,
+        "details": 62,
+        "searches": 2,
+        "media": 61,
+        "other": 93
+      },
+      "errors": []
+    },
+    "webkit": {
+      "syntheticEntries": 30000,
+      "loadMs": 2159,
+      "searchMs": 223,
+      "filterMs": 388,
+      "samples": [
+        {
+          "switches": 10,
+          "heap": null,
+          "nodes": 485,
+          "listeners": null,
+          "media": 22,
+          "details": 11
+        },
+        {
+          "switches": 30,
+          "heap": null,
+          "nodes": 485,
+          "listeners": null,
+          "media": 62,
+          "details": 31
+        },
+        {
+          "switches": 60,
+          "heap": null,
+          "nodes": 485,
+          "listeners": null,
+          "media": 122,
+          "details": 61
+        }
+      ],
+      "counts": {
+        "chunks": 30,
+        "details": 63,
+        "searches": 4,
+        "media": 122,
+        "other": 95
+      },
+      "errors": []
+    },
+    "mobile-chromium": {
+      "syntheticEntries": 30000,
+      "loadMs": 3692,
+      "searchMs": 213,
+      "filterMs": 533,
+      "samples": [
+        {
+          "switches": 10,
+          "heap": 47374676,
+          "nodes": 1949,
+          "listeners": 291,
+          "media": 11,
+          "details": 11
+        },
+        {
+          "switches": 30,
+          "heap": 47124236,
+          "nodes": 1949,
+          "listeners": 291,
+          "media": 31,
+          "details": 31
+        },
+        {
+          "switches": 60,
+          "heap": 48445456,
+          "nodes": 1949,
+          "listeners": 291,
+          "media": 61,
+          "details": 61
+        }
+      ],
+      "counts": {
+        "chunks": 30,
+        "details": 63,
+        "searches": 4,
+        "media": 61,
+        "other": 95
+      },
+      "errors": []
+    }
+  }
+}
