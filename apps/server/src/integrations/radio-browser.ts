@@ -1,8 +1,9 @@
+import { setTimeout as delay } from 'node:timers/promises';
 import { lookup, resolveSrv, reverse } from 'node:dns/promises';
 import { z } from 'zod';
 import type { StationDetail } from '@haen/contracts';
 import { normalizeStation } from '../modules/catalog/normalize.js';
-import { readPublicJson, type PublicRequestOptions } from './public-http.js';
+import { readPublicJson, RemoteRequestError, type PublicRequestOptions } from './public-http.js';
 
 const mirrorName = (value: string) => /^[a-z0-9-]+\.api\.radio-browser\.info$/.test(value);
 export const isDirectoryUrl = (url: URL) =>
@@ -90,12 +91,27 @@ export class RadioBrowserClient implements CatalogSource {
             limit: String(pageSize),
             offset: String(offset),
           }).toString();
-          const result = await (this.options.readJson ?? readPublicJson)(url.toString(), {
-            signal: totalSignal,
-            timeoutMs: 20000,
-            maxBytes: 4 * 1024 * 1024,
-            allowedUrl: isDirectoryUrl,
-          });
+          let result: unknown;
+          for (let attempt = 0; ; attempt++) {
+            try {
+              result = await (this.options.readJson ?? readPublicJson)(url.toString(), {
+                signal: totalSignal,
+                timeoutMs: 20000,
+                maxBytes: 4 * 1024 * 1024,
+                allowedUrl: isDirectoryUrl,
+              });
+              break;
+            } catch (error) {
+              const transient =
+                error instanceof RemoteRequestError &&
+                (['REQUEST_FAILED', 'TIMEOUT', 'DNS_FAILURE'].includes(error.code) ||
+                  (error.code === 'INVALID_RESPONSE' &&
+                    (error.status ?? 0) >= 500 &&
+                    (error.status ?? 0) <= 599));
+              if (totalSignal.aborted || attempt >= 2 || !transient) throw error;
+              await delay(250 * (attempt + 1), undefined, { signal: totalSignal });
+            }
+          }
           const rows = z.array(z.unknown()).max(pageSize).safeParse(result);
           if (!rows.success) throw new CatalogSourceError('CATALOG_INVALID_SOURCE');
           sourceCount += rows.data.length;

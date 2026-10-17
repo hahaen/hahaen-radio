@@ -13,7 +13,7 @@
 | `HAEN_DEPLOY_ENV_FILE` | 仓库外的 `/home/hahaen/radio-prod.env`，发布身份所有、600，由 Node 显式加载 |
 | `haen-image-registry-pull-config` | 只读镜像拉取 Secret file，与分发身份分离 |
 
-外部目录下载总时限可用 `RADIO_JOBS_CATALOG_SYNC_TIMEOUT_MS` 配置为 1000–900000 毫秒，默认 300000；每页 20 秒、大小及来源限制不变。首次全量拉取较慢时可显式使用 900000，普通发布已有健康目录时不会重复全量同步。
+外部目录下载总时限可用 `RADIO_JOBS_CATALOG_SYNC_TIMEOUT_MS` 配置为 1000–900000 毫秒，默认 300000；每页 20 秒、大小及来源限制不变；同一页仅对瞬时连接/DNS/超时或 5xx 最多尝试 3 次，间隔 250/500 毫秒，仍受总时限和取消控制。首次全量拉取较慢时可显式使用 900000，普通发布已有健康目录时不会重复全量同步。
 
 主环境文件的 `RADIO_ENV_FORMAT=1` 标识当前结构。未加角色前缀的 `DB_*` 供外层发布锁使用；`RADIO_API_*`、`RADIO_JOBS_*`、`RADIO_MIGRATION_*` 映射为对应角色变量，写入总目录 `config/` 内的 600 原始 env 文件。只更新所选应用角色和迁移工具配置，首次 API 引导才同时准备任务身份。前端资源和镜像层不包含这些变量。变量名模板见[生产环境模板](../../../deploy/radio-prod.env.example)。
 

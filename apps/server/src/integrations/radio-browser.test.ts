@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import { RemoteRequestError } from './public-http.js';
 import { RadioBrowserClient, isDirectoryUrl } from './radio-browser.js';
 const row = (number: number) => ({
   stationuuid: `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
@@ -54,6 +55,38 @@ describe('directory source', () => {
       maxStations: 1,
     });
     await expect(client.load()).rejects.toThrow('CATALOG_INVALID_SOURCE');
+  });
+  it('retries the same page after a transient disconnect without duplicating accepted rows', async () => {
+    const readJson = vi
+      .fn()
+      .mockResolvedValueOnce([row(1)])
+      .mockRejectedValueOnce(new RemoteRequestError('REQUEST_FAILED'))
+      .mockResolvedValueOnce([row(2)])
+      .mockResolvedValueOnce([]);
+    const result = await new RadioBrowserClient({
+      mirrors: async () => ['de1.api.radio-browser.info'],
+      pageSize: 1,
+      readJson,
+    }).load();
+    expect(result.sourceCount).toBe(2);
+    expect(result.stations).toHaveLength(2);
+    expect(readJson.mock.calls[1]?.[0]).toBe(readJson.mock.calls[2]?.[0]);
+  });
+  it('bounds network retries and never retries oversized or unsafe responses', async () => {
+    for (const [code, count] of [
+      ['TIMEOUT', 3],
+      ['UNSAFE_URL', 1],
+      ['RESPONSE_TOO_LARGE', 1],
+    ] as const) {
+      const readJson = vi.fn().mockRejectedValue(new RemoteRequestError(code));
+      await expect(
+        new RadioBrowserClient({
+          mirrors: async () => ['de1.api.radio-browser.info'],
+          readJson,
+        }).load(),
+      ).rejects.toThrow('CATALOG_SOURCE_UNAVAILABLE');
+      expect(readJson).toHaveBeenCalledTimes(count);
+    }
   });
   it('cancels an incomplete snapshot at the configured total deadline', async () => {
     let calls = 0;
