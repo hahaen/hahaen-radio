@@ -169,14 +169,14 @@ test('leaves actual playback intact when the separate sample is denied by CORS',
     dialog = await settings(page);
   await dialog.getByRole('checkbox', { name: '音量统一', exact: true }).check();
   await expect(dialog.getByText('此线路暂不能分析，保持原音量。', { exact: true })).toBeVisible();
-  expect(
-    await page.locator('audio').evaluate((audio: HTMLAudioElement) => ({
-      paused: audio.paused,
-      error: audio.error?.code ?? null,
-      volume: audio.volume,
-      cors: audio.crossOrigin,
-    })),
-  ).toEqual({ paused: false, error: null, volume: 0.2, cors: null });
+  const audioState = await page.locator('audio').evaluate((audio: HTMLAudioElement) => ({
+    paused: audio.paused,
+    error: audio.error?.code ?? null,
+    volume: audio.volume,
+    cors: audio.crossOrigin,
+  }));
+  expect(audioState).toMatchObject({ paused: false, error: null, cors: null });
+  expect(audioState.volume).toBeCloseTo(0.2, 4);
   await expect
     .poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.currentTime))
     .toBeGreaterThan(0.1);

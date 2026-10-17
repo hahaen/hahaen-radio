@@ -30,7 +30,7 @@ export default defineConfig({
     {
       name: 'firefox',
       testMatch: 'resources.spec.ts',
-      use: { ...devices['Desktop Firefox'] },
+      use: { ...devices['Desktop Firefox'], ...(process.env.CI ? { headless: false } : {}) },
     },
     {
       name: 'webkit',

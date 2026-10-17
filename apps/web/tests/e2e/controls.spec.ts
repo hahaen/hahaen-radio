@@ -31,13 +31,14 @@ test('persists actual settings and synchronizes independent preferences and lang
   await dialog.getByRole('checkbox', { name: '静音', exact: true }).check();
   await dialog.getByRole('checkbox', { name: '显示操作提示', exact: true }).uncheck();
   await dialog.getByRole('checkbox', { name: /法语/ }).check();
-  expect(
-    await page.locator('audio').evaluate((audio: HTMLAudioElement) => ({
-      volume: audio.volume,
-      muted: audio.muted,
-      paused: audio.paused,
-    })),
-  ).toEqual({ volume: 0.32, muted: true, paused: false });
+  const audioState = await page.locator('audio').evaluate((audio: HTMLAudioElement) => ({
+    volume: audio.volume,
+    muted: audio.muted,
+    paused: audio.paused,
+  }));
+  expect(audioState).toMatchObject({ muted: true, paused: false });
+  // Native media backends may quantize the element's volume without changing the preference.
+  expect(audioState.volume).toBeCloseTo(0.32, 4);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '收听设置', exact: true })).toBeFocused();
   const other = await context.newPage();

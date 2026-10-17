@@ -24,6 +24,8 @@ SOURCE_COMMIT、PUBLISH_IMAGES、DEPLOY_TARGET 与 DEPLOY_SCOPE 是界面参数�
 
 仅安装音频解码库不能证明音频输出端可用。已观察到 Firefox 能识别 MP3 但返回 `OnMediaSinkAudioError`，导致电台自动切换和后续界面断言超时；虚拟输出建立后，应先用受控 MP3 及原失败浏览器用例复验。当前四核节点的浏览器回归使用两个 worker，普通测试仍使用一个 worker。
 
+Linux 构建节点的 Firefox 图形检查使用带认证、禁止 TCP 监听的 Xvfb 虚拟屏幕；通过构建身份的 `DISPLAY`、`XAUTHORITY` 连接。CI 的 Firefox 项目采用 headed 模式，Chromium 与 WebKit 保持原模式；生产客户端不依赖该屏幕。原生反馈显示此节点 Firefox headless 的 WebGL 2 不可用，同一版本在虚拟屏幕下可创建软件渲染上下文。
+
 ## 镜像仓库认证
 
 Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供人工分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
