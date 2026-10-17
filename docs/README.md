@@ -53,7 +53,8 @@ docs/
 │       ├── 0002-mysql-and-drizzle-kit.md
 │       ├── 0003-table-options-and-target-environment.md
 │       ├── 0004-recognition-allowance.md
-│       └── 0005-bounded-playback-diagnostics.md
+│       ├── 0005-bounded-playback-diagnostics.md
+│       └── 0006-shared-nginx-static-release.md
 ├── frontend/
 │   ├── README.md
 │   ├── design/

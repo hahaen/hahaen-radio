@@ -12,7 +12,7 @@ export function verifyDeploymentExpectations(env: NodeJS.ProcessEnv, targetFinge
       !/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9-]+)*$/.test(
         env.HAEN_EXPECTED_SITE ?? '',
       ) ||
-      !['full', 'web', 'server'].includes(env.HAEN_DEPLOY_SCOPE ?? '')
+      !['frontend', 'api', 'jobs'].includes(env.HAEN_DEPLOY_SCOPE ?? '')
     )
       throw Error('Invalid approved deployment context');
   }

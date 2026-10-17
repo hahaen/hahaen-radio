@@ -14,7 +14,7 @@ it('binds approved artifact bytes and the actual database target before deployme
       CI: 'true',
       HAEN_CI_DEPLOY: 'true',
       HAEN_DEPLOY_ACTION: 'apply',
-      HAEN_DEPLOY_SCOPE: 'full',
+      HAEN_DEPLOY_SCOPE: 'api',
       HAEN_EXPECTED_SITE: 'https://radio.example.test',
       HAEN_EXPECTED_DATABASE_FINGERPRINT: 'a'.repeat(64),
       HAEN_EXPECTED_RELEASE_SHA256: createHash('sha256').update(bytes).digest('hex'),

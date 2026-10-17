@@ -1,11 +1,11 @@
 # 服务器项目目录
 
-Radio 的服务器总目录统一为 `/home/hahaen/hahaen-radio/`。源码和私有配置分开，Jenkins 每次仍在专用工作区检出固定提交；不能在服务器源码副本中临时修改后绕过发布检查。
+主环境文件为 `/home/hahaen/radio-prod.env`（发布身份所有、600），由 Node 显式加载。Radio 的服务器总目录统一为 `/home/hahaen/hahaen-radio/`。源码和私有配置分开，Jenkins 每次仍在专用工作区检出固定提交；不能在服务器源码副本中临时修改后绕过发布检查。
 
 | 子目录 | 用途与权限 |
 | --- | --- |
 | `source/` | 完整源码检出及编译工具，发布身份所有；具体提交以 Git 和构建归档为准 |
-| `config/` | target JSON、API/jobs/migration/deploy/backup 环境文件和数据库 CA；身份文件 600、目录按维护组受限 |
+| `config/` | target JSON、派生 API/jobs/migration 环境、独立 backup 环境和数据库 CA；身份文件 600、目录按维护组受限 |
 | `runtime/` | 固定 Node、pnpm、Java、原生 MySQL 客户端和受控运维包，管理员所有 |
 | `jenkins/build/`、`jenkins/target/` | 两个隔离身份的 home、agent、工作区和缓存，各自 700；agent secret 600 |
 | `ci/` | 构建专用虚拟音频配置；显示认证材料仍在构建身份的私有 home |

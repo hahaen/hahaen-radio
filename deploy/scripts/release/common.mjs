@@ -149,7 +149,7 @@ export async function localEngine(run) {
 export function docker(signal, env = process.env) {
   const safeEnv = Object.fromEntries(
     Object.entries(env).filter(
-      ([key]) => !/^(DB_|AUDD_|RECOGNITION_|HAEN_)|PASSWORD|TOKEN|SECRET/i.test(key),
+      ([key]) => !/^(RADIO_|DB_|AUDD_|RECOGNITION_|HAEN_)|PASSWORD|TOKEN|SECRET/i.test(key),
     ),
   );
   return (args, options = {}) =>

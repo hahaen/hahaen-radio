@@ -1,6 +1,6 @@
 # 部署配置目录
 
-状态：已创建三个镜像目标、生产 Compose 与 Caddy 配置；本机不运行 Docker，实际容器验收延后。备份工具另在受控运维节点运行；每日备份/复制和定时材料已实现，实际服务器与异盘验收待执行；Jenkins 构建/镜像验收/分发已实现，目标发布执行器与独立审批已接入；API/任务七天日志清理已实现，实际节点验收继续推进。
+状态：已实现同提交产物链、共享 Nginx 静态发布、API/jobs Compose、目标迁移与恢复入口；原生节点与隔离镜像已验证，首次正式上线状态见[记录](../docs/iterations/2026-10-17-production-deployment/README.md)。每日独立副本仍需实际存储配置，未启用定时器。
 
 | 目录 | 用途 |
 | --- | --- |
@@ -10,7 +10,7 @@
 | `nginx/` | 共享正式网关的静态路由、API 代理、维护与内部探针 |
 | `systemd/` | 受控运维主机的每日备份 service/timer，实际安装按[说明](../docs/operations/daily-backups.md)执行 |
 
-根 `Jenkinsfile` 已接入构建、隔离镜像验收和人工分发；[节点配置及范围](../docs/deployment/jenkins/pipeline.md)与目标发布编排分别验收。真实凭据、运行环境文件和数据库不放入此目录。
+根 `Jenkinsfile` 已接入前端、API、任务三个独立手动入口及各自检查、构建、验收和分发；[节点配置及范围](../docs/deployment/jenkins/pipeline.md)与目标发布编排分别验收。真实凭据、运行环境文件和数据库不放入此目录。
 
 构建与命令见[运行说明](../docs/deployment/containers/local-and-image-build.md)。完整流程见[部署文档](../docs/deployment/README.md)。
 

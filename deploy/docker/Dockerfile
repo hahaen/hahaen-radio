@@ -1,13 +1,18 @@
-FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS build
+FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS dependencies
 WORKDIR /work
 ARG HAEN_WEB_BASE_PATH=/
 ENV HAEN_WEB_BASE_PATH=$HAEN_WEB_BASE_PATH
 RUN npm install --global pnpm@12.5.1
 COPY --chown=node:node . .
 RUN pnpm install --frozen-lockfile
-RUN pnpm build
 
-FROM build AS portable
+FROM dependencies AS server-build
+RUN pnpm --filter @haen/contracts build && pnpm --filter @haen/server build
+
+FROM dependencies AS web-build
+RUN pnpm --filter @haen/contracts build && pnpm --filter @haen/web build && pnpm --filter @haen/web check:budget
+
+FROM server-build AS portable
 RUN pnpm --filter @haen/server --prod deploy /out/server
 
 FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS server
@@ -24,7 +29,7 @@ EXPOSE 3001
 ENTRYPOINT ["node"]
 CMD ["dist/entrypoints/api.js"]
 
-FROM build AS migration
+FROM server-build AS migration
 ARG VCS_REF=local
 LABEL org.opencontainers.image.title="HAEN migration tools" org.opencontainers.image.revision=$VCS_REF
 ENV NODE_ENV=production
@@ -39,7 +44,7 @@ LABEL io.haen.web-base=$HAEN_WEB_BASE_PATH
 LABEL org.opencontainers.image.title="HAEN web" org.opencontainers.image.revision=$VCS_REF
 RUN command -v getcap && if [ -n "$(getcap /usr/bin/caddy)" ]; then setcap -r /usr/bin/caddy; fi \
     && addgroup -g 1000 haen && adduser -D -u 1000 -G haen haen && chown -R haen:haen /data /config
-COPY --from=build --chown=haen:haen /work/apps/web/dist/ /srv/
+COPY --from=web-build --chown=haen:haen /work/apps/web/dist/ /srv/
 COPY --chown=haen:haen deploy/caddy/Caddyfile /etc/caddy/Caddyfile
 COPY --chown=haen:haen deploy/maintenance/index.html /srv/maintenance.html
 USER haen
