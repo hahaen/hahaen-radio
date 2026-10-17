@@ -1,3 +1,4 @@
+import { applicationPath } from '../platform/paths';
 import {
   ApiErrorSchema,
   PlaybackReportRequestSchema,
@@ -14,7 +15,7 @@ export async function sendPlaybackReport(
   const stationId = StationIdSchema.parse(id).toLowerCase(),
     body = PlaybackReportRequestSchema.parse(input);
   const response = await fetch(
-    `/api/v1/stations/${encodeURIComponent(stationId)}/playback-reports`,
+    applicationPath(`api/v1/stations/${encodeURIComponent(stationId)}/playback-reports`),
     {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json' },

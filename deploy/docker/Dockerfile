@@ -1,5 +1,7 @@
 FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS build
 WORKDIR /work
+ARG HAEN_WEB_BASE_PATH=/
+ENV HAEN_WEB_BASE_PATH=$HAEN_WEB_BASE_PATH
 RUN npm install --global pnpm@12.5.1
 COPY . .
 RUN pnpm install --frozen-lockfile
@@ -32,6 +34,8 @@ ENTRYPOINT ["node", "dist/entrypoints/migrate.js"]
 
 FROM caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d AS web
 ARG VCS_REF=local
+ARG HAEN_WEB_BASE_PATH=/
+LABEL io.haen.web-base=$HAEN_WEB_BASE_PATH
 LABEL org.opencontainers.image.title="HAEN web" org.opencontainers.image.revision=$VCS_REF
 RUN command -v getcap && if [ -n "$(getcap /usr/bin/caddy)" ]; then setcap -r /usr/bin/caddy; fi \
     && addgroup -g 1000 haen && adduser -D -u 1000 -G haen haen && chown -R haen:haen /data /config

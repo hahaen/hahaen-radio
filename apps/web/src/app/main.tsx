@@ -6,13 +6,14 @@ import '../locales/i18n';
 import '../styles/fonts.css';
 import '../styles/global.css';
 import { App } from './App';
+import { applicationBase } from '../platform/paths';
 
 const element = document.getElementById('root');
 if (!element) throw new Error('Missing application root');
 const queryClient = new QueryClient();
 createRoot(element).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={applicationBase}>
       <QueryClientProvider client={queryClient}>
         <App />
       </QueryClientProvider>

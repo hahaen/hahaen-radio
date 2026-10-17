@@ -11,6 +11,7 @@
 | 任务环境变量 | 输入要求 |
 | --- | --- |
 | HAEN_IMAGE_REPOSITORY | 镜像仓库/项目路径，例如命名结构为 registry-host/team；不含账号、口令、scheme 或 query |
+| HAEN_RELEASE_WEB_BASE_PATH | 非敏感发布路径，默认 `/`；镜像构建阶段显式传入 `HAEN_WEB_BASE_PATH`，如 `/radio/`；常规检查仍使用根路径 |
 | HAEN_RELEASE_PLATFORM | linux/amd64 或 linux/arm64，与原生引擎及目标机一致 |
 | HAEN_TEST_MYSQL_IMAGE | 已核对来源的完整 MySQL 8.0.46 镜像@sha256 引用；不使用浮动标签 |
 | HAEN_RELEASE_APPROVERS | 获授权的 Jenkins 用户或组，交给 input 的 submitter；未设置则不能分发 |

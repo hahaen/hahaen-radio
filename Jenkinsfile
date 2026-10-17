@@ -66,7 +66,11 @@ pnpm test:e2e
             }
         }
         stage('构建同版本镜像') {
-            steps { sh 'node deploy/scripts/release/pipeline.mjs build' }
+            steps {
+                withEnv(["HAEN_WEB_BASE_PATH=${env.HAEN_RELEASE_WEB_BASE_PATH ?: '/'}"]) {
+                    sh 'node deploy/scripts/release/pipeline.mjs build'
+                }
+            }
         }
         stage('隔离容器验收') {
             steps { sh 'node deploy/scripts/release/pipeline.mjs test-images' }

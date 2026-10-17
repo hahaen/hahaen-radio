@@ -1,3 +1,4 @@
+import { applicationPath } from '../platform/paths';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy } from 'lucide-react';
@@ -97,19 +98,23 @@ function Credits() {
           <h4>Noto / IBM Plex</h4>
           <p>{t('information.creditsFonts')}</p>
           <div className={styles.links}>
-            <Link href="/fonts/noto-serif-sc-ui-LICENSE.txt">
+            <Link href={applicationPath('fonts/noto-serif-sc-ui-LICENSE.txt')}>
               {t('information.creditsNotoSerif')}
             </Link>
-            <Link href="/fonts/noto-sans-sc-ui-LICENSE.txt">
+            <Link href={applicationPath('fonts/noto-sans-sc-ui-LICENSE.txt')}>
               {t('information.creditsNotoSans')}
             </Link>
-            <Link href="/fonts/ibm-plex-mono-ui-LICENSE.txt">{t('information.creditsPlex')}</Link>
+            <Link href={applicationPath('fonts/ibm-plex-mono-ui-LICENSE.txt')}>
+              {t('information.creditsPlex')}
+            </Link>
           </div>
         </li>
         <li>
           <h4>Lucide</h4>
           <p>{t('information.creditsIcons')}</p>
-          <Link href="/licenses/lucide.txt">{t('information.creditsLucide')}</Link>
+          <Link href={applicationPath('licenses/lucide.txt')}>
+            {t('information.creditsLucide')}
+          </Link>
         </li>
       </ul>
     </>

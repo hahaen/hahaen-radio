@@ -1,3 +1,4 @@
+import { applicationPath } from '../platform/paths';
 import { z } from 'zod';
 import { ApiErrorSchema } from '@haen/contracts';
 
@@ -24,7 +25,7 @@ export async function getJson<T>(
     request?.timeoutMs ?? 10000,
   );
   try {
-    const response = await fetch(`/api/v1${path}`, {
+    const response = await fetch(applicationPath(`api/v1${path}`), {
       signal: controller.signal,
       ...(request ? { method: request.method, body: JSON.stringify(request.body) } : {}),
       headers: {

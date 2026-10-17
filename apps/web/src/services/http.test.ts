@@ -4,6 +4,8 @@ import { getJson, HttpError } from './http';
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
+  vi.resetModules();
 });
 describe('HTTP boundary', () => {
   it('validates external data and preserves the API prefix', async () => {
@@ -16,6 +18,17 @@ describe('HTTP boundary', () => {
       service: 'haen-api',
     });
     expect(fetcher.mock.calls[0]?.[0]).toBe('/api/v1/health/live');
+  });
+  it('keeps API calls under the configured application subpath', async () => {
+    vi.stubEnv('BASE_URL', '/radio/');
+    vi.resetModules();
+    const { getJson: nestedGetJson } = await import('./http');
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ status: 'ok', service: 'haen-api' })));
+    vi.stubGlobal('fetch', fetcher);
+    await nestedGetJson('/health/live', HealthResponseSchema);
+    expect(fetcher.mock.calls[0]?.[0]).toBe('/radio/api/v1/health/live');
   });
   it('cancels an in-flight request with the caller signal', async () => {
     vi.stubGlobal(

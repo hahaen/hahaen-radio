@@ -297,6 +297,15 @@ it('validates private raw config against the actual target and refuses quoted ho
     );
     await expect(targetConfiguration(target, database)).rejects.toThrow();
     await writeFile(config.apiEnvFile, raw);
+    const proxied = { ...config, site: 'https://radio.example.test/radio', proxyPort: 18088 };
+    await writeFile(target, JSON.stringify(proxied));
+    expect((await targetConfiguration(target, database)).proxyPort).toBe(18088);
+    for (const proxyPort of [80, 65536, '18088', null]) {
+      await writeFile(target, JSON.stringify({ ...proxied, proxyPort }));
+      await expect(targetConfiguration(target, database)).rejects.toThrow();
+    }
+    await writeFile(target, JSON.stringify({ ...config, site: proxied.site }));
+    await expect(targetConfiguration(target, database)).rejects.toThrow();
     await writeFile(target, JSON.stringify({ ...config, stateDirectory: marker }));
     await expect(targetConfiguration(target, database)).rejects.toThrow();
   } finally {

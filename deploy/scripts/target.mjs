@@ -42,7 +42,9 @@ async function privateFile(path) {
 export async function targetConfiguration(path, database, expectedSite) {
   const config = JSON.parse(await privateFile(path));
   assert.deepEqual(
-    Object.keys(config).sort(),
+    Object.keys(config)
+      .filter((key) => key !== 'proxyPort')
+      .sort(),
     [
       'apiEnvFile',
       'databaseCaFile',
@@ -56,8 +58,13 @@ export async function targetConfiguration(path, database, expectedSite) {
     ].sort(),
   );
   assert(config.format === 1 && config.environment === 'production');
-  assert(/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(config.site));
+  assert(/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9-]+)*$/.test(config.site));
   if (expectedSite) assert.equal(config.site, expectedSite);
+  if (config.proxyPort !== undefined)
+    assert(
+      Number.isInteger(config.proxyPort) && config.proxyPort >= 1024 && config.proxyPort <= 65535,
+    );
+  if (new URL(config.site).pathname !== '/') assert(config.proxyPort);
   for (const key of ['apiEnvFile', 'jobsEnvFile', 'migrationEnvFile']) {
     const values = {};
     for (const line of (await privateFile(config[key])).split('\n')) {
@@ -165,7 +172,8 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
       HAEN_WEB_IMAGE: value.images.web,
       HAEN_SERVER_IMAGE: value.images.server,
       HAEN_MIGRATION_IMAGE: value.images.migration,
-      HAEN_SITE: config.site,
+      HAEN_SITE: config.proxyPort ? 'http://:8080' : config.site,
+      ...(config.proxyPort ? { HAEN_PROXY_PORT: String(config.proxyPort) } : {}),
       HAEN_DB_CA_FILE: config.databaseCaFile,
       HAEN_API_ENV_FILE: config.apiEnvFile,
       HAEN_JOBS_ENV_FILE: config.jobsEnvFile,
@@ -192,6 +200,7 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
         file,
         '--file',
         resolve('deploy/compose/compose.yaml'),
+        ...(config.proxyPort ? ['--file', resolve('deploy/compose/compose.proxy.yaml')] : []),
         ...args,
       ],
       options,
@@ -321,6 +330,10 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
             candidate.platform,
           );
           if (role === 'server') assertRuntimeLogImage(image);
+          if (role === 'web') {
+            const base = new URL(config.site).pathname.replace(/\/$/, '') + '/';
+            assert.equal(image.Config.Labels['io.haen.web-base'] || '/', base);
+          }
         }
         if (current) {
           for (const role of roles) {
@@ -508,7 +521,9 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
           '-',
           'http://127.0.0.1:8081/release',
         ]);
-        const asset = /(?:src|href)="(\/assets\/[A-Za-z0-9_.-]+\.js)"/.exec(html)?.[1];
+        const asset = /(?:src|href)="(?:\/[a-z0-9-]+)*(\/assets\/[A-Za-z0-9_.-]+\.js)"/.exec(
+          html,
+        )?.[1];
         assert(asset);
         await compose(value, [
           'exec',
@@ -577,7 +592,7 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
         });
         assert(response.ok);
         await response.body?.cancel();
-        const page = await fetch(config.site, {
+        const page = await fetch(config.site + '/', {
           signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
           redirect: 'error',
         });

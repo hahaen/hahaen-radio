@@ -241,7 +241,9 @@ export async function smokeImages(run, build, mysqlImage, directory, signal) {
       run(['exec', webName, 'wget', '-q', '-O', '-', 'http://127.0.0.1:8080' + path]);
     const html = await retry(() => web('/'));
     assert(html.includes('<div id="root"></div>'));
-    const asset = html.match(/(?:src|href)="(\/assets\/[a-zA-Z0-9._-]+\.(?:js|css))"/)?.[1];
+    const asset = html.match(
+      /(?:src|href)="(?:\/[a-z0-9-]+)*(\/assets\/[a-zA-Z0-9._-]+\.(?:js|css))"/,
+    )?.[1];
     assert(asset && (await web(asset)).length > 0);
     assert.equal(JSON.parse(await web('/api/v1/health/ready')).status, 'ready');
     assert.equal(

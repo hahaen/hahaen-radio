@@ -9,7 +9,9 @@ export function verifyDeploymentExpectations(env: NodeJS.ProcessEnv, targetFinge
       env.HAEN_DEPLOY_ACTION !== 'apply' ||
       !digest.test(env.HAEN_EXPECTED_DATABASE_FINGERPRINT ?? '') ||
       !digest.test(env.HAEN_EXPECTED_RELEASE_SHA256 ?? '') ||
-      !/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(env.HAEN_EXPECTED_SITE ?? '') ||
+      !/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9-]+)*$/.test(
+        env.HAEN_EXPECTED_SITE ?? '',
+      ) ||
       !['full', 'web', 'server'].includes(env.HAEN_DEPLOY_SCOPE ?? '')
     )
       throw Error('Invalid approved deployment context');

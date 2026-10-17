@@ -10,6 +10,14 @@
 - 镜像固定平台子 manifest 摘要，实际拉取后核对 revision label 与本机原生架构。运行中的服务必须属于当前状态记录；首次接管不允许已有无记录的容器。不同机器共享同库也须通过此入口，禁止绕开数据库发布锁。
 - 公网 DNS、HTTPS、CA、数据库权限和真实目录必须满足目标条件；未就绪则保留维护。前端不需要单独 Node 服务。
 
+## 现有网关与子路径
+
+前端构建可设置非敏感的 `HAEN_WEB_BASE_PATH=/radio/`，默认 `/`；API 请求、地理资源、字体、许可链接与浏览器路由使用同一前缀。构建参数同时传入三个镜像目标，Web 镜像记录 `io.haen.web-base` 标签，目标执行器核对其与公开站点路径一致。不能只在网关改写 HTML 代替重新构建。
+
+已有 HTTPS 网关时，私有 target 配置的 `site` 可为 `https://example.test/radio`（末尾不加斜杠），另外添加整数 `proxyPort`（1024–65535）。执行器自动叠加 `deploy/compose/compose.proxy.yaml`，Caddy 只通过回环 HTTP 端口与容器网络提供服务，TLS 继续由已有网关终止。该模式需要 Docker Compose ≥2.30 的 `!override` 支持。
+
+网关应把 `/radio` 重定向到 `/radio/`，再将 `/radio/` 前缀剥除后代理到 Web 服务；浏览器仍使用 `/radio/api/v1/`，Caddy 上游收到 `/api/v1/`。Docker 中的已有网关通过显式共享网络连接 Web 服务，不能把容器回环地址当作宿主机回环。网络连接需写入现有网关与数据库各自的受控编排配置，以便容器重建后保留。
+
 ## 私有配置
 
 复制 `deploy/compose/target.example.json` 到仓库外的私有配置，所有空值均由操作者填写。target 文件及 API/jobs/migration env 文件由发布用户所有且为 600；目录/文件路径限绝对规范路径，当前不接受空白、引号、美元符号或路径跳转。站点为无凭据的 HTTPS 域名。三种容器 env 使用 raw 格式：一行一个 `KEY=value`，不加 export、引号或内联注释，不能重复键；真实值不得写回模板。

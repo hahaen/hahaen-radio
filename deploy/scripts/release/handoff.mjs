@@ -21,7 +21,9 @@ const digestPattern = /^[a-f0-9]{64}$/;
 export function deploymentContext(env) {
   assert(env.CI === 'true' && revisionPattern.test(env.HAEN_SOURCE_COMMIT));
   assert(/^[a-z][a-z0-9-]{1,39}$/.test(env.HAEN_TARGET_NAME));
-  assert(/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(env.HAEN_TARGET_SITE));
+  assert(
+    /^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9-]+)*$/.test(env.HAEN_TARGET_SITE),
+  );
   assert(digestPattern.test(env.HAEN_TARGET_DATABASE_FINGERPRINT));
   assert(['full', 'web', 'server'].includes(env.HAEN_DEPLOY_SCOPE));
   return {

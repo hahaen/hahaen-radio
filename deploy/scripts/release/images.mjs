@@ -52,6 +52,8 @@ export async function buildImages(run, revision, repository, targetPlatform, sig
   platform(targetPlatform);
   await currentSource(revision);
   assert.equal(await localEngine(run), targetPlatform);
+  const basePath = process.env.HAEN_WEB_BASE_PATH || '/';
+  assert(/^\/(?:[a-z0-9-]+\/)*$/.test(basePath));
   const nonce = randomBytes(6).toString('hex');
   const images = {};
   for (const role of roles) {
@@ -68,6 +70,8 @@ export async function buildImages(run, revision, repository, targetPlatform, sig
         role,
         '--build-arg',
         'VCS_REF=' + revision,
+        '--build-arg',
+        'HAEN_WEB_BASE_PATH=' + basePath,
         '--tag',
         tag,
         '.',

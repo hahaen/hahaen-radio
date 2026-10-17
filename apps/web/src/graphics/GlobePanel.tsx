@@ -1,3 +1,4 @@
+import { applicationPath } from '../platform/paths';
 import { useEffect, useRef, useState } from 'react';
 import { Focus, Minus, Plus, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -113,7 +114,7 @@ export function GlobePanel({
           <span className={styles.reticle} aria-hidden="true" />
         ) : (
           <div className={styles.fallback}>
-            <img src="/geography/world.svg" alt="" />
+            <img src={applicationPath('geography/world.svg')} alt="" />
             <p aria-live="polite">
               {t(
                 state === 'loading'
