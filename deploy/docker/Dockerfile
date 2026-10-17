@@ -3,7 +3,7 @@ WORKDIR /work
 ARG HAEN_WEB_BASE_PATH=/
 ENV HAEN_WEB_BASE_PATH=$HAEN_WEB_BASE_PATH
 RUN npm install --global pnpm@12.5.1
-COPY . .
+COPY --chown=node:node . .
 RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
@@ -39,9 +39,9 @@ LABEL io.haen.web-base=$HAEN_WEB_BASE_PATH
 LABEL org.opencontainers.image.title="HAEN web" org.opencontainers.image.revision=$VCS_REF
 RUN command -v getcap && if [ -n "$(getcap /usr/bin/caddy)" ]; then setcap -r /usr/bin/caddy; fi \
     && addgroup -g 1000 haen && adduser -D -u 1000 -G haen haen && chown -R haen:haen /data /config
-COPY --from=build /work/apps/web/dist/ /srv/
-COPY deploy/caddy/Caddyfile /etc/caddy/Caddyfile
-COPY deploy/maintenance/index.html /srv/maintenance.html
+COPY --from=build --chown=haen:haen /work/apps/web/dist/ /srv/
+COPY --chown=haen:haen deploy/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY --chown=haen:haen deploy/maintenance/index.html /srv/maintenance.html
 USER haen
 EXPOSE 8080 8443
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
