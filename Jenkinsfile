@@ -22,8 +22,8 @@ pipeline {
                 deleteDir()
                 script {
                     def initiators = currentBuild.getBuildCauses('hudson.model.Cause$UserIdCause')
-                    for (def key : ['HAEN_RELEASE_APPROVERS', 'HAEN_DEPLOY_APPROVERS']) {
-                        def allowed = (env[key] ?: '').split(',').collect { it.trim() }.findAll { it }
+                    for (def configured : [env.HAEN_RELEASE_APPROVERS, env.HAEN_DEPLOY_APPROVERS]) {
+                        def allowed = (configured ?: '').split(',').collect { it.trim() }.findAll { it }
                         if (!initiators.any { allowed.contains(it.userId) }) {
                             error('只有配置的发布用户可发起此完整发布任务')
                         }
