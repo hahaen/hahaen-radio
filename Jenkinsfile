@@ -41,7 +41,6 @@ pipeline {
                         error('无法固定所选分支的完整提交')
                     }
                     env.HAEN_SOURCE_BRANCH = branch
-                    currentBuild.description = "${branch} · ${env.HAEN_SOURCE_COMMIT.take(12)}"
                 }
                 sh '''#!/bin/sh
 set -eu
