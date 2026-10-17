@@ -1,6 +1,7 @@
 import { isAbsolute } from 'node:path';
 import { z } from 'zod';
-import { readDatabaseConfig } from '../config/database.js';
+import { readBackupRevision, recordBackupRevision } from '../operations/backup-revision.js';
+import { readDatabaseConfig, databaseTargetFingerprint } from '../config/database.js';
 import {
   BackupId,
   BackupByteLimit,
@@ -31,7 +32,34 @@ try {
       process.env.BACKUP_MAX_BYTES ? Number(process.env.BACKUP_MAX_BYTES) : DEFAULT_BACKUP_BYTES,
     ),
   };
-  if (command === 'create') {
+  if (['record-revision', 'pre-migration'].includes(command ?? '')) {
+    if (args.length !== 2 || args[1] !== databaseTargetFingerprint(readDatabaseConfig()))
+      throw Error('Backup target mismatch');
+  }
+  if (command === 'record-revision' && args.length === 2) {
+    await recordBackupRevision(process.env.BACKUP_APPLICATION_REVISION_PATH, args[0]!);
+    console.info(JSON.stringify({ event: 'backup_revision_recorded' }));
+  } else if (command === 'pre-migration' && args.length === 2) {
+    const revision = z
+      .string()
+      .regex(/^[a-f0-9]{40}$/)
+      .parse(args[0]);
+    const destination = z.string().refine(isAbsolute).parse(process.env.BACKUP_REPLICA_DIRECTORY);
+    const result = await createBackup(
+      options,
+      readDatabaseConfig(),
+      'pre-migration',
+      revision,
+      process.env.BACKUP_SCHEMA_STABLE === 'true',
+      process.env.BACKUP_WRITES_STOPPED === 'true',
+    );
+    try {
+      await copyBackup(options, result.id, destination, process.env.NODE_ENV === 'production');
+    } catch {
+      throw new DailyBackupError(result.id);
+    }
+    console.info(JSON.stringify({ event: 'pre_migration_backup_verified', id: result.id }));
+  } else if (command === 'create') {
     if (args.length !== 2) throw Error('Invalid arguments');
     const kind = z.enum(['daily', 'pre-migration']).parse(args[0]),
       revision = z
@@ -58,10 +86,7 @@ try {
     console.info(JSON.stringify({ event: 'backup_copy_verified', id: result.id }));
   } else if (command === 'daily' && args.length === 0) {
     const destination = z.string().refine(isAbsolute).parse(process.env.BACKUP_REPLICA_DIRECTORY);
-    const revision = z
-      .string()
-      .regex(/^[a-f0-9]{40}$/)
-      .parse(process.env.BACKUP_APPLICATION_REVISION);
+    const revision = await readBackupRevision(process.env);
     const result = await dailyBackup(
       options,
       readDatabaseConfig(),

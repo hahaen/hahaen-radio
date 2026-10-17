@@ -8,6 +8,8 @@
 
 `release/` 已提供确定提交的三类镜像构建、隔离容器基础验收、人工分发与不可变产物校验。实际入口为 `node scripts/release/pipeline.mjs build`、`test-images`、`publish`，由根 Jenkinsfile 顺序调用；配置、凭据、归档和未完成的目标部署编排见[流水线](../docs/deployment/jenkins/pipeline.md)。本机编排测试通过模拟 Docker CLI 执行，不作为实际镜像验收证据。
 
+`deploy/` 提供目标主机发布执行器，由 `pnpm deploy:target` 通过 Linux 文件锁与数据库发布锁调用；完整/分端更新、维护和受控恢复见[执行说明](../docs/deployment/releases/target-executor.md)。不在本机 macOS 执行生产入口。
+
 按实际任务加入开发辅助、数据检查、备份和发布辅助脚本。脚本应具有明确输入、失败退出状态与环境边界，不内嵌凭据或默认访问生产数据。
 
 只有脚本实现并验证后，才在文档和流水线中声明对应命令可用。

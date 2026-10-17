@@ -83,6 +83,12 @@ services:
       - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTPS_PORT:-443}:8443'
       - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTPS_PORT:-443}:8443/udp'
     volumes:
+      - type: bind
+        source: ${HAEN_MAINTENANCE_DIRECTORY:?Set the persistent maintenance marker directory}
+        target: /run/haen-maintenance
+        read_only: true
+        bind:
+          create_host_path: false
       - caddy_data:/data
       - caddy_config:/config
     tmpfs: ['/tmp:size=16m,mode=1777']

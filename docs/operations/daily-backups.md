@@ -9,6 +9,7 @@
 | 变量 | 用途 |
 | --- | --- |
 | BACKUP_REPLICA_DIRECTORY | 已存在、当前运维用户拥有、权限 700 的绝对目录；不能与主目录相同或互相嵌套 |
+| BACKUP_APPLICATION_REVISION_PATH | 可选私有600文件，优先读取实际服务端版本；配置后缺失或无效直接失败，更新见[目标执行器](../deployment/releases/target-executor.md) |
 | BACKUP_APPLICATION_REVISION | 当前实际部署应用的完整 40 位提交号，每次发布后更新；不默认为工具检出版本 |
 
 ```sh
@@ -64,7 +65,7 @@ timer 为每日 UTC 03:00 加最多 5 分钟随机延迟；Persistent 会在停�
 
 ## 发布窗口、故障与验收
 
-服务使用 `/usr/bin/flock` 对共享 deploy.lock 非阻塞加独占锁，占用时退出 75 并保留失败状态。完整发布必须在同一主机使用同一 inode 的锁覆盖停写、备份、迁移、更新及验收；不同主机的 Jenkins 还需共享目标数据库发布锁。手工 daily 可执行，但不会自动持有该外层文件锁，维护期间应通过服务运行或显式遵循同一外层锁。数据库备份/迁移自身的协作锁继续生效，见[维护协调](database-maintenance.md)。本轮尚未完成 Jenkins 外层流水线。
+服务使用 `/usr/bin/flock` 对共享 deploy.lock 非阻塞加独占锁，占用时退出 75 并保留失败状态。完整发布必须在同一主机使用同一 inode 的锁覆盖停写、备份、迁移、更新及验收；不同主机的 Jenkins 还需共享目标数据库发布锁。手工 daily 可执行，但不会自动持有该外层文件锁，维护期间应通过服务运行或显式遵循同一外层锁。数据库备份/迁移自身的协作锁继续生效，见[维护协调](database-maintenance.md)。[目标执行器](../deployment/releases/target-executor.md)已实现相同主机锁和独立数据库发布锁覆盖完整窗口；Jenkins 目标阶段接入仍待完成。
 
 服务失败、锁忙、磁盘满或挂载不可用时核对 systemctl 的结果、最近成功时间、容量和副本；修复后手工 start 补做。进程强杀后可能保留 `.backup-cycle.lock`、`.backup.lock` 或不完整产物，先核对进程与现场再处理，不自动删除无法证明失效的锁。失败不能作为“今日备份成功”。部署时应接入已有运维告警，当前未创建通知渠道。
 

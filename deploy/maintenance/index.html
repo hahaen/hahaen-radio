@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>声屿 HAEN · 暂时维护中</title>
+    <style>
+      :root {
+        --color-bg: #0b151b;
+        --color-surface: #15252d;
+        --color-text: #e8e9e1;
+        --color-text-muted: #a6b7b8;
+        --color-secondary: #83aaa3;
+        --color-accent: #d8ad6b;
+        color-scheme: dark;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: system-ui, sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        min-width: 280px;
+      }
+      main {
+        max-width: 720px;
+        min-height: 100svh;
+        margin: auto;
+        padding: max(48px, env(safe-area-inset-top)) 28px max(48px, env(safe-area-inset-bottom));
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      .brand {
+        margin: 0 0 72px;
+        color: var(--color-text-muted);
+        font-size: 15px;
+      }
+      .signal {
+        width: 40px;
+        height: 2px;
+        background: var(--color-accent);
+        margin-bottom: 28px;
+      }
+      h1 {
+        font:
+          400 clamp(30px, 6vw, 48px)/1.5 'Noto Serif SC',
+          'Songti SC',
+          STSong,
+          Georgia,
+          serif;
+        margin: 0 0 20px;
+      }
+      p {
+        max-width: 38em;
+        font-size: 16px;
+        line-height: 1.8;
+        margin: 0 0 12px;
+        color: var(--color-text-muted);
+      }
+      a {
+        display: inline-block;
+        margin-top: 28px;
+        padding: 12px 18px;
+        border: 1px solid var(--color-secondary);
+        border-radius: 8px;
+        color: var(--color-text);
+        text-decoration: none;
+        line-height: 1.5;
+      }
+      a:hover {
+        background: var(--color-surface);
+      }
+      a:focus-visible {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 4px;
+      }
+      @media (max-width: 400px) {
+        main {
+          padding-inline: 20px;
+        }
+        .brand {
+          margin-bottom: 48px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="brand">声屿 HAEN · 嗯，听听世界。</p>
+      <div class="signal" aria-hidden="true"></div>
+      <h1>稍候，再听听世界。</h1>
+      <p>服务正在维护，请稍后重试。你的本地收藏仍保存在此设备上。</p>
+      <p lang="en">
+        We’re updating the service. Please try again later. Your local favorites remain on this
+        device.
+      </p>
+      <a href="/">重试 <span lang="en">· Try again</span></a>
+    </main>
+  </body>
+</html>

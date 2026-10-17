@@ -35,6 +35,7 @@ RUN command -v getcap && if [ -n "$(getcap /usr/bin/caddy)" ]; then setcap -r /u
     && addgroup -g 1000 haen && adduser -D -u 1000 -G haen haen && chown -R haen:haen /data /config
 COPY --from=build /work/apps/web/dist/ /srv/
 COPY deploy/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/maintenance/index.html /srv/maintenance.html
 USER haen
 EXPOSE 8080 8443
 CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

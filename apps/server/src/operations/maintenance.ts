@@ -14,13 +14,31 @@ export function maintenanceKey(database: string) {
   return 'haen:maintenance:' + createHash('sha256').update(database).digest('hex').slice(0, 40);
 }
 
-/** Cooperative instance-wide lock; callers must await cancellation before returning. */
-export async function withMaintenanceLock<T>(
+export function releaseKey(database: string) {
+  return maintenanceKey(database).replace('haen:maintenance:', 'haen:release:');
+}
+export function withMaintenanceLock<T>(
   config: DatabaseConfig,
   operation: (signal: AbortSignal) => Promise<T>,
   signal?: AbortSignal,
+) {
+  return withNamedLock(config, maintenanceKey(config.database), operation, signal);
+}
+export function withReleaseLock<T>(
+  config: DatabaseConfig,
+  operation: (signal: AbortSignal) => Promise<T>,
+  signal?: AbortSignal,
+) {
+  return withNamedLock(config, releaseKey(config.database), operation, signal);
+}
+
+/** Cooperative instance-wide lock; callers must await cancellation before returning. */
+async function withNamedLock<T>(
+  config: DatabaseConfig,
+  key: string,
+  operation: (signal: AbortSignal) => Promise<T>,
+  signal?: AbortSignal,
 ): Promise<T> {
-  const key = maintenanceKey(config.database);
   signal?.throwIfAborted();
   if (
     (!config.ssl &&

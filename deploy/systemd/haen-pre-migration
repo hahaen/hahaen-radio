@@ -1,0 +1,10 @@
+#!/bin/sh
+# Install root-owned and non-writable by the deploy user; narrowly authorize this helper via sudoers.
+set -eu
+[ "$#" -eq 3 ] || exit 64
+case "$1" in pre-migration|record-revision) ;; *) exit 64 ;; esac
+[ "${#2}" -eq 40 ] || exit 64
+case "$2" in *[!a-f0-9]*) exit 64 ;; esac
+[ "${#3}" -eq 64 ] || exit 64
+case "$3" in *[!a-f0-9]*) exit 64 ;; esac
+exec /usr/sbin/runuser -u haen-backup -- /usr/bin/env -i PATH=/usr/bin:/bin NODE_ENV=production BACKUP_SCHEMA_STABLE=true BACKUP_WRITES_STOPPED=true /opt/haen/node/bin/node --env-file=/etc/haen/backup.env /opt/haen/operations/current/dist/entrypoints/backup.js "$1" "$2" "$3"

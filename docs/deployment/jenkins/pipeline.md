@@ -45,6 +45,6 @@ release.json 固定提交、原生平台、Web/server/migration 不可变引用�
 
 本机没有 Docker，按用户要求不执行实际镜像/容器检查；本轮 CLI 编排测试使用清楚标注的模拟 Docker 引擎。Jenkins Declarative Linter、实际插件/凭据绑定、浏览器系统库、原生 Linux 构建、真实容器及镜像仓库分发仍要在受控节点验收。
 
-目标环境完整/前端/后端发布仍需落实：共享目标数据库发布锁和本机备份文件锁，预检与维护状态，停止写入，迁移前备份及副本验证，Drizzle Kit 单次执行，API→Web→任务验收顺序，失败留在维护状态及适用回退。它们继续属于完整交付范围；已存在的备份与迁移维护锁不能代替这些步骤。
+[目标执行器](../releases/target-executor.md)已提供独立手动入口；Jenkins 目标阶段仍需接入该入口并在节点验收，完整窗口不得拆成绕过入口的独立 Docker/SQL 命令。其实际流程包含：共享目标数据库发布锁和本机备份文件锁，预检与维护状态，停止写入，迁移前备份及副本验证，Drizzle Kit 单次执行，API→Web→任务验收顺序，失败留在维护状态及适用回退。它们继续属于完整交付范围；已存在的备份与迁移维护锁不能代替这些步骤。
 
 准备条件见[环境与凭据](environment-and-credentials.md)，目标更新与恢复原则见[发布与回退](../releases/release-and-rollback.md)。实现记录见[镜像产物链](../../iterations/2026-10-17-release-images/README.md)。语法与人工 Cause API 依据为 [Pipeline Syntax](https://www.jenkins.io/doc/book/pipeline/syntax/) 和 [RunWrapper](https://javadoc.jenkins.io/plugin/workflow-support/org/jenkinsci/plugins/workflow/support/steps/build/RunWrapper.html)。

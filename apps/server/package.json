@@ -19,7 +19,8 @@
     "diagnostics": "node --env-file-if-exists=../../.env.jobs.local --import tsx src/entrypoints/diagnostics.ts",
     "db:backup": "node --env-file-if-exists=../../.env.backup.local --import tsx src/entrypoints/backup.ts",
     "db:restore": "node --env-file-if-exists=../../.env.restore.local --import tsx src/entrypoints/backup.ts restore-isolated",
-    "test:backup": "node --env-file-if-exists=../../.env.backup.local --import tsx src/testing/run-backup.ts"
+    "test:backup": "node --env-file-if-exists=../../.env.backup.local --import tsx src/testing/run-backup.ts",
+    "deploy:target": "node --env-file=../../.env.deploy.local --import tsx src/entrypoints/deploy.ts"
   },
   "dependencies": {
     "@fastify/swagger": "9.9.2",

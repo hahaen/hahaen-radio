@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import { mkdtemp, rm, writeFile, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { maintenanceKey, runMaintenanceClient } from './maintenance.js';
+import { maintenanceKey, releaseKey, runMaintenanceClient } from './maintenance.js';
 import { migrateDatabase } from './migrate.js';
 
 it('isolates maintenance keys per database and fits the MySQL 64-character bound', () => {
@@ -10,6 +10,9 @@ it('isolates maintenance keys per database and fits the MySQL 64-character bound
   expect(maintenanceKey('ha_radio')).not.toBe(maintenanceKey('ha_radio_dev'));
   expect(maintenanceKey('ha_radio_test_' + 'a'.repeat(40)).length).toBeLessThanOrEqual(64);
   expect(() => maintenanceKey('another_database')).toThrow();
+  expect(releaseKey('ha_radio_dev')).not.toBe(maintenanceKey('ha_radio_dev'));
+  expect(releaseKey('ha_radio')).not.toBe(releaseKey('ha_radio_dev'));
+  expect(releaseKey('ha_radio_test_' + 'a'.repeat(40)).length).toBeLessThanOrEqual(64);
 });
 it('refuses migrations before any connection when stopped-writer confirmation is absent', async () => {
   await expect(migrateDatabase({})).rejects.toThrow();

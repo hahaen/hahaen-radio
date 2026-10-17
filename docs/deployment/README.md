@@ -1,6 +1,6 @@
 # 部署文档
 
-确定使用自有 Jenkins 与 Docker Compose，发布由手动触发。容器基础配置已实现，见[构建与运行](containers/local-and-image-build.md)；尚未创建 Jenkins 任务或执行生产发布。
+确定使用自有 Jenkins 与 Docker Compose，发布由手动触发。目标主机入口已实现，见[发布执行器](releases/target-executor.md)；容器基础配置已实现，见[构建与运行](containers/local-and-image-build.md)；尚未创建 Jenkins 任务或执行生产发布。
 
 ## 部署阅读顺序
 

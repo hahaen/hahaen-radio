@@ -61,3 +61,5 @@ API/jobs 日志暂使用 local 驱动限制每容器最多 3×10MiB；大小上�
 迁移镜像的私有运行配置还需在确认所有写入方停止后设置 `MIGRATION_WRITES_STOPPED=true`。入口与备份共用数据库维护锁，完整发布协调边界见[维护说明](../../operations/database-maintenance.md)。
 
 首次空库迁移还需 `MIGRATION_INITIALIZE_EMPTY=true`；已有库先用同提交迁移镜像执行 status，核对前缀与表集合，具体权限及边界见[目标预检](../../data/migrations/target-preflight.md)。
+
+Compose 现在还必须配置 HAEN_MAINTENANCE_DIRECTORY，指向发布用户所有、755的专用持久目录。Web 只读挂载该目录，enabled标记控制503维护；管理流程见[目标执行器](../releases/target-executor.md)。目录不得放敏感资料。

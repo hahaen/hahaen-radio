@@ -1,0 +1,11 @@
+{
+  "format": 1,
+  "environment": "production",
+  "site": "",
+  "apiEnvFile": "",
+  "jobsEnvFile": "",
+  "migrationEnvFile": "",
+  "databaseCaFile": "",
+  "maintenanceDirectory": "",
+  "stateDirectory": ""
+}

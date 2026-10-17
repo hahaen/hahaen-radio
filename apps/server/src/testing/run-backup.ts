@@ -17,7 +17,7 @@ import { join } from 'node:path';
 import { promisify } from 'node:util';
 import { createServer } from 'node:net';
 import mysql, { type Connection, type RowDataPacket } from 'mysql2/promise';
-import { readDatabaseConfig } from '../config/database.js';
+import { readDatabaseConfig, databaseTargetFingerprint } from '../config/database.js';
 import { openDatabase } from '../db/connection.js';
 import { createCatalogRepository } from '../modules/catalog/repository.js';
 import { synchronizeCatalog } from '../modules/catalog/sync.js';
@@ -25,6 +25,7 @@ import { normalizeStation } from '../modules/catalog/normalize.js';
 import { BackupManifest } from '../operations/backup.js';
 import {
   withMaintenanceLock,
+  withReleaseLock,
   maintenanceKey,
   runMaintenanceClient,
 } from '../operations/maintenance.js';
@@ -74,6 +75,10 @@ try {
     'CREATE DATABASE `' + source + '` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci',
   );
   sourceCreated = true;
+  await withReleaseLock(config, async () => {
+    await assert.rejects(withReleaseLock(config, async () => {}));
+    await withMaintenanceLock(config, async () => {});
+  });
   const privateRoot = join(root, '.local/archive/backup-tests');
   await mkdir(privateRoot, { recursive: true, mode: 0o700 });
   work = await mkdtemp(join(privateRoot, 'run-'));
@@ -348,6 +353,23 @@ try {
     assert(!result.stderr.includes(config.password));
     return result.stdout.trim();
   };
+  const prePrimary = join(work, 'pre-migration-primary'),
+    preSecondary = join(work, 'pre-migration-secondary');
+  await mkdir(prePrimary, { mode: 0o700 });
+  await mkdir(preSecondary, { mode: 0o700 });
+  const preEnv = { BACKUP_DIRECTORY: prePrimary, BACKUP_REPLICA_DIRECTORY: preSecondary };
+  await cli(['pre-migration', 'a'.repeat(40), '0'.repeat(64)], preEnv, false);
+  assert.deepEqual(await readdir(prePrimary), []);
+  const preMigration = JSON.parse(
+    await cli(['pre-migration', 'a'.repeat(40), databaseTargetFingerprint(config)], preEnv),
+  ) as { event: string; id: string };
+  assert.equal(preMigration.event, 'pre_migration_backup_verified');
+  await cli(['verify', preMigration.id], { BACKUP_DIRECTORY: preSecondary });
+  const revisionPath = join(work, 'application-revision');
+  await cli(['record-revision', 'b'.repeat(40), databaseTargetFingerprint(config)], {
+    BACKUP_APPLICATION_REVISION_PATH: revisionPath,
+  });
+  assert.equal((await readFile(revisionPath, 'utf8')).trim(), 'b'.repeat(40));
   const started = performance.now();
   const created = JSON.parse(await cli(['create', 'pre-migration', 'a'.repeat(40)])) as {
     id: string;
@@ -369,6 +391,7 @@ try {
   const cycleEnv = {
     BACKUP_REPLICA_DIRECTORY: secondary,
     BACKUP_APPLICATION_REVISION: 'a'.repeat(40),
+    BACKUP_APPLICATION_REVISION_PATH: revisionPath,
   };
   await writeFile(join(primary, '.backup-cycle.lock'), 'owned by this acceptance test', {
     mode: 0o600,
@@ -402,6 +425,7 @@ try {
     JSON.parse(await readFile(join(secondary, cycle.id, 'manifest.json'), 'utf8')),
   );
   assert.equal(dailyManifest.kind, 'daily');
+  assert.equal(dailyManifest.revision, 'b'.repeat(40));
   assert.equal(dailyManifest.counts, null);
   await cli(['copy', created.id], cycleEnv);
   await cli(['copy', created.id], cycleEnv);
@@ -544,6 +568,10 @@ try {
       overlappingDailyRefused: true,
       copyFailurePreservesPrimary: true,
       retainedBackupRecoveryId: true,
+      boundBackupTarget: true,
+      releaseLockContention: true,
+      preMigrationCopyVerified: true,
+      activeBackupRevisionRecorded: true,
       migrationPreflight: true,
       upgradePreflight: true,
       partialTableCreationRefused: true,

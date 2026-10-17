@@ -32,7 +32,8 @@
     "diagnostics": "pnpm --filter @haen/server diagnostics",
     "db:backup": "pnpm --filter @haen/server db:backup",
     "db:restore": "pnpm --filter @haen/server db:restore",
-    "test:backup": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server build && pnpm --filter @haen/server test:backup"
+    "test:backup": "pnpm --filter @haen/contracts build && pnpm --filter @haen/server build && pnpm --filter @haen/server test:backup",
+    "deploy:target": "pnpm --filter @haen/server deploy:target"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

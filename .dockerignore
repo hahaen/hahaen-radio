@@ -16,6 +16,8 @@
 !deploy/docker/Dockerfile
 !deploy/caddy/
 !deploy/caddy/Caddyfile
+!deploy/maintenance/
+!deploy/maintenance/index.html
 # Final exclusions also protect future files inside the allowed source directories.
 **/.env*
 **/.local/**

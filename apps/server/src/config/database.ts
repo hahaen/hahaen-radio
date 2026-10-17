@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { z } from 'zod';
 const blank = (value: unknown) => (value === '' ? undefined : value);
@@ -55,3 +56,17 @@ export function readDatabaseConfig(input: Record<string, string | undefined> = p
   };
 }
 export type DatabaseConfig = ReturnType<typeof readDatabaseConfig>;
+
+export function databaseTargetFingerprint(config: DatabaseConfig) {
+  return createHash('sha256')
+    .update(
+      JSON.stringify({
+        host: config.host,
+        port: config.port,
+        database: config.database,
+        tls: Boolean(config.ssl),
+        ca: config.ssl?.ca ?? null,
+      }),
+    )
+    .digest('hex');
+}
