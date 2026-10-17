@@ -12,7 +12,7 @@
 2. 阅读[项目总览](overview/README.md)和[技术选型](overview/technology-stack.md)，了解技术基线。
 3. 阅读[系统架构](architecture/system-design.md)和[代码目录规划](architecture/repository-layout.md)，了解模块关系。
 4. 按工作范围查阅前端、后端、数据与工程文档。
-5. 部署前依次阅读容器、Jenkins、发布与回退文档。
+5. 首次上线先阅读[服务器部署准备清单](deployment/releases/first-deployment-checklist.md)，再依次阅读容器、Jenkins、发布与回退文档。
 
 ## 分目录索引
 
@@ -117,6 +117,7 @@ docs/
 │   │   ├── environment-and-credentials.md
 │   │   └── target-stage.md
 │   └── releases/
+│       ├── first-deployment-checklist.md
 │       ├── release-and-rollback.md
 │       └── target-executor.md
 ├── operations/

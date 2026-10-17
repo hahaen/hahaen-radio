@@ -4,6 +4,8 @@
 
 ## 部署阅读顺序
 
+首次部署先阅读[服务器准备清单](releases/first-deployment-checklist.md)，确定服务器、域名、数据库、Jenkins 与备份条件，再按以下顺序落实。
+
 1. [容器拓扑与持久存储](containers/topology-and-storage.md)。
 2. [Jenkins 环境与凭据](jenkins/environment-and-credentials.md)。
 3. [Jenkins 流水线](jenkins/pipeline.md)与[人工目标阶段](jenkins/target-stage.md)。
