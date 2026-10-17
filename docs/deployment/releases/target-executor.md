@@ -1,6 +1,6 @@
 # 目标主机发布执行器
 
-已实现目标主机手动入口 `pnpm deploy:target`，消费受控分发的 release.json。完整发布、前端/服务端单独更新、同结构镜像回退与明确确认后的故障恢复共用本机文件锁和数据库发布锁。当前根 Jenkinsfile 仍仅执行构建、镜像验收及人工分发，目标阶段接入继续推进；入口存在不代表已在 Linux、Docker、Jenkins 或正式库执行。
+已实现目标主机手动入口 `pnpm deploy:target`，消费受控分发的 release.json。完整发布、前端/服务端单独更新、同结构镜像回退与明确确认后的故障恢复共用本机文件锁和数据库发布锁。根 Jenkinsfile 已在人工分发后接入默认关闭、单独审批的[目标阶段](../jenkins/target-stage.md)；入口存在不代表已在 Linux、Docker、Jenkins 或正式库执行。
 
 ## 固定运行条件
 

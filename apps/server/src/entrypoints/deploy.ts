@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { fstatSync, lstatSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { readDatabaseConfig, databaseTargetFingerprint } from '../config/database.js';
+import { verifyDeploymentExpectations } from '../config/deployment.js';
 import { withReleaseLock } from '../operations/maintenance.js';
 
 const lockPath = '/var/lib/haen-maintenance/deploy.lock';
@@ -72,6 +73,8 @@ try {
     )
       throw Error('Host release lock not held');
     const config = readDatabaseConfig();
+    const fingerprint = databaseTargetFingerprint(config);
+    verifyDeploymentExpectations(process.env, fingerprint);
     const script = new URL('../../../../scripts/deploy/target.mjs', import.meta.url);
     const module = (await import(script.href)) as {
       executeTarget: (
@@ -87,8 +90,7 @@ try {
       throw Error('Invalid operations tree');
     const result = await withReleaseLock(
       config,
-      (active) =>
-        module.executeTarget(process.env, active, config, databaseTargetFingerprint(config)),
+      (active) => module.executeTarget(process.env, active, config, fingerprint),
       controller.signal,
     );
     console.info(JSON.stringify({ event: 'target_release_completed', ...(result as object) }));

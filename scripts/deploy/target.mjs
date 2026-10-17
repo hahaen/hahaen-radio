@@ -21,7 +21,7 @@ import { deployFlow, validateRelease } from './flow.mjs';
 
 const pathValue = (value) => {
   assert(
-    typeof value === 'string' && /^\/[A-Za-z0-9_./-]+$/.test(value) && resolve(value) === value,
+    typeof value === 'string' && /^\/[A-Za-z0-9_@./-]+$/.test(value) && resolve(value) === value,
   );
   return value;
 };
@@ -38,7 +38,7 @@ async function privateFile(path) {
   );
   return readFile(path, 'utf8');
 }
-export async function targetConfiguration(path, database) {
+export async function targetConfiguration(path, database, expectedSite) {
   const config = JSON.parse(await privateFile(path));
   assert.deepEqual(
     Object.keys(config).sort(),
@@ -56,6 +56,7 @@ export async function targetConfiguration(path, database) {
   );
   assert(config.format === 1 && config.environment === 'production');
   assert(/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/.test(config.site));
+  if (expectedSite) assert.equal(config.site, expectedSite);
   for (const key of ['apiEnvFile', 'jobsEnvFile', 'migrationEnvFile']) {
     const values = {};
     for (const line of (await privateFile(config[key])).split('\n')) {
@@ -126,7 +127,11 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
   assert(/^[a-f0-9]{64}$/.test(targetFingerprint));
   assert.equal(process.platform, 'linux');
   assert.equal(process.version, 'v24.9.0');
-  const config = await targetConfiguration(env.HAEN_TARGET_CONFIG_FILE, database);
+  const config = await targetConfiguration(
+    env.HAEN_TARGET_CONFIG_FILE,
+    database,
+    env.HAEN_EXPECTED_SITE,
+  );
   const action = env.HAEN_DEPLOY_ACTION || 'apply',
     scope = env.HAEN_DEPLOY_SCOPE || 'full';
   assert(!env.HAEN_RECOVERY_VERSION || ['current', 'attempt'].includes(env.HAEN_RECOVERY_VERSION));

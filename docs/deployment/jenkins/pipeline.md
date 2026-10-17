@@ -1,6 +1,6 @@
 # Jenkins 流水线
 
-已实现根 [Jenkinsfile](../../../Jenkinsfile) 的确定提交、工程检查、三类镜像构建、隔离容器验收与可选人工分发。目标主机的完整/前端/后端发布执行器、维护状态与回退编排继续推进，当前不把镜像分发等同为应用部署。
+已实现根 [Jenkinsfile](../../../Jenkinsfile) 的确定提交、工程检查、三类镜像构建、隔离容器验收与可选人工分发。目标主机人工更新阶段已接入[目标交接与执行](target-stage.md)，默认关闭；只有另行目标审批后才调用执行器，不把镜像分发等同为应用部署。
 
 ## 手动执行与参数
 
@@ -9,9 +9,11 @@
 | 参数 | 行为 |
 | --- | --- |
 | SOURCE_COMMIT | 必填，完整 40 位小写提交号；检出后实际核对 HEAD，拒绝模糊分支名和脏工作区 |
+| DEPLOY_TARGET | 默认 false，要求本任务先分发镜像及单独目标审批；之后才分配目标节点 |
+| DEPLOY_SCOPE | full/web/server，默认full；分端更新另确认兼容 |
 | PUBLISH_IMAGES | 默认 false；true 时在验收后要求人工发起构建且由已配置审批人确认，才分发镜像 |
 
-开始即清理该任务独占工作区，防止归档上一轮旧产物；脚本只在该检出的 Git info/exclude 中加入自己的私有产物目录，先拒绝已跟踪的产物路径，不改变共享忽略规则；不能把共享开发目录用作这个工作区。禁用同任务并发和从阶段重启，避免跳过独立审批阶段，90 分钟总上限。构建日志默认 7 天/最多 20 份，所列产物默认 30 天/最多 10 份；这不代替应用普通日志的时间保留。
+构建开始时清理构建节点的独占工作区，防止归档旧产物；目标阶段使用新的独占空工作区，不删除旧目录。脚本只在该检出的 Git info/exclude 中加入自己的私有产物目录，先拒绝已跟踪的产物路径，不改变共享忽略规则；不能把共享开发目录用作这个工作区。禁用同任务并发和从阶段重启，避免跳过独立审批阶段，90 分钟总上限。构建日志默认 7 天/最多 20 份，所列产物默认 30 天/最多 10 份；这不代替应用普通日志的时间保留。
 
 ## 当前可执行阶段
 
@@ -20,8 +22,9 @@
 3. 镜像构建：`node scripts/release/pipeline.mjs build`，构建 Web/server/migration，统一应用提交标签；采用独有构建后缀，实际核对镜像 ID、revision label、Linux 原生架构和迁移文件摘要，写 build.json。
 4. 隔离验收：`node scripts/release/pipeline.mjs test-images`，启动独立内部网络与临时 MySQL，应用并重复迁移，检查迁移哈希及表选项；使用明确的单台测试目录，经实际 API、任务进程、Web 代理与静态资源完成基础检查，再优雅退出应用并验证清理，写 image-check.json。
 5. 人工分发：仅 PUBLISH_IMAGES=true 且具备人工构建 Cause、审批人配置与确认后，绑定独立镜像仓库 Secret file，执行 `node scripts/release/pipeline.mjs publish`。逐镜像再次核对本地 ID，上传后按不可变摘要从仓库读取 manifest，证明 config digest 等于实际验收镜像 ID，最后写 release.json。
+6. 目标审批与交接：仅DEPLOY_TARGET=true时seal脱敏交接材料并stash，目标审批冻结上下文；在独立目标agent重新检出、accept核验后绑定只读拉取凭据，调用编译的发布入口，详见[目标阶段](target-stage.md)。
 
-上述脚本只调用已实现的入口，没有部署任务占位命令。首次成功分发也不会创建数据库、更新容器或触发另一个 Jenkins 任务。后续目标发布执行器必须消费已成功任务的 release.json，并核对其来源和目标架构。
+上述脚本只调用已实现的入口，没有部署任务占位命令。镜像分发步骤本身不创建数据库或更新容器；后续更新仍需DEPLOY_TARGET及独立审批，同一流水线内完成，不触发另一个任务。目标执行器只消费同任务已验收且明确批准的交接材料，并再次核对配置指纹和站点。
 
 ## 隔离镜像检查的范围
 
@@ -35,16 +38,16 @@
 
 ## 产物与失败
 
-只归档 `.local/archive/release-pipeline/` 下明确的 build.json、image-check.json、release.json，禁止扩大成整个私有目录。三个文件只记录提交、镜像与验证元数据，不含私密变量值、账号、口令、SQL、真实数据库或临时 Docker 认证配置。
+只归档 `.local/archive/release-pipeline/` 下明确的 build.json、image-check.json、release.json，以及选择目标更新时的deploy-handoff.json，禁止扩大成整个私有目录。上述文件只记录提交、镜像、目标站点/配置指纹与验证元数据，不含私密变量值、账号、口令、SQL、真实数据库或临时 Docker 认证配置。
 
 release.json 固定提交、原生平台、Web/server/migration 不可变引用、迁移文件与 SHA256，以及对应验收 run。仓库返回 OCI index 时选择唯一匹配平台的子 manifest 并验证 config digest；最终引用固定到该已验收平台的内容，不依赖可覆盖的标签。
 
-任一步失败都不产生新的最终发布记录。标签变化、远端内容不符、验收缺失或清理失败会拒绝后续分发。多个仓库上传不是事务：失败时可能已上传部分镜像，但缺少完整发布记录时不得进入目标部署，不通过删除他人镜像伪造回滚。Docker 登录资料只在分发阶段复制至临时私有 DOCKER_CONFIG，退出时清理，不调用会记录密码参数的登录命令。
+构建、隔离验收或分发失败不会产生对应的完整镜像发布记录；目标阶段失败时，已有release.json也不代表部署成功，应检查目标持久attempt和运行状态。标签变化、远端内容不符、验收缺失或清理失败会拒绝后续分发。多个仓库上传不是事务：失败时可能已上传部分镜像，但缺少完整发布记录时不得进入目标部署，不通过删除他人镜像伪造回滚。镜像分发及目标阶段分别将自己的独立身份复制至临时私有DOCKER_CONFIG，退出时清理，不调用会记录密码参数的登录命令。
 
 ## 仍需完成与目标节点验收
 
 本机没有 Docker，按用户要求不执行实际镜像/容器检查；本轮 CLI 编排测试使用清楚标注的模拟 Docker 引擎。Jenkins Declarative Linter、实际插件/凭据绑定、浏览器系统库、原生 Linux 构建、真实容器及镜像仓库分发仍要在受控节点验收。
 
-[目标执行器](../releases/target-executor.md)已提供独立手动入口；Jenkins 目标阶段仍需接入该入口并在节点验收，完整窗口不得拆成绕过入口的独立 Docker/SQL 命令。其实际流程包含：共享目标数据库发布锁和本机备份文件锁，预检与维护状态，停止写入，迁移前备份及副本验证，Drizzle Kit 单次执行，API→Web→任务验收顺序，失败留在维护状态及适用回退。它们继续属于完整交付范围；已存在的备份与迁移维护锁不能代替这些步骤。
+[目标执行器](../releases/target-executor.md)已提供独立手动入口，Jenkins已通过单独审批的[目标阶段](target-stage.md)接入，实际节点仍待验收；完整窗口不得拆成绕过入口的独立 Docker/SQL 命令。其实际流程包含：共享目标数据库发布锁和本机备份文件锁，预检与维护状态，停止写入，迁移前备份及副本验证，Drizzle Kit 单次执行，API→Web→任务验收顺序，失败留在维护状态及适用回退。它们继续属于完整交付范围；已存在的备份与迁移维护锁不能代替这些步骤。
 
 准备条件见[环境与凭据](environment-and-credentials.md)，目标更新与恢复原则见[发布与回退](../releases/release-and-rollback.md)。实现记录见[镜像产物链](../../iterations/2026-10-17-release-images/README.md)。语法与人工 Cause API 依据为 [Pipeline Syntax](https://www.jenkins.io/doc/book/pipeline/syntax/) 和 [RunWrapper](https://javadoc.jenkins.io/plugin/workflow-support/org/jenkinsci/plugins/workflow/support/steps/build/RunWrapper.html)。

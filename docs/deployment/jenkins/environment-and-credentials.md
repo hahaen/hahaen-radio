@@ -15,11 +15,11 @@
 | HAEN_TEST_MYSQL_IMAGE | 已核对来源的完整 MySQL 8.0.46 镜像@sha256 引用；不使用浮动标签 |
 | HAEN_RELEASE_APPROVERS | 获授权的 Jenkins 用户或组，交给 input 的 submitter；未设置则不能分发 |
 
-SOURCE_COMMIT 与 PUBLISH_IMAGES 是界面参数，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
+SOURCE_COMMIT、PUBLISH_IMAGES、DEPLOY_TARGET 与 DEPLOY_SCOPE 是界面参数，见[流水线](pipeline.md)。任务为 Pipeline from SCM，使用 Git SCM，禁用任务侧自动触发；Configure/Replay 权限仅交给可信维护者，不让普通构建权限变成修改审批或读取凭据的权限。提交检出使用任务中已配置的仓库凭据；只有经审核的源码可以在该节点执行安装与测试。
 
 ## 镜像仓库认证
 
-Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，只供人工分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
+Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供人工分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
 
 示意结构只说明字段，不能把真实值填入可提交文件：
 
@@ -45,8 +45,9 @@ JENKINS_URL 使用已核对的 HTTPS 地址，不在 URL 中携带凭据。上�
 
 ## 目标应用服务器
 
-Ubuntu 24.04 LTS、Docker Compose、持久存储、域名/HTTPS、MySQL 8.0.46、可信 CA、独立运行和迁移身份仍由目标环境配置。发布用户、远程执行方式、维护锁、备份权限与同提交迁移入口需要随目标发布执行器落实；本轮没有创建节点、任务、连接、镜像仓库或服务器资源。
+已接入独立haen-linux-target人工更新阶段。独立审批、站点/数据库配置指纹、外部私有环境与只读拉取凭据haen-image-registry-pull-config见[目标阶段](target-stage.md)。构建节点不加载目标数据库配置，目标节点在交接核验后才显式加载；不将凭据文件或目标状态复制至stash/归档。
 
-目标服务器凭据只在发布节点或目标环境管理，不交给上述构建任务。采用 SSH 时必须验证主机密钥，不能关闭校验。完整环境、镜像保留、维护窗口与恢复演练要求见[发布与回退](../releases/release-and-rollback.md)和[每日备份](../../operations/daily-backups.md)。
+Ubuntu 24.04 LTS、Docker Compose、持久存储、域名/HTTPS、MySQL 8.0.46、可信CA、角色权限、固定备份helper与共享锁由操作者按[执行器](../releases/target-executor.md)准备；目标真实演练仍待执行。本轮没有创建节点、任务、连接、镜像仓库或服务器资源。当前直接使用目标agent，不增加SSH链路；未来采用SSH时仍须核验主机密钥。
+
 
 返回[部署导航](../README.md)。

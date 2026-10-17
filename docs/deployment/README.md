@@ -6,7 +6,7 @@
 
 1. [容器拓扑与持久存储](containers/topology-and-storage.md)。
 2. [Jenkins 环境与凭据](jenkins/environment-and-credentials.md)。
-3. [Jenkins 流水线](jenkins/pipeline.md)。
+3. [Jenkins 流水线](jenkins/pipeline.md)与[人工目标阶段](jenkins/target-stage.md)。
 4. [发布与回退](releases/release-and-rollback.md)。
 
 ## 基线

@@ -288,6 +288,9 @@ it('validates private raw config against the actual target and refuses quoted ho
       ssl: { ca: 'public-ca', rejectUnauthorized: true, verifyIdentity: true },
     };
     expect((await targetConfiguration(target, database)).site).toBe(config.site);
+    await expect(
+      targetConfiguration(target, database, 'https://other.example.test'),
+    ).rejects.toThrow();
     await writeFile(
       config.apiEnvFile,
       raw.replace('DB_HOST=db.example.test', 'DB_HOST="db.example.test"'),
