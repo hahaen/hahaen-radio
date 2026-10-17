@@ -1,6 +1,6 @@
 # 部署配置目录
 
-状态：目录骨架已建立，尚未创建镜像、Compose、Caddy 或 Jenkins 运行配置。
+状态：已创建三个镜像目标、生产 Compose 与 Caddy 配置；本机不运行 Docker，实际容器验收延后。Jenkins、备份恢复和日志时间保留继续推进。
 
 | 目录 | 用途 |
 | --- | --- |
@@ -10,4 +10,4 @@
 
 Jenkins 流水线入口后续放在仓库根目录 `Jenkinsfile`。真实凭据、运行环境文件和数据库不放入此目录。
 
-完整流程见[部署文档](../docs/deployment/README.md)。
+构建与命令见[运行说明](../docs/deployment/containers/local-and-image-build.md)。完整流程见[部署文档](../docs/deployment/README.md)。

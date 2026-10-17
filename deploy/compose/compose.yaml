@@ -1,0 +1,126 @@
+name: haen
+
+x-runtime: &runtime
+  image: ${HAEN_SERVER_IMAGE:?Set an immutable server image}
+  restart: unless-stopped
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ['/tmp:size=32m,mode=1777']
+  stop_grace_period: 30s
+  logging:
+    driver: local
+    options:
+      max-size: 10m
+      max-file: '3'
+  networks: [application]
+
+x-database: &database
+  NODE_ENV: production
+  DB_NAME: ha_radio
+  DB_TLS: required
+  DB_TLS_CA_PATH: /run/haen/mysql-ca.pem
+
+x-ca: &ca
+  type: bind
+  source: ${HAEN_DB_CA_FILE:?Set the trusted MySQL CA file path}
+  target: /run/haen/mysql-ca.pem
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  api:
+    <<: *runtime
+    env_file:
+      - path: ${HAEN_API_ENV_FILE:?Set the private API env file path}
+        required: true
+        format: raw
+    environment:
+      <<: *database
+      HOST: 0.0.0.0
+      PORT: '3001'
+      API_DOCS_ENABLED: 'false'
+    volumes:
+      - *ca
+      - recognition_state:/var/lib/haen/recognition
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3001/api/v1/health/ready',{signal:AbortSignal.timeout(5000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 8s
+      start_period: 30s
+      retries: 3
+
+  jobs:
+    <<: *runtime
+    command: [dist/entrypoints/jobs.js]
+    env_file:
+      - path: ${HAEN_JOBS_ENV_FILE:?Set the private jobs env file path}
+        required: true
+        format: raw
+    environment:
+      <<: *database
+      RECOGNITION_ENABLED: 'false'
+    volumes: [*ca]
+
+  web:
+    image: ${HAEN_WEB_IMAGE:?Set an immutable web image}
+    restart: unless-stopped
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      HAEN_SITE: ${HAEN_SITE:?Set the public site address}
+    ports:
+      - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTP_PORT:-80}:8080'
+      - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTPS_PORT:-443}:8443'
+      - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTPS_PORT:-443}:8443/udp'
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    tmpfs: ['/tmp:size=16m,mode=1777']
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8081/health]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: none
+    networks: [application]
+
+  migration:
+    image: ${HAEN_MIGRATION_IMAGE:?Set the same-commit migration image}
+    profiles: [tools]
+    restart: 'no'
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ['/tmp:size=32m,mode=1777']
+    env_file:
+      - path: ${HAEN_MIGRATION_ENV_FILE:?Set the private migration env file path}
+        required: true
+        format: raw
+    environment: *database
+    volumes: [*ca]
+    logging:
+      driver: none
+    networks: [application]
+
+networks:
+  application:
+
+volumes:
+  caddy_data:
+  caddy_config:
+  recognition_state:

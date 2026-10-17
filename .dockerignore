@@ -1,0 +1,36 @@
+# The build receives only application sources, locked dependencies and deployment inputs.
+**
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!apps/
+!apps/**
+!packages/
+!packages/**
+!migrations/
+!migrations/**
+!scripts/
+!scripts/clean-dist.mjs
+!deploy/
+!deploy/docker/
+!deploy/docker/Dockerfile
+!deploy/caddy/
+!deploy/caddy/Caddyfile
+# Final exclusions also protect future files inside the allowed source directories.
+**/.env*
+**/.local/**
+**/.git/**
+**/AGENTS*
+**/node_modules/**
+**/dist/**
+**/coverage/**
+**/*.test.*
+**/testing/**
+**/*.md
+**/*.pem
+**/*.key
+**/*.p12
+**/*.pfx
+**/*.log
+**/*.dump
+**/*.bak

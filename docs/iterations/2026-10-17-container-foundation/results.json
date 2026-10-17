@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "4ba3f5371b9191ef83db84359dd9413d67d07e14",
+  "scope": "macOS arm64 clean checkout and native tools; not Linux containers",
+  "baseImages": {
+    "node": {
+      "tag": "24.9.0-bookworm-slim",
+      "digest": "sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    },
+    "caddy": {
+      "tag": "2.10.2-alpine",
+      "digest": "sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d",
+      "platforms": ["linux/amd64", "linux/arm64"]
+    }
+  },
+  "compose": {
+    "composeVersion": "2.30.3",
+    "configurationParsed": true,
+    "rawFormatAccepted": true,
+    "literalDollarEscapedInCanonicalConfig": true,
+    "productionTargetEnforced": true,
+    "verifiedTlsEnforced": true,
+    "separateEnvironmentFiles": true,
+    "readOnlyRoot": true,
+    "tmpfsSingleMount": true,
+    "noApiOrJobsPublicPort": true,
+    "requiredVariablesRejectMissing": true,
+    "migrationManualProfile": true,
+    "daemonUsed": false,
+    "realCredentialsUsed": false
+  },
+  "cleanArtifact": {
+    "freshFrozenInstall": true,
+    "check": true,
+    "selfContainedProductionPackage": true,
+    "noServerSource": true,
+    "noDevelopmentTools": true,
+    "migrationMaterials": true,
+    "nativeCaddyVersion": "2.10.2",
+    "nativeProxy": true,
+    "apiPrefix": true,
+    "apiErrorIsJson": true,
+    "missingResources404": true,
+    "spaGetOnly": true,
+    "cachePolicies": true,
+    "apiDocsDisabled": true,
+    "missingProductionDatabaseRejected": true,
+    "packageRuntimeMode": "test",
+    "unconfiguredDatabaseNotReady": true,
+    "dockerRun": false,
+    "databaseWrites": false,
+    "ownedProcessesRemaining": 0,
+    "temporaryCheckoutRemoved": true,
+    "migrationCheck": true
+  },
+  "inputs": {
+    ".dockerignore": "116ee4c465aaeff771b40937afc3ce2ea8681e5b00bdd61309089258c7644419",
+    "deploy/docker/Dockerfile": "22386ec412c9964a61f8dd19e8b8a08318b27b5b2f83c897a2c2cbccf0a3c078",
+    "deploy/caddy/Caddyfile": "b018d53ffb5173c739fb4f33957b5c1e2554211e706f7999eba3c724a17d8c40",
+    "deploy/compose/compose.yaml": "eda33606fac2a638dc16615155a70af9bcf1e3c1a8e69abaa136bd7d8eded51a",
+    "apps/server/package.json": "b1db0065e41086425a18a06761ca24cfeaa6566402697c48ee4d530c2c2a98bc"
+  }
+}

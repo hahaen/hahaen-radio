@@ -24,6 +24,6 @@
 | DEVICE-01 | Android Chrome 真实设备 | 未验证 | 待核心功能与设备连接 |
 | DEVICE-02 | iOS Safari 真实设备 | 未验证 | 待核心功能与设备条件 |
 | PERF-01 | 3 万条目录与连续切换稳定性 | 未验证 | 已完成 68,816 条真实目录加载；另有 30000 条合成目录、搜索筛选、缓存与 60 轮切换的四项目检查通过，Chromium 堆/节点/监听器与其他浏览器 DOM 记录见[规模归档](../iterations/2026-10-17-scale-stability/README.md)；长期、GPU、真机帧率及完整产品预算仍待验收 |
-| DEPLOY-01 | 镜像、Compose、迁移、恢复与手动发布 | 待外部条件 | 用户于 2026-10-17 明确允许本机不测 Docker；配置仍需实现，实际部署环境执行容器检查 |
+| DEPLOY-01 | 镜像、Compose、迁移、恢复与手动发布 | 待外部条件 | 用户于 2026-10-17 明确允许本机不测 Docker；镜像/Compose/Caddy 基础见[容器归档](../iterations/2026-10-17-container-foundation/README.md)，Jenkins、备份恢复与日志保留仍需实现，实际部署环境执行容器检查 |
 
 返回[实施进度](progress.md)。

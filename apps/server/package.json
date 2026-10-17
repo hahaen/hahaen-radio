@@ -33,5 +33,8 @@
   },
   "devDependencies": {
     "drizzle-kit": "0.31.11"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
