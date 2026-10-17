@@ -23,7 +23,8 @@
 | COMPAT-01 | 双语、布局、键盘、焦点和减少动态效果 | 未验证 | 探索阶段已检查双语、五种视口、200% 文字与地点焦点返回；完整产品及真实手机仍待后续验收；Firefox 曾有 1 次媒体时钟停滞，追加诊断与 12 次复验未重现，根因与长期稳定性继续观察；本轮另有 1 次 HLS 暂停恢复时钟停滞，定向检查未重现，另见[产品说明记录](../iterations/2026-10-17-product-information/README.md)与[增强记录](../iterations/2026-10-17-audio-enhancement/README.md) |
 | DEVICE-01 | Android Chrome 真实设备 | 未验证 | 待核心功能与设备连接 |
 | DEVICE-02 | iOS Safari 真实设备 | 未验证 | 待核心功能与设备条件 |
-| PERF-01 | 3 万条目录与连续切换稳定性 | 未验证 | 已完成 68,816 条真实目录加载；另有 30000 条合成目录、搜索筛选、缓存与 60 轮切换的四项目检查通过，Chromium 堆/节点/监听器与其他浏览器 DOM 记录见[规模归档](../iterations/2026-10-17-scale-stability/README.md)；长期、GPU、真机帧率及完整产品预算仍待验收 |
+| PERF-01 | 3 万条目录与连续切换稳定性 | 未验证 | 已完成 68,816 条真实目录加载；另有 30000 条合成目录、搜索筛选、缓存与 60 轮切换的四项目检查通过，Chromium 堆/节点/监听器与其他浏览器 DOM 记录见[规模归档](../iterations/2026-10-17-scale-stability/README.md)；生产资源预算与计时持续检查见[独立入口](../engineering/resource-budgets.md)，本机结果另见PERF-02；任意长时、物理显存与真机帧率仍待验收 |
+| PERF-02 | 生产包预算、原生句柄与十分钟持续运行 | 已通过 | [本轮证据](../iterations/2026-10-17-resource-budgets/README.md)：六项独立检查、48次重建、双端Chromium各20次GC采样与135/136次切台；节点/监听器增量0，堆增长低于既定上限，四项原规模回归通过；不代表物理显存、真机帧率或任意时长稳定性 |
 | BACKUP-01 | 备份 CLI、完整性与隔离恢复 | 已通过 | 172 项普通检查及专用 MySQL 8.0.46 原生恢复入口通过，11 表、3 迁移、约束/额度和编译 API 见[恢复归档](../iterations/2026-10-17-backup-recovery/README.md)；日调度、真实异盘/远端和目标 Linux 仍待部署验收 |
 | MAINT-01 | 备份/迁移共享锁与失锁取消 | 已通过 | 176 项普通测试；实际 MySQL 编译入口竞争、重复迁移与本轮锁会话中断后子进程退出见[维护归档](../iterations/2026-10-17-maintenance-coordination/README.md)；外层完整发布协调仍待补齐 |
 | BACKUP-02 | 每日流程与受控副本复制 | 已通过 | 本机文件与真实 MySQL 验收见[每日归档](../iterations/2026-10-17-backup-schedule/README.md)；systemd 定时及独立物理存储仍待目标 Linux 验收 |

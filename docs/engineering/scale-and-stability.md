@@ -22,4 +22,6 @@ pnpm test:e2e tests/e2e/stability.spec.ts
 
 每个项目输出 `scale-and-stability.json` 附件，记录样本、请求计数与页面异常；失败时保留 Playwright 截图和 trace。具体运行结果见[阶段记录](../iterations/2026-10-17-scale-stability/README.md)。
 
+生产构建、原生WebGL句柄与更长持续运行另见[资源预算](resource-budgets.md)。
+
 返回[质量与测试](quality-and-testing.md)或[工程导航](README.md)。

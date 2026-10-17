@@ -31,3 +31,5 @@
 相关约定见[质量与测试](../../docs/engineering/quality-and-testing.md)。
 
 `accessibility.spec.ts` 使用固定axe-core 4.14.0，对中英17种状态及各项目列表降级共140次扫描，保留incomplete与实际绘制样式，不排除规则。键盘循环、返回焦点、44px目标、窄屏/横屏与200%文字分别检查，方法和人工边界见[说明](../../docs/engineering/accessibility.md)。电台选择器使用动作/台名前缀并正确转义，以适配新增的地点和流派名称；组件测试另精确断言完整双语名称。
+
+30000条目录夹具已提取到scale-fixture.ts，原短程规模断言保持不变，另供独立[生产持续运行](../performance/README.md)复用；独立配置中的六项不计入本目录260项。

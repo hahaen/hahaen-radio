@@ -60,6 +60,11 @@ pnpm test:e2e
 '''
             }
         }
+        stage('生产客户端持续运行') {
+            steps {
+                withEnv(['HAEN_SOAK_SECONDS=600']) { sh 'pnpm test:performance' }
+            }
+        }
         stage('构建同版本镜像') {
             steps { sh 'node scripts/release/pipeline.mjs build' }
         }

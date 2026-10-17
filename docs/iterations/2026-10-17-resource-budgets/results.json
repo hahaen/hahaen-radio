@@ -1,0 +1,894 @@
+{
+  "date": "2026-10-17",
+  "baseCommit": "1353a93891714a062b8daba6f3187d4f9c4ebb28",
+  "environment": {
+    "node": "v24.9.0",
+    "pnpm": "12.5.1",
+    "os": "Darwin",
+    "architecture": "arm64"
+  },
+  "fastValidation": {
+    "configuredSoakSeconds": 60,
+    "passed": 6,
+    "failed": 0,
+    "retries": 0,
+    "finalRequestAccountingPassed": 2
+  },
+  "postSyncValidation": {
+    "passed": 6,
+    "failed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "retries": 0,
+    "workers": 2,
+    "seconds": 661.12,
+    "reportSha256": "7125a434d7a17da9f83d776ea3478b7ffc784a95f6070932e0e52d2888555bf5"
+  },
+  "engineeringCheck": {
+    "preSync": "passed",
+    "postSync": "passed",
+    "ordinaryTests": 219,
+    "databaseSkipped": 10,
+    "frozenInstall": "passed",
+    "fixtureScaleTests": 4,
+    "documentation": {
+      "markdownFiles": 105,
+      "localLinks": 657
+    }
+  },
+  "budgetNegativeChecks": [
+    "nested JavaScript budget rejected",
+    "required geography absence rejected",
+    "artifact symlink rejected"
+  ],
+  "artifactBudget": {
+    "schema": 1,
+    "units": "bytes",
+    "assets": [
+      {
+        "file": "assets/globe-Br-Fgnw4.js",
+        "bytes": 566447,
+        "gzip": 140296,
+        "sha256": "7b5e74501708fc8dd29e339ae4df4937120d13a77086f51201a8fb873ad495d7"
+      },
+      {
+        "file": "assets/hls-BMtioDMk.js",
+        "bytes": 574410,
+        "gzip": 177360,
+        "sha256": "fa6cdee93f8f1766148414ffd2787620bc149a1339070f09b64c4377a6c1ddbb"
+      },
+      {
+        "file": "assets/index-DtcIbLwC.css",
+        "bytes": 40923,
+        "gzip": 8437,
+        "sha256": "88470afd6585bc00691909c7fb3f350a2c44b2f38a7a8e58aad617d3a13c5042"
+      },
+      {
+        "file": "assets/index-DXcQwgW3.js",
+        "bytes": 598372,
+        "gzip": 184817,
+        "sha256": "a556dda251c1f6d6a4f1c3888c66fb9045d5e94c6cbe1765e2e8ccf9176c02c4"
+      },
+      {
+        "file": "fonts/ibm-plex-mono-ui.woff2",
+        "bytes": 5884,
+        "gzip": 5907,
+        "sha256": "808a75407e8c2da9972f93428e7a7dfc3583098f9d38f38156ad50b2f0505ae2"
+      },
+      {
+        "file": "fonts/noto-sans-sc-ui.woff2",
+        "bytes": 175100,
+        "gzip": 175131,
+        "sha256": "b4e1d7142a0bfacaaeaf8f49e139de8c02446191cc67adc064e646dc25784734"
+      },
+      {
+        "file": "fonts/noto-serif-sc-ui.woff2",
+        "bytes": 115248,
+        "gzip": 115306,
+        "sha256": "dcc985c188362cde0dc28685a1f9758da0cf0e6847b5fac64dda001ae669a066"
+      },
+      {
+        "file": "fonts/source.json",
+        "bytes": 4821,
+        "gzip": 2032,
+        "sha256": "0d80fa0a2a8a22384f23b84c0a70d78c4bf1bc399c6fdc49c954369a764e49af"
+      },
+      {
+        "file": "geography/land.json",
+        "bytes": 232511,
+        "gzip": 84663,
+        "sha256": "4c74aa71fc824d629b89b8dbe1bc3ce6b0e23e792822abf4787403bdd936cb78"
+      },
+      {
+        "file": "geography/source.json",
+        "bytes": 470,
+        "gzip": 325,
+        "sha256": "99efa11e6517dfd3c017a6e8621d895bdee8d67b2e8632a8dcb5433c00a954c1"
+      },
+      {
+        "file": "geography/world.svg",
+        "bytes": 81823,
+        "gzip": 35039,
+        "sha256": "d19d21ba96327b8aea8d87bfce33a0256aa6b51b40d36dc4c0a43e1a83bcb17c"
+      }
+    ],
+    "checks": [
+      {
+        "name": "entryGzip",
+        "actual": 184817,
+        "limit": 225280
+      },
+      {
+        "name": "allJavaScriptGzip",
+        "actual": 502473,
+        "limit": 614400
+      },
+      {
+        "name": "allCssGzip",
+        "actual": 8437,
+        "limit": 51200
+      },
+      {
+        "name": "fontsRaw",
+        "actual": 296232,
+        "limit": 524288
+      },
+      {
+        "name": "geographyRaw",
+        "actual": 314334,
+        "limit": 1048576
+      }
+    ]
+  },
+  "nativeResources": [
+    {
+      "project": "chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "cycles": 12,
+      "dataUpdatesPerCycle": 6,
+      "productionMeasurements": {
+        "idleDraws": 13,
+        "beforeHiddenDraws": 13,
+        "resumedDraws": 23,
+        "drawingBufferWidth": 736,
+        "drawingBufferHeight": 640,
+        "cssBoundsAndPixelRatioCap": {
+          "width": 736,
+          "height": 640,
+          "cap": 1.5
+        },
+        "assertedIdleAndHiddenWindowsMs": 1500
+      },
+      "nativeTotals": {
+        "Texture": {
+          "created": 60,
+          "deleted": 0,
+          "invalidated": 60
+        },
+        "Framebuffer": {
+          "created": 36,
+          "deleted": 0,
+          "invalidated": 36
+        },
+        "Buffer": {
+          "created": 276,
+          "deleted": 276,
+          "invalidated": 0
+        },
+        "Program": {
+          "created": 48,
+          "deleted": 48,
+          "invalidated": 0
+        },
+        "Shader": {
+          "created": 96,
+          "deleted": 96,
+          "invalidated": 0
+        },
+        "VertexArray": {
+          "created": 120,
+          "deleted": 120,
+          "invalidated": 0
+        }
+      },
+      "allApplicationBuffersProgramsShadersVaosDeletedBeforeContextLoss": true,
+      "allCyclesObservedContextLossAndZeroLiveHandles": true,
+      "reportSha256": "34caae66aa98bbee4c4fed3f3ce6b3949bb773b490a43acb57f55214b00ae31c"
+    },
+    {
+      "project": "firefox",
+      "browser": "firefox",
+      "version": "157.0",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "cycles": 12,
+      "dataUpdatesPerCycle": 6,
+      "productionMeasurements": {
+        "idleDraws": 13,
+        "beforeHiddenDraws": 13,
+        "resumedDraws": 23,
+        "drawingBufferWidth": 736,
+        "drawingBufferHeight": 640,
+        "cssBoundsAndPixelRatioCap": {
+          "width": 736,
+          "height": 640,
+          "cap": 1.5
+        },
+        "assertedIdleAndHiddenWindowsMs": 1500
+      },
+      "nativeTotals": {
+        "Texture": {
+          "created": 60,
+          "deleted": 0,
+          "invalidated": 60
+        },
+        "Framebuffer": {
+          "created": 36,
+          "deleted": 0,
+          "invalidated": 36
+        },
+        "Buffer": {
+          "created": 276,
+          "deleted": 276,
+          "invalidated": 0
+        },
+        "Program": {
+          "created": 48,
+          "deleted": 48,
+          "invalidated": 0
+        },
+        "Shader": {
+          "created": 96,
+          "deleted": 96,
+          "invalidated": 0
+        },
+        "VertexArray": {
+          "created": 120,
+          "deleted": 120,
+          "invalidated": 0
+        }
+      },
+      "allApplicationBuffersProgramsShadersVaosDeletedBeforeContextLoss": true,
+      "allCyclesObservedContextLossAndZeroLiveHandles": true,
+      "reportSha256": "a2dbe2d338a7da1d7353be16a9d210131d4a3e7ca68fb8ca6aab0080727be4db"
+    },
+    {
+      "project": "mobile-chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "viewport": {
+        "width": 412,
+        "height": 839
+      },
+      "cycles": 12,
+      "dataUpdatesPerCycle": 6,
+      "productionMeasurements": {
+        "idleDraws": 13,
+        "beforeHiddenDraws": 13,
+        "resumedDraws": 23,
+        "drawingBufferWidth": 558,
+        "drawingBufferHeight": 558,
+        "cssBoundsAndPixelRatioCap": {
+          "width": 372,
+          "height": 372,
+          "cap": 1.5
+        },
+        "assertedIdleAndHiddenWindowsMs": 1500
+      },
+      "nativeTotals": {
+        "Texture": {
+          "created": 60,
+          "deleted": 0,
+          "invalidated": 60
+        },
+        "Framebuffer": {
+          "created": 36,
+          "deleted": 0,
+          "invalidated": 36
+        },
+        "Buffer": {
+          "created": 276,
+          "deleted": 276,
+          "invalidated": 0
+        },
+        "Program": {
+          "created": 48,
+          "deleted": 48,
+          "invalidated": 0
+        },
+        "Shader": {
+          "created": 96,
+          "deleted": 96,
+          "invalidated": 0
+        },
+        "VertexArray": {
+          "created": 120,
+          "deleted": 120,
+          "invalidated": 0
+        }
+      },
+      "allApplicationBuffersProgramsShadersVaosDeletedBeforeContextLoss": true,
+      "allCyclesObservedContextLossAndZeroLiveHandles": true,
+      "reportSha256": "68cd28fdeb0d90621732e67177508c3fc88672166d041e94b33d4b313a4fa7b6"
+    },
+    {
+      "project": "webkit",
+      "browser": "webkit",
+      "version": "27.2",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "cycles": 12,
+      "dataUpdatesPerCycle": 6,
+      "productionMeasurements": {
+        "idleDraws": 13,
+        "beforeHiddenDraws": 13,
+        "resumedDraws": 18,
+        "drawingBufferWidth": 1104,
+        "drawingBufferHeight": 960,
+        "cssBoundsAndPixelRatioCap": {
+          "width": 736,
+          "height": 640,
+          "cap": 1.5
+        },
+        "assertedIdleAndHiddenWindowsMs": 1500
+      },
+      "nativeTotals": {
+        "Texture": {
+          "created": 60,
+          "deleted": 0,
+          "invalidated": 60
+        },
+        "Framebuffer": {
+          "created": 36,
+          "deleted": 0,
+          "invalidated": 36
+        },
+        "Buffer": {
+          "created": 276,
+          "deleted": 276,
+          "invalidated": 0
+        },
+        "Program": {
+          "created": 48,
+          "deleted": 48,
+          "invalidated": 0
+        },
+        "Shader": {
+          "created": 96,
+          "deleted": 96,
+          "invalidated": 0
+        },
+        "VertexArray": {
+          "created": 120,
+          "deleted": 120,
+          "invalidated": 0
+        }
+      },
+      "allApplicationBuffersProgramsShadersVaosDeletedBeforeContextLoss": true,
+      "allCyclesObservedContextLossAndZeroLiveHandles": true,
+      "reportSha256": "dfbf8d778e959c323d3953c385ab29b2b59cac359058da7ebdcf0d1d9af7291f"
+    }
+  ],
+  "productionSoaks": [
+    {
+      "project": "chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "configuredSeconds": 600,
+      "actualSeconds": 601.976,
+      "switches": 135,
+      "sampleCount": 20,
+      "maximumGrowthFromWarmup": {
+        "heap": 1406020,
+        "nodes": 0,
+        "listeners": 0
+      },
+      "glLive": {
+        "Texture": 5,
+        "Framebuffer": 3,
+        "Buffer": 17,
+        "Program": 5,
+        "Shader": 0,
+        "VertexArray": 6
+      },
+      "counts": {
+        "chunks": 30,
+        "details": 136,
+        "searches": 1,
+        "media": 136,
+        "other": 102
+      },
+      "metadata": 69,
+      "catalogPolls": 3,
+      "errors": [],
+      "unexpectedRequests": [],
+      "timeline": [
+        {
+          "elapsedMs": 27311.014833,
+          "switches": 6,
+          "heap": 24341388,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 7,
+          "details": 7,
+          "metadata": 4
+        },
+        {
+          "elapsedMs": 58908.032333,
+          "switches": 13,
+          "heap": 24584036,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 14,
+          "details": 14,
+          "metadata": 8
+        },
+        {
+          "elapsedMs": 89383.665666,
+          "switches": 20,
+          "heap": 24747392,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 21,
+          "details": 21,
+          "metadata": 11
+        },
+        {
+          "elapsedMs": 122023.566291,
+          "switches": 27,
+          "heap": 24814196,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 28,
+          "details": 28,
+          "metadata": 15
+        },
+        {
+          "elapsedMs": 152516.524541,
+          "switches": 34,
+          "heap": 25009060,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 35,
+          "details": 35,
+          "metadata": 19
+        },
+        {
+          "elapsedMs": 183978.245791,
+          "switches": 41,
+          "heap": 25049516,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 42,
+          "details": 42,
+          "metadata": 22
+        },
+        {
+          "elapsedMs": 215345.625958,
+          "switches": 48,
+          "heap": 25225656,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 49,
+          "details": 49,
+          "metadata": 25
+        },
+        {
+          "elapsedMs": 246147.209291,
+          "switches": 55,
+          "heap": 25153092,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 56,
+          "details": 56,
+          "metadata": 29
+        },
+        {
+          "elapsedMs": 276624.69545799994,
+          "switches": 62,
+          "heap": 24955024,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 63,
+          "details": 63,
+          "metadata": 33
+        },
+        {
+          "elapsedMs": 308767.05,
+          "switches": 69,
+          "heap": 25065812,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 70,
+          "details": 70,
+          "metadata": 36
+        },
+        {
+          "elapsedMs": 340178.20324999996,
+          "switches": 76,
+          "heap": 25126344,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 77,
+          "details": 77,
+          "metadata": 39
+        },
+        {
+          "elapsedMs": 371172.642083,
+          "switches": 83,
+          "heap": 25209712,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 84,
+          "details": 84,
+          "metadata": 43
+        },
+        {
+          "elapsedMs": 402464.347625,
+          "switches": 90,
+          "heap": 25619664,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 91,
+          "details": 91,
+          "metadata": 47
+        },
+        {
+          "elapsedMs": 433883.85541599995,
+          "switches": 97,
+          "heap": 25543160,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 98,
+          "details": 98,
+          "metadata": 50
+        },
+        {
+          "elapsedMs": 464961.08566599997,
+          "switches": 104,
+          "heap": 25545432,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 105,
+          "details": 105,
+          "metadata": 53
+        },
+        {
+          "elapsedMs": 495613.68262499996,
+          "switches": 111,
+          "heap": 25562412,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 112,
+          "details": 112,
+          "metadata": 57
+        },
+        {
+          "elapsedMs": 526343.4732499999,
+          "switches": 118,
+          "heap": 25575452,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 119,
+          "details": 119,
+          "metadata": 61
+        },
+        {
+          "elapsedMs": 556903.302083,
+          "switches": 125,
+          "heap": 25588708,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 126,
+          "details": 126,
+          "metadata": 64
+        },
+        {
+          "elapsedMs": 588253.567833,
+          "switches": 132,
+          "heap": 25747408,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 133,
+          "details": 133,
+          "metadata": 67
+        },
+        {
+          "elapsedMs": 601924.1963749999,
+          "switches": 135,
+          "heap": 25629720,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 136,
+          "details": 136,
+          "metadata": 69
+        }
+      ],
+      "reportSha256": "f38cf0152a8ca9d2e2a4dbfdf643894d73dac008c448b60b6ed2be24f92ab2c2"
+    },
+    {
+      "project": "mobile-chromium",
+      "browser": "chromium",
+      "version": "156.0.8078.4",
+      "viewport": {
+        "width": 412,
+        "height": 839
+      },
+      "configuredSeconds": 600,
+      "actualSeconds": 603.3,
+      "switches": 136,
+      "sampleCount": 20,
+      "maximumGrowthFromWarmup": {
+        "heap": 1486548,
+        "nodes": 0,
+        "listeners": 0
+      },
+      "glLive": {
+        "Texture": 5,
+        "Framebuffer": 3,
+        "Buffer": 17,
+        "Program": 5,
+        "Shader": 0,
+        "VertexArray": 6
+      },
+      "counts": {
+        "chunks": 30,
+        "details": 137,
+        "searches": 1,
+        "media": 137,
+        "other": 103
+      },
+      "metadata": 70,
+      "catalogPolls": 3,
+      "errors": [],
+      "unexpectedRequests": [],
+      "timeline": [
+        {
+          "elapsedMs": 26259.481000000003,
+          "switches": 6,
+          "heap": 24326372,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 7,
+          "details": 7,
+          "metadata": 4
+        },
+        {
+          "elapsedMs": 57372.875667,
+          "switches": 13,
+          "heap": 24566200,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 14,
+          "details": 14,
+          "metadata": 8
+        },
+        {
+          "elapsedMs": 90121.097875,
+          "switches": 20,
+          "heap": 24718584,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 21,
+          "details": 21,
+          "metadata": 12
+        },
+        {
+          "elapsedMs": 121023.66162500001,
+          "switches": 27,
+          "heap": 24799220,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 28,
+          "details": 28,
+          "metadata": 16
+        },
+        {
+          "elapsedMs": 152405.594458,
+          "switches": 34,
+          "heap": 24982896,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 35,
+          "details": 35,
+          "metadata": 19
+        },
+        {
+          "elapsedMs": 183486.430625,
+          "switches": 41,
+          "heap": 25038976,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 42,
+          "details": 42,
+          "metadata": 22
+        },
+        {
+          "elapsedMs": 214391.805917,
+          "switches": 48,
+          "heap": 25215148,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 49,
+          "details": 49,
+          "metadata": 26
+        },
+        {
+          "elapsedMs": 245933.078375,
+          "switches": 55,
+          "heap": 25138680,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 56,
+          "details": 56,
+          "metadata": 30
+        },
+        {
+          "elapsedMs": 276948.384333,
+          "switches": 62,
+          "heap": 24945252,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 63,
+          "details": 63,
+          "metadata": 33
+        },
+        {
+          "elapsedMs": 307611.652458,
+          "switches": 69,
+          "heap": 25069992,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 70,
+          "details": 70,
+          "metadata": 36
+        },
+        {
+          "elapsedMs": 338021.314875,
+          "switches": 76,
+          "heap": 25163184,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 77,
+          "details": 77,
+          "metadata": 40
+        },
+        {
+          "elapsedMs": 369097.677375,
+          "switches": 83,
+          "heap": 25228792,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 84,
+          "details": 84,
+          "metadata": 44
+        },
+        {
+          "elapsedMs": 400116.340042,
+          "switches": 90,
+          "heap": 25650484,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 91,
+          "details": 91,
+          "metadata": 47
+        },
+        {
+          "elapsedMs": 430751.725292,
+          "switches": 97,
+          "heap": 25567912,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 98,
+          "details": 98,
+          "metadata": 50
+        },
+        {
+          "elapsedMs": 461989.37325,
+          "switches": 104,
+          "heap": 25579300,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 105,
+          "details": 105,
+          "metadata": 54
+        },
+        {
+          "elapsedMs": 492523.149333,
+          "switches": 111,
+          "heap": 25600676,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 112,
+          "details": 112,
+          "metadata": 58
+        },
+        {
+          "elapsedMs": 523500.378375,
+          "switches": 118,
+          "heap": 25616212,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 119,
+          "details": 119,
+          "metadata": 61
+        },
+        {
+          "elapsedMs": 554704.525875,
+          "switches": 125,
+          "heap": 25606324,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 126,
+          "details": 126,
+          "metadata": 64
+        },
+        {
+          "elapsedMs": 585987.22075,
+          "switches": 132,
+          "heap": 25812920,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 133,
+          "details": 133,
+          "metadata": 68
+        },
+        {
+          "elapsedMs": 603232.525917,
+          "switches": 136,
+          "heap": 25691444,
+          "nodes": 1993,
+          "listeners": 288,
+          "media": 137,
+          "details": 137,
+          "metadata": 70
+        }
+      ],
+      "reportSha256": "762884cea6bb96f2ff742fb2d3de7c950c31e0a6bb7e71fbe12f13f7bcc64502"
+    }
+  ],
+  "synchronization": {
+    "baseUnchanged": true,
+    "files": 24,
+    "reviewedAndRestoredBytesAndModes": true
+  },
+  "inputs": {
+    "Jenkinsfile": "e4ca1d7fa546e61533f1433e4dda18ec3f661e44db7010e56d007d09af8d1fe0",
+    "package.json": "efe7cf929c6560cfe6f479a318ca191e86b7238b83ab55705508223ff0d590e0",
+    "playwright.performance.config.ts": "9411cfa4b01f3117867436872dce25b9f93d7e8e90aee2d0c479404c35e85bcc",
+    "scripts/check-web-budget.mjs": "883d794481c042be4210337783e60d7c3547d55c07c37279550622e5cb9c0c3e",
+    "tests/e2e/scale-fixture.ts": "e75695b24287459785ea5ceff1980219c11ad8e17ff132c52de9e7341992384c",
+    "tests/e2e/stability.spec.ts": "54ceee49dd55941cddb30c72b76acd0c1749eebf9b381086b31686afe9d7bff6",
+    "tests/performance/resources.spec.ts": "ad70f09cb6fd58c862f9c4fe94c4fab3c9547a1ccd203b2fb01da5263144951f",
+    "tests/performance/soak.spec.ts": "93ac4cdb56f99e6085e39b3686714eaefddcd8045c146a0a44e70028d1d1afc7",
+    "tests/performance/webgl-probe.ts": "2e6d70bc3302373d8bb35c79b348552a2ba1d2c2287b43810a5604201a8c59b7",
+    "tsconfig.tools.json": "8d7b17eae03bacf6c4a57b42892409008ab7e8a4eac29cac80a552c2a094b439"
+  },
+  "databaseWrites": false,
+  "dockerRun": false,
+  "deployed": false,
+  "realDevicesRun": false,
+  "physicalGpuMemoryMeasured": false,
+  "jenkinsExecuted": false,
+  "releaseTargets": [],
+  "remaining": [
+    "Real Android and iOS acceptance",
+    "Actual assistive technology",
+    "Physical GPU memory and real-device frame rates",
+    "Arbitrary-duration endurance",
+    "Linux Docker Jenkins and deployment acceptance"
+  ]
+}

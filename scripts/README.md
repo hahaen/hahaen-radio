@@ -17,3 +17,5 @@
 相关约定见[工程环境与依赖](../docs/engineering/environment-and-dependencies.md)。
 
 `release/handoff.mjs seal|prepare-target|accept` 为Jenkins同任务跨节点交接提供固定入口，实际目标更新仍由既有编译入口执行；配置及验收边界见[目标阶段](../docs/deployment/jenkins/target-stage.md)。
+
+check-web-budget.mjs读取Web生产产物，输出体积/gzip/SHA256并拒绝超限或缺失资源；pnpm check与独立性能入口使用同一脚本，具体上限见[资源预算](../docs/engineering/resource-budgets.md)。

@@ -19,10 +19,11 @@
 
 1. 固定源码：Git 插件检出 SOURCE_COMMIT，实际比对 HEAD；检查 Node.js 24.9.0 与 pnpm 12.5.1。
 2. 工程检查：冻结安装、`pnpm check`、`pnpm docs:check`，安装锁定 Playwright 对应浏览器后执行 `pnpm test:e2e`。Linux 系统库由构建节点预先准备，流水线不临时授予 root 安装权限。
-3. 镜像构建：`node scripts/release/pipeline.mjs build`，构建 Web/server/migration，统一应用提交标签；采用独有构建后缀，实际核对镜像 ID、revision label、Linux 原生架构和迁移文件摘要，写 build.json。
-4. 隔离验收：`node scripts/release/pipeline.mjs test-images`，启动独立内部网络与临时 MySQL，应用并重复迁移，检查迁移哈希及表选项；使用明确的单台测试目录，经实际 API、任务进程、Web 代理与静态资源完成基础检查，再优雅退出应用并验证清理，写 image-check.json。
-5. 人工分发：仅 PUBLISH_IMAGES=true 且具备人工构建 Cause、审批人配置与确认后，绑定独立镜像仓库 Secret file，执行 `node scripts/release/pipeline.mjs publish`。逐镜像再次核对本地 ID，上传后按不可变摘要从仓库读取 manifest，证明 config digest 等于实际验收镜像 ID，最后写 release.json。
-6. 目标审批与交接：仅DEPLOY_TARGET=true时seal脱敏交接材料并stash，目标审批冻结上下文；在独立目标agent重新检出、accept核验后绑定只读拉取凭据，调用编译的发布入口，详见[目标阶段](target-stage.md)。
+3. 生产客户端持续运行：显式HAEN_SOAK_SECONDS=600执行pnpm test:performance，包含四项目句柄/按需绘制及双端Chromium十分钟检查；失败阻止镜像构建。方法见[资源预算](../../engineering/resource-budgets.md)。
+4. 镜像构建：`node scripts/release/pipeline.mjs build`，构建 Web/server/migration，统一应用提交标签；采用独有构建后缀，实际核对镜像 ID、revision label、Linux 原生架构和迁移文件摘要，写 build.json。
+5. 隔离验收：`node scripts/release/pipeline.mjs test-images`，启动独立内部网络与临时 MySQL，应用并重复迁移，检查迁移哈希及表选项；使用明确的单台测试目录，经实际 API、任务进程、Web 代理与静态资源完成基础检查，再优雅退出应用并验证清理，写 image-check.json。
+6. 人工分发：仅 PUBLISH_IMAGES=true 且具备人工构建 Cause、审批人配置与确认后，绑定独立镜像仓库 Secret file，执行 `node scripts/release/pipeline.mjs publish`。逐镜像再次核对本地 ID，上传后按不可变摘要从仓库读取 manifest，证明 config digest 等于实际验收镜像 ID，最后写 release.json。
+7. 目标审批与交接：仅DEPLOY_TARGET=true时seal脱敏交接材料并stash，目标审批冻结上下文；在独立目标agent重新检出、accept核验后绑定只读拉取凭据，调用编译的发布入口，详见[目标阶段](target-stage.md)。
 
 上述脚本只调用已实现的入口，没有部署任务占位命令。镜像分发步骤本身不创建数据库或更新容器；后续更新仍需DEPLOY_TARGET及独立审批，同一流水线内完成，不触发另一个任务。目标执行器只消费同任务已验收且明确批准的交接材料，并再次核对配置指纹和站点。
 
