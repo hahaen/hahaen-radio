@@ -1,6 +1,6 @@
 # 容器构建与运行入口
 
-状态：已实现同一 Dockerfile 的三个目标、生产 Compose 与 Caddy 配置；本机没有 Docker，镜像构建、Linux 容器启动与卷权限实测延后到实际部署环境。Jenkins、备份恢复和按时间保留日志仍在交付范围内，不能由本文件的配置代替。
+状态：已实现同一 Dockerfile 的三个目标、生产 Compose 与 Caddy 配置；本机没有 Docker，镜像构建、Linux 容器启动与卷权限实测延后到实际部署环境。备份工具已另行实现，见[操作说明](../../data/backup/backup-and-restore.md)；Jenkins、目标环境恢复、副本与按时间保留日志仍在交付范围内。
 
 ## 构建与包边界
 

@@ -16,7 +16,10 @@
     "test:mysql": "node --env-file-if-exists=../../.env.migration.local --import tsx src/testing/run-mysql.ts",
     "places": "node --env-file-if-exists=../../.env.jobs.local --import tsx src/entrypoints/places.ts",
     "recognition:quota": "node --env-file-if-exists=../../.env.local --import tsx src/entrypoints/recognition-quota.ts",
-    "diagnostics": "node --env-file-if-exists=../../.env.jobs.local --import tsx src/entrypoints/diagnostics.ts"
+    "diagnostics": "node --env-file-if-exists=../../.env.jobs.local --import tsx src/entrypoints/diagnostics.ts",
+    "db:backup": "node --env-file-if-exists=../../.env.backup.local --import tsx src/entrypoints/backup.ts",
+    "db:restore": "node --env-file-if-exists=../../.env.restore.local --import tsx src/entrypoints/backup.ts restore-isolated",
+    "test:backup": "node --env-file-if-exists=../../.env.backup.local --import tsx src/testing/run-backup.ts"
   },
   "dependencies": {
     "@fastify/swagger": "9.9.2",

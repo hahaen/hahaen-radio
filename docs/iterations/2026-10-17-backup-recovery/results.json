@@ -1,0 +1,42 @@
+{
+  "date": "2026-10-17",
+  "applicationBaseCommit": "9da5b28f792bb2b123c07aa8b3047ce336ec9a55",
+  "ordinaryTests": 172,
+  "ordinaryMysqlSkipped": 10,
+  "acceptance": {
+    "event": "backup_acceptance_passed",
+    "mysql": "8.0.46",
+    "client": "8.0.46",
+    "tables": 11,
+    "migrations": 3,
+    "bytes": 2486,
+    "elapsedMs": 7303,
+    "independentCopy": true,
+    "unicodePreserved": true,
+    "constraintsPreserved": true,
+    "quotaPreserved": true,
+    "existingTargetRefused": true,
+    "tamperRefusedBeforeCreate": true,
+    "compiledApiReady": true,
+    "productionWrites": false,
+    "unsupportedObjectsRefused": true
+  },
+  "cleanup": {
+    "event": "backup_test_cleanup",
+    "sourceRemoved": true,
+    "restoreRemoved": true,
+    "ownedApiStopped": true
+  },
+  "copyScope": "Another private directory on the local filesystem; not an independent physical disk or remote storage",
+  "nativePlatform": "macOS arm64",
+  "dockerRun": false,
+  "productionWrites": false,
+  "inputs": {
+    "apps/server/src/operations/backup.ts": "68f9691d89c10ba6740c7a27d2f9f7b1d490f5a34fb7d0036b779989847dc01c",
+    "apps/server/src/entrypoints/backup.ts": "d566db07b08e8fe992cefc0556804687f3ee05c3cf5865165a00ac6dc19ab08c",
+    "apps/server/src/testing/run-backup.ts": "32cf868bf9501521c40383e9beda9fac08d4fbee545454cc751b7358f6346d7f",
+    ".env.example": "eccf3200fbc7da6cefca1ba4bded21053413a5846efdd17872367cf67d622c6f",
+    "package.json": "a75cbdee567575e052a0f7bd66f1fe421c730cfbe18b1218ecfca88d573a5ce0",
+    "apps/server/package.json": "c7f2f7d48e0bbda263c52c5c5c7a88b6d61dd0b721f88615ace9ae8cd45371b1"
+  }
+}

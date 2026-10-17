@@ -16,6 +16,8 @@
 
 API 和后台任务共用工程，使用不同入口。通过 mysql2 连接池和 Drizzle ORM 访问 MySQL 8.0.46，API 与任务不挂载数据库数据卷。迁移由独立 Drizzle Kit 工具入口执行。入口和权限见[配置文档](../../docs/operations/configuration-and-logging.md)。
 
+备份和隔离恢复通过 `pnpm db:backup`、`pnpm db:restore` 与 `pnpm test:backup` 维护，所需客户端、身份和私有配置见[备份说明](../../docs/data/backup/backup-and-restore.md)。
+
 根目录命令为 `pnpm db:generate`、`pnpm db:migrate`、`pnpm catalog sync`、`pnpm catalog status`、`pnpm jobs`、`pnpm test:mysql`、`pnpm recognition:quota init`、`pnpm diagnostics summary` 和 `pnpm diagnostics cleanup`。生产 API 与任务分别运行编译入口 `start` 和 `start:jobs`；迁移镜像仍须包含配置、Schema、SQL 及固定工具依赖。
 
 识曲采用服务端私有配置、独占持久额度与上传前预扣，不自动开通或补充授权；初始化与恢复见[额度运维](../../docs/operations/recognition-quota.md)。
