@@ -68,14 +68,14 @@ pnpm test:e2e
                 withEnv(['HAEN_SOAK_SECONDS=600']) { sh 'pnpm test:performance' }
             }
         }
-        stage('构建同版本镜像') {
+        stage('构建前端产物与服务镜像') {
             steps {
                 withEnv(["HAEN_WEB_BASE_PATH=${env.HAEN_RELEASE_WEB_BASE_PATH ?: '/'}"]) {
                     sh 'node deploy/scripts/release/pipeline.mjs build'
                 }
             }
         }
-        stage('隔离容器验收') {
+        stage('隔离产物验收') {
             steps { sh 'node deploy/scripts/release/pipeline.mjs test-images' }
         }
         stage('分发不可变产物') {

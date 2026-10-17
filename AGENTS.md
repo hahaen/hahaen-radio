@@ -65,7 +65,7 @@
 | 覆盖率 | Vitest V8 Coverage |
 | CI/CD | 自有 Jenkins Pipeline，手动触发发布 |
 | 容器与编排 | Docker、Docker Compose |
-| Web 入口 | Caddy 2 |
+| Web 入口 | 复用现有 Nginx；Caddy 2 仅用于前端产物镜像的隔离验收 |
 | 部署系统基线 | Ubuntu 24.04 LTS |
 | 服务端镜像基线 | Node.js 24、Debian slim |
 
@@ -74,7 +74,7 @@
 ## 3. 架构与目录边界
 
 - 前后端分别开发、构建和运行，通过同一个域名访问。
-- Caddy 提供前端静态资源，将 `/api/*` 原样代理给后端；生产前端不要求单独的 Node.js 服务。
+- 正式环境复用现有 Nginx 提供 `/radio/` 静态文件，将 `/radio/api/*` 剥除站点子路径后代理给后端；常驻应用容器只有 `radio-api`、`radio-jobs`，前端不运行独立容器。
 - API 和任务分别作为一个实例运行，基线部署在一台具有持久磁盘的 Linux 服务器。
 - 音频默认由浏览器直连电台服务器，后端提供数据和播放信息。不得未经专项评估将全部音频改为后端代理或转码。
 - `apps/web`：前端应用、浏览器测试、前端资源脚本及测试产物；`apps/server`：API、任务、表结构定义和迁移入口。

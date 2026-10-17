@@ -1,6 +1,6 @@
 # 系统设计
 
-状态：架构已确定，服务和运行配置待实施。
+状态：服务和运行配置已实现，正式部署状态见[记录](../iterations/2026-10-17-production-deployment/README.md)。
 
 ## 代码、构建与运行关系
 
@@ -9,19 +9,19 @@
 | 代码仓库 | 同一个仓库，pnpm Workspace |
 | 本地开发 | 前端开发服务器、API、后台任务独立启动 |
 | 构建产物 | 前端静态资源、后端 JavaScript 分别构建 |
-| 生产运行 | Web 入口、API、后台任务分别运行 |
+| 生产运行 | 共享 Nginx 读取静态文件，API、后台任务各一个容器 |
 | 发布 | Jenkins 默认协调一起发布，允许兼容范围内单独更新 |
-| 用户访问 | 同一域名；前端页面与 `/api/*` 分流 |
+| 用户访问 | 同一域名；`/radio/` 页面与 `/radio/api/*` 分流 |
 
-前端独立运行的含义是由 Caddy 提供静态资源，不要求为前端启动一个 Node.js 服务。
+前端由现有 Nginx 直接提供已发布的静态文件，不运行独立 Web 容器。决定见 [ADR-0006](decisions/0006-shared-nginx-static-release.md)。
 
 ## 访问路径
 
 ```mermaid
 flowchart TD
-    Browser[浏览器] --> Caddy[Caddy：HTTPS 和路由]
-    Caddy --> Static[前端静态资源]
-    Caddy --> API[Fastify API]
+    Browser[浏览器] --> Nginx[Nginx：HTTPS 和路由]
+    Nginx --> Static[前端静态资源]
+    Nginx --> API[Fastify API]
     API --> DB[(MySQL 8.0.46 服务)]
     Jobs[后台任务进程] --> DB
     Jobs --> External[外部数据服务]

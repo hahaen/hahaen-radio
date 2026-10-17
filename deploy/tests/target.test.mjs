@@ -269,14 +269,17 @@ it('validates private raw config against the actual target and refuses quoted ho
     const config = {
       format: 1,
       environment: 'production',
-      site: 'https://radio.example.test',
+      site: 'https://radio.example.test/radio',
       apiEnvFile: join(root, 'api.env'),
       jobsEnvFile: join(root, 'jobs.env'),
       migrationEnvFile: join(root, 'migration.env'),
       databaseCaFile: ca,
       maintenanceDirectory: marker,
       stateDirectory: state,
+      staticDirectory: join(root, 'web'),
     };
+    await mkdir(config.staticDirectory, { mode: 0o755 });
+    await chmod(config.staticDirectory, 0o755);
     const raw = 'DB_HOST=db.example.test\nDB_USER=fixture\nDB_PASSWORD=fixture\n';
     for (const file of [config.apiEnvFile, config.jobsEnvFile, config.migrationEnvFile])
       await writeFile(file, raw, { mode: 0o600 });
@@ -297,14 +300,14 @@ it('validates private raw config against the actual target and refuses quoted ho
     );
     await expect(targetConfiguration(target, database)).rejects.toThrow();
     await writeFile(config.apiEnvFile, raw);
-    const proxied = { ...config, site: 'https://radio.example.test/radio', proxyPort: 18088 };
-    await writeFile(target, JSON.stringify(proxied));
-    expect((await targetConfiguration(target, database)).proxyPort).toBe(18088);
-    for (const proxyPort of [80, 65536, '18088', null]) {
-      await writeFile(target, JSON.stringify({ ...proxied, proxyPort }));
-      await expect(targetConfiguration(target, database)).rejects.toThrow();
-    }
-    await writeFile(target, JSON.stringify({ ...config, site: proxied.site }));
+    await writeFile(
+      target,
+      JSON.stringify({ ...config, site: 'https://radio.example.test/radio' }),
+    );
+    expect((await targetConfiguration(target, database)).staticDirectory).toBe(
+      config.staticDirectory,
+    );
+    await writeFile(target, JSON.stringify({ ...config, staticDirectory: state }));
     await expect(targetConfiguration(target, database)).rejects.toThrow();
     await writeFile(target, JSON.stringify({ ...config, stateDirectory: marker }));
     await expect(targetConfiguration(target, database)).rejects.toThrow();

@@ -9,7 +9,8 @@ Radio 的服务器总目录统一为 `/home/hahaen/hahaen-radio/`。源码和私
 | `runtime/` | 固定 Node、pnpm、Java、原生 MySQL 客户端和受控运维包，管理员所有 |
 | `jenkins/build/`、`jenkins/target/` | 两个隔离身份的 home、agent、工作区和缓存，各自 700；agent secret 600 |
 | `ci/` | 构建专用虚拟音频配置；显示认证材料仍在构建身份的私有 home |
-| `data/` | API/jobs 日志、识曲状态、Caddy 数据与配置；Docker 命名卷通过 local bind 驱动持久指向这里 |
+| `web/` | 不可变前端公开文件、内容摘要与 current 原子指针，Nginx 只读挂载 |
+| `data/` | API/jobs 日志和识曲状态；Docker 命名卷通过 local bind 驱动持久指向这里 |
 | `registry/` | 项目私有镜像仓库数据、TLS 和分发/拉取配置；秘密文件及目录保持独立权限 |
 | `state/`、`maintenance/`、`locks/` | 发布持久状态 700、无敏感内容的维护标记 755、管理员控制的共享锁目录 750 |
 | `backups/`、`backup-version/`、`backup-home/` | 备份身份的私有目录和实际应用版本记录；不代表已有独立存储副本 |
@@ -28,7 +29,7 @@ systemd 的系统入口与固定 sudo helper 保留在标准系统位置，指�
 
 ## Docker 命名
 
-Compose 项目为 `radio`，三个常驻容器固定为 `radio-web`、`radio-api`、`radio-jobs`，发布时重建同名容器；应用网络为 `radio_application`，命名卷以 `radio_` 开头，仍绑定 `data/` 中原设备路径。项目私有仓库容器为 `radio-registry` 与 `radio-registry-gateway`，镜像命名空间为 `radio`。共享 MySQL、Nginx 与 Jenkins 保留各自名称。目标执行器同时核对固定容器名与 Compose 归属，拒绝接管名称冲突的其他容器。
+Compose 项目为 `radio`，常驻应用容器固定为 `radio-api`、`radio-jobs`，前端由共享 Nginx 读取 `web/current/`，发布时重建同名容器；应用网络为 `radio_application`，命名卷以 `radio_` 开头，仍绑定 `data/` 中原设备路径。项目私有仓库容器为 `radio-registry` 与 `radio-registry-gateway`，镜像命名空间为 `radio`。共享 MySQL、Nginx 与 Jenkins 保留各自名称。目标执行器同时核对固定容器名与 Compose 归属，拒绝接管名称冲突的其他容器。
 
 ## 当前验证边界
 

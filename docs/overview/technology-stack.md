@@ -55,7 +55,7 @@
 | 覆盖率 | Vitest V8 Coverage |
 | CI/CD | Jenkins Pipeline，手动触发发布 |
 | 容器与编排 | Docker、Docker Compose |
-| Web 入口 | Caddy 2，提供静态资源、HTTPS 和反向代理 |
+| Web 入口 | 现有 Nginx，提供静态资源、HTTPS 和反向代理；Caddy 2 仅用于隔离产物验收 |
 | 服务器基线 | Ubuntu 24.04 LTS |
 | 后端镜像基线 | Node.js 24、Debian slim |
 

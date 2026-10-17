@@ -18,6 +18,7 @@ import {
   sourceMigrations,
 } from './release/images.mjs';
 import { deployFlow, validateRelease } from './flow.mjs';
+import { prepareStaticWeb, activateStaticWeb, assertStaticWeb } from './static-web.mjs';
 import { assertRuntimeLogImage, runtimeLogProbe } from './runtime-logs.mjs';
 
 const pathValue = (value) => {
@@ -42,9 +43,7 @@ async function privateFile(path) {
 export async function targetConfiguration(path, database, expectedSite) {
   const config = JSON.parse(await privateFile(path));
   assert.deepEqual(
-    Object.keys(config)
-      .filter((key) => key !== 'proxyPort')
-      .sort(),
+    Object.keys(config).sort(),
     [
       'apiEnvFile',
       'databaseCaFile',
@@ -55,16 +54,13 @@ export async function targetConfiguration(path, database, expectedSite) {
       'migrationEnvFile',
       'site',
       'stateDirectory',
+      'staticDirectory',
     ].sort(),
   );
   assert(config.format === 1 && config.environment === 'production');
   assert(/^https:\/\/[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?(?:\/[a-z0-9-]+)*$/.test(config.site));
   if (expectedSite) assert.equal(config.site, expectedSite);
-  if (config.proxyPort !== undefined)
-    assert(
-      Number.isInteger(config.proxyPort) && config.proxyPort >= 1024 && config.proxyPort <= 65535,
-    );
-  if (new URL(config.site).pathname !== '/') assert(config.proxyPort);
+  assert.equal(new URL(config.site).pathname, '/radio');
   for (const key of ['apiEnvFile', 'jobsEnvFile', 'migrationEnvFile']) {
     const values = {};
     for (const line of (await privateFile(config[key])).split('\n')) {
@@ -106,6 +102,20 @@ export async function targetConfiguration(path, database, expectedSite) {
       !config.maintenanceDirectory.startsWith(config.stateDirectory + '/') &&
       !config.stateDirectory.startsWith(config.maintenanceDirectory + '/'),
   );
+  const web = await lstat(pathValue(config.staticDirectory));
+  assert(
+    web.isDirectory() &&
+      !web.isSymbolicLink() &&
+      web.uid === process.getuid() &&
+      (web.mode & 0o777) === 0o755,
+  );
+  for (const path of [config.stateDirectory, config.maintenanceDirectory]) {
+    assert(
+      path !== config.staticDirectory &&
+        !path.startsWith(config.staticDirectory + '/') &&
+        !config.staticDirectory.startsWith(path + '/'),
+    );
+  }
   return config;
 }
 export async function replaceState(path, value) {
@@ -169,11 +179,8 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
   const invoke = (args, options) => (cleanMode ? cleanup : run)(args, options);
   const compose = async (value, args, options) => {
     const variables = {
-      HAEN_WEB_IMAGE: value.images.web,
       HAEN_SERVER_IMAGE: value.images.server,
       HAEN_MIGRATION_IMAGE: value.images.migration,
-      HAEN_SITE: config.proxyPort ? 'http://:8080' : config.site,
-      ...(config.proxyPort ? { HAEN_PROXY_PORT: String(config.proxyPort) } : {}),
       HAEN_DB_CA_FILE: config.databaseCaFile,
       HAEN_API_ENV_FILE: config.apiEnvFile,
       HAEN_JOBS_ENV_FILE: config.jobsEnvFile,
@@ -200,7 +207,6 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
         file,
         '--file',
         resolve('deploy/compose/compose.yaml'),
-        ...(config.proxyPort ? ['--file', resolve('deploy/compose/compose.proxy.yaml')] : []),
         ...args,
       ],
       options,
@@ -220,7 +226,7 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
     )
       .split(/\s+/)
       .filter(Boolean);
-    const named = ['web', 'api', 'jobs'].includes(service)
+    const named = ['api', 'jobs'].includes(service)
       ? (await invoke(['ps', '--all', '--quiet', '--filter', 'name=^/radio-' + service + '$']))
           .split(/\s+/)
           .filter(Boolean)
@@ -233,7 +239,7 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
     assert.equal(rows.length, 1);
     assert.equal(rows[0].Config.Labels['com.docker.compose.project'], 'radio');
     assert.equal(rows[0].Config.Labels['com.docker.compose.service'], service);
-    if (['web', 'api', 'jobs'].includes(service)) assert.equal(rows[0].Name, '/radio-' + service);
+    if (['api', 'jobs'].includes(service)) assert.equal(rows[0].Name, '/radio-' + service);
     return rows;
   };
   const assertRuntime = async (value, services, stopped = false) => {
@@ -261,19 +267,10 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
       if (service !== 'jobs') assert.equal(row.State.Health?.Status, 'healthy');
     }
   };
+  const gateway = async (path) =>
+    invoke(['exec', 'nginx', 'wget', '-q', '-T', '5', '-O', '-', 'http://127.0.0.1:8089' + path]);
   const probe = async (expected) => {
-    const current = state.current ?? selected;
-    const text = await compose(current, [
-      'exec',
-      '--no-TTY',
-      'web',
-      'wget',
-      '-q',
-      '-O',
-      '-',
-      'http://127.0.0.1:8081/maintenance',
-    ]);
-    assert.equal(text, expected ? 'enabled' : 'disabled');
+    assert.equal(await gateway('/maintenance'), expected ? 'enabled' : 'disabled');
   };
   const stop = async () => {
     // Cleanup ignores cancellation, but remains bounded and only addresses owned services.
@@ -353,15 +350,15 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
             );
           }
         }
-        for (const service of ['api', 'jobs', 'web']) {
+        for (const service of ['api', 'jobs']) {
           for (const row of await instances(service)) {
             assert(Number.isSafeInteger(row.RestartCount) && row.RestartCount >= 0);
             initialRestarts.set(row.Id, row.RestartCount);
           }
         }
-        if (current && !recovery) await assertRuntime(current, ['api', 'jobs', 'web']);
+        if (current && !recovery) await assertRuntime(current, ['api', 'jobs']);
         else
-          for (const service of ['api', 'jobs', 'web']) {
+          for (const service of ['api', 'jobs']) {
             const rows = await instances(service);
             if (!recovery) assert.equal(rows.length, 0);
             else if (rows.length) {
@@ -380,6 +377,18 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
               assert(ids.includes(rows[0].Image));
             }
           }
+        const gatewayInfo = JSON.parse(await invoke(['inspect', 'nginx']))[0];
+        assert(gatewayInfo.State.Running && gatewayInfo.NetworkSettings.Networks.radio_application);
+        for (const [destination, source] of [
+          ['/srv/radio', config.staticDirectory],
+          ['/srv/radio-maintenance', config.maintenanceDirectory],
+        ]) {
+          const mount = gatewayInfo.Mounts.find((item) => item.Destination === destination);
+          assert(mount && mount.Type === 'bind' && mount.Source === source && mount.RW === false);
+        }
+        assert.equal((await instances('web')).length, 0);
+        await prepareStaticWeb(invoke, candidate, config, (...args) => cleanup(...args));
+        if (current && !recovery) await assertStaticWeb(current, config);
         const tools = await instances('migration');
         assert(tools.every((row) => !row.State.Running));
         try {
@@ -490,58 +499,32 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
         );
         await assertRuntime(value, ['api']);
       },
-      web: async (value) => {
-        await compose(
-          value,
-          [
-            'up',
-            '--detach',
-            '--no-deps',
-            '--force-recreate',
-            '--wait',
-            '--wait-timeout',
-            '120',
-            'web',
-          ],
-          { timeout: 150000 },
-        );
-        await assertRuntime(value, ['web']);
-      },
+      web: (value) => activateStaticWeb(invoke, value, config, (...args) => cleanup(...args)),
       checkWeb: async (value) => {
-        await compose(value, [
-          'exec',
-          '--no-TTY',
-          'web',
-          'wget',
-          '-q',
-          '-O',
-          '/dev/null',
-          'http://127.0.0.1:8081/api/v1/health/ready',
-        ]);
-        const html = await compose(value, [
-          'exec',
-          '--no-TTY',
-          'web',
-          'wget',
-          '-q',
-          '-O',
-          '-',
-          'http://127.0.0.1:8081/release',
-        ]);
+        await assertStaticWeb(value, config);
+        for (let attempt = 0; ; attempt++) {
+          signal.throwIfAborted();
+          try {
+            assert.equal(JSON.parse(await gateway('/api/v1/health/ready')).status, 'ready');
+            break;
+          } catch {
+            if (attempt >= 14) throw Error('Gateway API readiness did not become available');
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        }
+        const html = await gateway('/release');
+        assert.equal(
+          html,
+          (await readFile(join(config.staticDirectory, 'current/index.html'), 'utf8')).trim(),
+        );
         const asset = /(?:src|href)="(?:\/[a-z0-9-]+)*(\/assets\/[A-Za-z0-9_.-]+\.js)"/.exec(
           html,
         )?.[1];
         assert(asset);
-        await compose(value, [
-          'exec',
-          '--no-TTY',
-          'web',
-          'wget',
-          '-q',
-          '-O',
-          '/dev/null',
-          'http://127.0.0.1:8081' + asset,
-        ]);
+        assert.equal(
+          await gateway(asset),
+          (await readFile(join(config.staticDirectory, 'current', asset.slice(1)), 'utf8')).trim(),
+        );
       },
       jobs: async (value) => {
         await compose(value, ['up', '--detach', '--no-deps', '--force-recreate', 'jobs']);
@@ -573,7 +556,10 @@ export async function executeTarget(env, signal, database, targetFingerprint) {
         }
         throw Error('Scheduler did not become ready');
       },
-      checkRuntime: (value) => assertRuntime(value, ['api', 'web', 'jobs']),
+      checkRuntime: async (value) => {
+        await assertRuntime(value, ['api', 'jobs']);
+        await assertStaticWeb(value, config);
+      },
       activate: async (current, previous) => {
         const recorded = JSON.parse(
           await command(

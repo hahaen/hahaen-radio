@@ -4,7 +4,7 @@
 
 ## 固定运行条件
 
-- Ubuntu 24.04、Node.js 24.9.0、pnpm 12.5.1、本机 Linux Docker socket、Compose ≥2.30；只支持同一主机固定 `radio` Compose 项目（常驻容器 `radio-web`、`radio-api`、`radio-jobs`）和现有 MySQL 8.0.46 正式库，正式库必须已经由操作者建好。
+- Ubuntu 24.04、Node.js 24.9.0、pnpm 12.5.1、本机 Linux Docker socket、Compose ≥2.30；只支持同一主机固定 `radio` Compose 项目（常驻容器 `radio-api`、`radio-jobs`）和现有 MySQL 8.0.46 正式库，正式库必须已经由操作者建好。
 - 在与 release.json 相同提交的完整干净检出中冻结安装并构建；操作工具需要仓库 scripts、Compose、编译入口和对应依赖。不能从裁剪后的 API 镜像或仅含服务端的日备份包调用。恢复/回退沿用经过审核的工具检出，不生成或重写迁移。
 - release.json 来源必须是已成功、受控分发的任务；通过受控渠道放在本机私有文件，当前用户所有、600。它不是签名文件，来源真实性由传输/审批权限保证，不能把任意同形 JSON 当作已验收产物。
 - 镜像固定平台子 manifest 摘要，实际拉取后核对 revision label 与本机原生架构。运行中的服务必须属于当前状态记录；首次接管不允许已有无记录的容器。不同机器共享同库也须通过此入口，禁止绕开数据库发布锁。
@@ -14,9 +14,11 @@
 
 前端构建可设置非敏感的 `HAEN_WEB_BASE_PATH=/radio/`，默认 `/`；API 请求、地理资源、字体、许可链接与浏览器路由使用同一前缀。构建参数同时传入三个镜像目标，Web 镜像记录 `io.haen.web-base` 标签，目标执行器核对其与公开站点路径一致。不能只在网关改写 HTML 代替重新构建。
 
-已有 HTTPS 网关时，私有 target 配置的 `site` 可为 `https://example.test/radio`（末尾不加斜杠），另外添加整数 `proxyPort`（1024–65535）。执行器自动叠加 `deploy/compose/compose.proxy.yaml`，Caddy 只通过回环 HTTP 端口与容器网络提供服务，TLS 继续由已有网关终止。该模式需要 Docker Compose ≥2.30 的 `!override` 支持。
+正式前端复用现有 Nginx，静态发布根由私有 target 的 `staticDirectory` 指定。将此目录和 `maintenanceDirectory` 分别只读挂载到共享 Nginx 的 `/srv/radio`、`/srv/radio-maintenance`；网关必须连接 `radio_application`。站点模板见 [公开路由](../../../deploy/nginx/radio-locations.conf)和[内部探针](../../../deploy/nginx/radio-probes.conf)，公开路由包含在现有 HTTPS server 中，内部探针独立包含在 http 中。探针只监听容器回环，不发布宿主机端口。
 
-网关应把 `/radio` 重定向到 `/radio/`，再将 `/radio/` 前缀剥除后代理到 Web 服务；浏览器仍使用 `/radio/api/v1/`，Caddy 上游收到 `/api/v1/`。Docker 中的已有网关通过显式共享网络连接 Web 服务，不能把容器回环地址当作宿主机回环。网络连接需写入现有网关与数据库各自的受控编排配置，以便容器重建后保留。
+Jenkins 仍构建并验收同提交 Web 产物镜像，Caddy 只用于该产物的隔离容器验收，正式环境不会启动 Web 容器。目标执行器从固定摘要创建未启动的临时提取容器，将 `/srv/` 的公开文件提取至 `staticDirectory/releases/<image-id>/site/`，拒绝符号链接，统一公开文件读取权限并记录内容摘要；随后原子切换 `current`。保留版本再次使用时重新验证摘要。`release.json`、目标状态与回退仍固定前后端镜像和确切提交。
+
+Nginx 直接提供 `/radio/` 静态文件，只将 `/radio/api/` 剥除子路径后代理到 `radio-api:3001`。导航请求回退 index，缺失资源返回 404。维护标记同时阻断公开页面和接口，返回 503；容器回环探针可检查维护开关、目标 HTML、资源与 API。网络和只读挂载必须写入共享网关的持久编排配置。
 
 ## 私有配置
 
@@ -27,6 +29,7 @@
 | apiEnvFile / jobsEnvFile / migrationEnvFile | 各自最小权限身份；数据库 host/port 与外层发布连接一致；不得携带前端公开变量 |
 | databaseCaFile | 可信 CA 普通文件，不可被组/其他用户写入；字节须与外层 DB_TLS_CA_PATH 读取结果相同；容器内挂载路径固定 |
 | maintenanceDirectory | 发布用户所有、755、独立持久目录，只存无敏感内容的 enabled 标记；Web 只读挂载，不能放配置、备份或状态 |
+| staticDirectory | 发布用户所有、755，只放公开前端产物；与状态和维护目录分离，网关只读挂载；不能含私有配置 |
 | stateDirectory | 发布用户所有、700，保存600状态与历史记录；不与维护目录相同或互相嵌套，不放在会清理的 Jenkins 工作区 |
 
 根私有 `.env.deploy.local` 显式由 `pnpm deploy:target` 加载；编译入口使用 `node --env-file=/etc/haen/deploy.env apps/server/dist/entrypoints/deploy.js`。需先核对本地文件被 Git 排除、未跟踪、权限600。变量名已加入空值模板：

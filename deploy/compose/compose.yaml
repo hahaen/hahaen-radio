@@ -74,41 +74,6 @@ services:
       - *ca
       - jobs_logs:/var/log/haen
 
-  web:
-    container_name: radio-web
-    image: ${HAEN_WEB_IMAGE:?Set an immutable web image}
-    restart: unless-stopped
-    read_only: true
-    cap_drop: [ALL]
-    security_opt: [no-new-privileges:true]
-    environment:
-      HAEN_SITE: ${HAEN_SITE:?Set the public site address}
-    ports:
-      - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTP_PORT:-80}:8080'
-      - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTPS_PORT:-443}:8443'
-      - '${HAEN_WEB_BIND:-0.0.0.0}:${HAEN_HTTPS_PORT:-443}:8443/udp'
-    volumes:
-      - type: bind
-        source: ${HAEN_MAINTENANCE_DIRECTORY:?Set the persistent maintenance marker directory}
-        target: /run/haen-maintenance
-        read_only: true
-        bind:
-          create_host_path: false
-      - caddy_data:/data
-      - caddy_config:/config
-    tmpfs: ['/tmp:size=16m,mode=1777']
-    depends_on:
-      api:
-        condition: service_healthy
-    healthcheck:
-      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1:8081/health]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    logging:
-      driver: none
-    networks: [application]
-
   migration:
     image: ${HAEN_MIGRATION_IMAGE:?Set the same-commit migration image}
     profiles: [tools]
@@ -132,8 +97,6 @@ networks:
   application:
 
 volumes:
-  caddy_data:
-  caddy_config:
   recognition_state:
   api_logs:
   jobs_logs:

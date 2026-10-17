@@ -7,5 +7,6 @@
   "migrationEnvFile": "",
   "databaseCaFile": "",
   "maintenanceDirectory": "",
-  "stateDirectory": ""
+  "stateDirectory": "",
+  "staticDirectory": ""
 }
