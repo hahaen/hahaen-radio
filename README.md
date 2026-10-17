@@ -10,6 +10,7 @@
 
 - [项目协作规范](AGENTS.md)：技术基线、开发验证与自动提交规则。
 - [完整产品目标](docs/product/README.md)：功能范围、阶段顺序与验收边界。
+- [从干净检出开始运行](docs/engineering/clean-checkout.md)：安装、私有配置、真实数据、编译运行与手动发布顺序。
 - [验收矩阵](docs/product/acceptance.md)：实际通过项、未完成项及部署前检查。
 - [完整文档导航](docs/README.md)：按主题查找全部技术文档。
 - [技术选型](docs/overview/technology-stack.md)：已确定的技术组合与版本策略。
@@ -43,7 +44,7 @@
 | [deploy](deploy/README.md) | Docker、Compose 与 Caddy 配置 |
 | [tests/e2e](tests/e2e/README.md) | 浏览器端到端测试 |
 
-应用入口与工程配置已建立，其余尚未实施的目录继续通过说明文件和 `.gitkeep` 保留。
+前后端、共享契约、数据迁移和发布工具均已有实现，具体职责及完成范围见各目录说明。
 
 ## 本地开发
 
@@ -54,18 +55,16 @@ pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Web：`http://127.0.0.1:5173`；API：`http://127.0.0.1:3001/api/v1/health/live`。开发前端通过 `/api` 代理访问后端。单独开发前端和后端可分别执行 `pnpm dev:web`、`pnpm dev:server`。
+Web：`http://127.0.0.1:5173`；API：`http://127.0.0.1:3001/api/v1/health/live`。开发前端通过 `/api` 代理访问后端。单独开发前端前先执行 `pnpm --filter @haen/contracts build`，再运行 `pnpm dev:web`；后端使用 `pnpm dev:server`。
 
 基础开发入口可以不配置数据库，此时目录明确未就绪。完整目录需要准备 MySQL 8.0.46、正确环境库名和分离身份，再按[迁移流程](docs/data/migrations/workflow.md)及[配置文档](docs/operations/configuration-and-logging.md)设置私有环境文件。API、任务、迁移分别显式加载 `.env.local`、`.env.jobs.local`、`.env.migration.local`；文件须被 Git 排除且权限为 600，进程环境优先，修改后重启。
 
 ```bash
-pnpm db:migrate
-pnpm catalog sync
+pnpm db:migrate status
 pnpm catalog status
-pnpm jobs
 ```
 
-迁移和同步会写入显式选择的目标库；开发固定 `ha_radio_dev`，不会回退到正式库。隔离数据库验收使用 `NODE_ENV=test`、专用 `ha_radio_test_<suffix>` 及 `pnpm test:mysql`，详见迁移文档。
+先按[完整启动顺序](docs/engineering/clean-checkout.md)完成身份与TLS核对、停写、备份、迁移、地点导入和目录同步，再启动API与任务。迁移和同步会写入显式选择的目标库；开发固定 `ha_radio_dev`，不会回退到正式库。隔离数据库验收使用 `NODE_ENV=test`、专用 `ha_radio_test_<suffix>` 及 `pnpm test:mysql`，详见迁移文档。
 
 ```bash
 pnpm check

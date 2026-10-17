@@ -1,0 +1,273 @@
+{
+  "recordedAt": "2026-10-17T06:58:25.230955+00:00",
+  "environment": {
+    "os": "macOS",
+    "arch": "arm64",
+    "node": "v24.9.0",
+    "pnpm": "12.5.1",
+    "browserCache": "existing Playwright browser cache; not a new operating system",
+    "inheritedProjectSecrets": false
+  },
+  "initialCheckout": {
+    "sourceCommit": "2d83485cc2e518a1907744e8205c574876261c21",
+    "cleanInitialStatus": true,
+    "absentPrivateAndGeneratedPaths": [
+      "node_modules",
+      "apps/web/dist",
+      "apps/server/dist",
+      "packages/contracts/dist",
+      ".env.local",
+      ".env.migration.local",
+      ".local"
+    ],
+    "ignoreBefore": {
+      ".env.local": false,
+      ".env.jobs.local": false,
+      ".env.migration.local": false,
+      ".local/archive/sample": false,
+      ".env.example": false
+    },
+    "node": "v24.9.0",
+    "pnpm": "12.5.1"
+  },
+  "installation": {
+    "command": "pnpm install --frozen-lockfile --store-dir <dedicated-private-store>",
+    "exitCode": 0,
+    "seconds": 13.365,
+    "inheritedProjectVariables": false,
+    "dedicatedStore": true
+  },
+  "engineeringCheck": {
+    "command": "pnpm check",
+    "exitCode": 0,
+    "seconds": 45.759,
+    "projectConfigurationAbsent": true,
+    "privateEnvironmentInherited": false,
+    "cleanTrackedStatusAfter": true,
+    "testFilesPassed": 53,
+    "testFilesSkipped": 2,
+    "testsPassed": 219,
+    "testsSkipped": 10,
+    "skippedScope": "real MySQL tests; no database configured",
+    "viteLargeBundleWarningRetained": true
+  },
+  "sourceEquivalence": {
+    "algorithm": "SHA256 of compact JSON sorted path+SHA256 records; tracked non-Markdown files outside docs excluding .gitignore",
+    "files": 275,
+    "sha256": "2297c9dc1034ecd6202a16af47eb179b7b966b025969e5bd7a14bd2407894a11",
+    "allSourceBytesEqualBetweenWorkingTreeAndCheckout": true,
+    "gitignoreOverlayAppliedOnlyAfterCleanCheck": true,
+    "gitignoreSha256": "20fa6073782bdc37a0c45a55ab3affa5d370f0c85916fa4a918bc67ada88b234"
+  },
+  "buildOutputs": [
+    {
+      "directory": "apps/web/dist",
+      "files": 17,
+      "sameFileSetAndBytes": true,
+      "treeSha256": "5443b2c191173b7383f7987467e3e7a08a4b1b0e1cbaccd4611307db70fcd34a"
+    },
+    {
+      "directory": "apps/server/dist",
+      "files": 47,
+      "sameFileSetAndBytes": true,
+      "treeSha256": "a7b9c8e8cc35507b5a5ace264f0a470961a0c949ae4790abe3c47175191cad19"
+    },
+    {
+      "directory": "packages/contracts/dist",
+      "files": 12,
+      "sameFileSetAndBytes": true,
+      "treeSha256": "d8a61fbe3a1742bd58224d13968f9d9a86e3633729e462a1538d59f040f59186"
+    }
+  ],
+  "webBudgets": [
+    {
+      "name": "entryGzip",
+      "actual": 184817,
+      "limit": 225280
+    },
+    {
+      "name": "allJavaScriptGzip",
+      "actual": 502473,
+      "limit": 614400
+    },
+    {
+      "name": "allCssGzip",
+      "actual": 8437,
+      "limit": 51200
+    },
+    {
+      "name": "fontsRaw",
+      "actual": 296232,
+      "limit": 524288
+    },
+    {
+      "name": "geographyRaw",
+      "actual": 314334,
+      "limit": 1048576
+    }
+  ],
+  "runtime": {
+    "compiledNoConfiguration": {
+      "health/live": {
+        "status": 200,
+        "body": {
+          "status": "ok",
+          "service": "haen-api"
+        }
+      },
+      "health/ready": {
+        "status": 503,
+        "body": {
+          "status": "not_ready",
+          "database": false,
+          "catalog": false,
+          "version": null
+        }
+      },
+      "stations": {
+        "status": 503,
+        "body": {
+          "code": "SERVICE_UNAVAILABLE",
+          "message": "Service temporarily unavailable",
+          "requestId": "<redacted-request-id>"
+        }
+      }
+    },
+    "preview": {
+      "baseURL": "http://127.0.0.1:4173",
+      "rows": [
+        {
+          "name": "desktop",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "browser": "156.0.8078.4",
+          "noDatabase503": true,
+          "noAutoplay": true,
+          "noFakeStations": true,
+          "languages": ["zh", "en"],
+          "noHorizontalOverflow": true,
+          "pageErrors": 0,
+          "externalRequests": 0,
+          "missingAssets": 0
+        },
+        {
+          "name": "mobile",
+          "viewport": {
+            "width": 412,
+            "height": 839
+          },
+          "browser": "156.0.8078.4",
+          "noDatabase503": true,
+          "noAutoplay": true,
+          "noFakeStations": true,
+          "languages": ["zh", "en"],
+          "noHorizontalOverflow": true,
+          "pageErrors": 0,
+          "externalRequests": 0,
+          "missingAssets": 0
+        }
+      ]
+    },
+    "ignoreAfter": {
+      ".env.local": true,
+      ".env.jobs.local": true,
+      ".env.migration.local": true,
+      ".env.backup.local": true,
+      ".env.restore.local": true,
+      ".env.deploy.local": true,
+      ".local/archive/probe": true,
+      ".env.example": false,
+      "apps/web/src/app/App.tsx": false
+    },
+    "explicitFileLoading": {
+      "fileMode": "0o600",
+      "selectedPort": 3002,
+      "api": {
+        "health/live": {
+          "status": 200,
+          "body": {
+            "status": "ok",
+            "service": "haen-api"
+          }
+        },
+        "health/ready": {
+          "status": 503,
+          "body": {
+            "status": "not_ready",
+            "database": false,
+            "catalog": false,
+            "version": null
+          }
+        },
+        "stations": {
+          "status": 503,
+          "body": {
+            "code": "SERVICE_UNAVAILABLE",
+            "message": "Service temporarily unavailable",
+            "requestId": "<redacted-request-id>"
+          }
+        }
+      }
+    },
+    "processEnvironmentOverridesFile": {
+      "fileMode": "development",
+      "processMode": "production",
+      "missingDatabaseExitCode": 1,
+      "fallbackToDevelopment": false
+    },
+    "development": {
+      "baseURL": "http://127.0.0.1:5173",
+      "rows": [
+        {
+          "name": "desktop",
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "browser": "156.0.8078.4",
+          "noDatabase503": true,
+          "noAutoplay": true,
+          "noFakeStations": true,
+          "languages": ["zh", "en"],
+          "noHorizontalOverflow": true,
+          "pageErrors": 0,
+          "externalRequests": 0,
+          "missingAssets": 0
+        },
+        {
+          "name": "mobile",
+          "viewport": {
+            "width": 412,
+            "height": 839
+          },
+          "browser": "156.0.8078.4",
+          "noDatabase503": true,
+          "noAutoplay": true,
+          "noFakeStations": true,
+          "languages": ["zh", "en"],
+          "noHorizontalOverflow": true,
+          "pageErrors": 0,
+          "externalRequests": 0,
+          "missingAssets": 0
+        }
+      ]
+    },
+    "privateConfigRemoved": true,
+    "allStartedProcessesTerminal": true,
+    "noRemainingPortListeners": {
+      "3001": true,
+      "3002": true,
+      "4173": true,
+      "5173": true
+    }
+  },
+  "notValidated": [
+    "fresh database bootstrap and diagnostic migration in development database",
+    "real MySQL tests in this checkout",
+    "Docker/Compose/Jenkins/target Linux execution",
+    "public HTTPS and production deployment",
+    "real phone and audio output in this round"
+  ]
+}

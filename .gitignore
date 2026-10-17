@@ -6,3 +6,7 @@ coverage/
 playwright-report/
 test-results/
 *.tsbuildinfo
+# Private local runtime configuration and operational files
+/.env.local
+/.env.*.local
+/.local/
