@@ -7,11 +7,14 @@
 .modeTabs {
   position: fixed;
   z-index: 4;
-  top: 184px;
-  left: 28px;
+  top: 222px;
+  left: var(--edge);
   display: flex;
-  gap: 0;
-  padding-block: 8px;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-panel);
 }
 .modeTabs button {
   display: flex;
@@ -21,14 +24,14 @@
   padding: 8px 14px;
   font-size: 13px;
   border: 1px solid transparent;
-  border-radius: 24px;
+  border-radius: 10px;
   background: transparent;
   color: var(--color-text-muted);
 }
 .modeTabs button[aria-pressed='true'] {
-  background: var(--color-text);
-  color: var(--color-bg);
-  border-color: var(--color-text);
+  background: var(--color-selected-bg);
+  color: var(--color-text);
+  border-color: var(--color-border);
 }
 .globePanel,
 .globeStage,
@@ -53,16 +56,17 @@
   height: 12px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.7;
   border: 1px solid var(--color-accent);
   border-radius: 50%;
 }
 .mapNotes {
   position: fixed;
   z-index: 3;
-  left: 34px;
+  left: var(--edge);
   bottom: calc(var(--player-height) + var(--dock-bottom) + 12px);
   width: 330px;
+  text-shadow: 0 2px 8px var(--color-bg);
   color: var(--color-text-muted);
   font-size: 11px;
   line-height: 1.6;
@@ -147,7 +151,7 @@
 }
 .genreAtlas {
   position: absolute;
-  inset: 20px 12% 20px 22%;
+  inset: 20px 10% 20px 26%;
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -206,7 +210,9 @@
   width: 144px;
   min-height: 60px;
   transform: translate(-50%, 16px);
-  padding: 6px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #0b151b9c;
   text-shadow: 0 2px 8px var(--color-bg);
 }
 .genreAtlas[data-rendered='true'] .genreCluster svg {
@@ -269,27 +275,27 @@
 
 @media (width < 1024px) {
   .mapNotes {
-    left: 22px;
+    left: var(--edge);
     width: 280px;
   }
   .modeTabs {
-    left: 16px;
+    left: var(--edge);
   }
 }
 @media (width < 768px) {
   .modeTabs {
-    top: 124px;
-    left: 12px;
-    padding: 0;
+    top: 136px;
+    left: var(--edge);
+    padding: 3px;
   }
   .modeTabs button {
     padding-inline: 12px;
     font-size: 12px;
   }
   .mapNotes {
-    left: 18px;
+    left: var(--edge);
     bottom: calc(var(--player-height) + var(--dock-bottom) + 8px);
-    width: calc(100% - 36px);
+    width: calc(100% - 2 * var(--edge));
     display: flex;
     gap: 8px;
     align-items: end;
@@ -312,12 +318,11 @@
     text-align: right;
     font-size: 10px;
   }
-  .dataState span:nth-child(2),
   .dataState button {
     display: none;
   }
   .genreAtlas {
-    inset: 44px 0 10px;
+    inset: 40px 0 10px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
   }
@@ -332,14 +337,25 @@
     max-width: 72px;
   }
 }
+@media (height < 820px) and (width >= 768px) {
+  .mapNotes {
+    left: auto;
+    right: var(--edge);
+    bottom: var(--dock-bottom);
+    width: 210px;
+  }
+}
 @media (height < 600px) and (width >= 600px) {
   .modeTabs {
-    top: 140px;
+    top: auto;
+    left: auto;
+    right: var(--edge);
+    bottom: var(--dock-bottom);
   }
   .mapNotes {
     left: auto;
     right: 20px;
-    bottom: 82px;
+    bottom: calc(var(--dock-bottom) + 64px);
     width: 200px;
   }
   .help {

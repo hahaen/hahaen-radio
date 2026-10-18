@@ -37,11 +37,27 @@ export function Modal({
       if (event.key === 'Escape' && !event.isComposing) {
         event.preventDefault();
         closeRef.current();
+      } else if (event.key === 'Tab' && element?.contains(document.activeElement)) {
+        const controls = [
+          ...element.querySelectorAll<HTMLElement>(
+            'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), summary, [tabindex]:not([tabindex="-1"])',
+          ),
+        ].filter((control) => control.tabIndex >= 0 && control.getClientRects().length > 0);
+        const first = controls[0],
+          last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first?.focus();
+        }
       }
     };
     document.addEventListener('pointerdown', dismiss);
     document.addEventListener('keydown', escape);
-    if (initialFocus) element?.querySelector<HTMLElement>(initialFocus)?.focus();
+    const firstControl = element?.querySelector<HTMLElement>(initialFocus ?? 'button');
+    firstControl?.focus({ preventScroll: true });
     return () => {
       document.removeEventListener('pointerdown', dismiss);
       document.removeEventListener('keydown', escape);
@@ -57,7 +73,7 @@ export function Modal({
           <X size={22} aria-hidden="true" />
         </button>
       </div>
-      {children}
+      <div className={styles.modalBody}>{children}</div>
     </dialog>
   );
 }

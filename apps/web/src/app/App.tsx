@@ -19,6 +19,7 @@ import {
   Settings2,
   Disc3,
   Info,
+  Radio,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationPreview } from '@haen/contracts';
@@ -508,6 +509,18 @@ export function App() {
                 }}
               />
             )}
+            {directoryOpen && draft && (
+              <button
+                className={styles.clearSearch}
+                aria-label={t('clearSearch')}
+                onClick={() => {
+                  setDraft('');
+                  searchRef.current?.focus();
+                }}
+              >
+                <X size={16} aria-hidden="true" />
+              </button>
+            )}
           </div>
           <button
             className={styles.openLibrary}
@@ -546,7 +559,8 @@ export function App() {
             aria-label={t('listeningSettings')}
             title={t('listeningSettings')}
             aria-expanded={settingsOpen}
-            onClick={() => {
+            onClick={(event) => {
+              event.currentTarget.focus({ preventScroll: true });
               player.invalidateSelection();
               setSettingsOpen((value) => !value);
               setLibraryOpen(false);
@@ -723,6 +737,13 @@ export function App() {
                       searchButtonRef.current?.focus();
                     }}
                   >
+                    <span
+                      className={styles.stationGlyph}
+                      data-genre={station.genre}
+                      aria-hidden="true"
+                    >
+                      <Radio size={19} />
+                    </span>
                     <span className={styles.stationText}>
                       <span className={styles.stationName}>{station.name}</span>{' '}
                       <span className={styles.stationLocation}>{location(station)}</span>
@@ -813,21 +834,12 @@ export function App() {
         aria-label={t('player')}
       >
         <section hidden={immersive} className={styles.current} aria-label={t('selectedStation')}>
-          <h1 data-long={(state.station?.name.length ?? 0) > 45}>
-            {state.station?.name ?? t('headline')}
-          </h1>
-          {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
-          {state.station ? (
-            <>
-              <p className={styles.location}>{location(state.station)}</p>
-              <p className={styles.metadata}>
-                {t('genre.' + state.station.genre)}
-                <span>
-                  {state.station.bitrate
-                    ? String(state.station.bitrate) + ' kbps'
-                    : t('unknownBitrate')}
-                </span>
-              </p>
+          <div className={styles.playerTopline}>
+            <span className={styles.playerLabel}>
+              <Radio size={15} aria-hidden="true" />
+              {t('selectedStation')}
+            </span>
+            {state.station && (
               <div className={styles.stationActions}>
                 <button
                   aria-label={[
@@ -884,6 +896,23 @@ export function App() {
                   <Share2 size={20} aria-hidden="true" />
                 </button>
               </div>
+            )}
+          </div>
+          <h1 data-long={(state.station?.name.length ?? 0) > 45}>
+            {state.station?.name ?? t('headline')}
+          </h1>
+          {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
+          {state.station ? (
+            <>
+              <p className={styles.location}>{location(state.station)}</p>
+              <p className={styles.metadata}>
+                {t('genre.' + state.station.genre)}
+                <span>
+                  {state.station.bitrate
+                    ? String(state.station.bitrate) + ' kbps'
+                    : t('unknownBitrate')}
+                </span>
+              </p>
             </>
           ) : (
             <p className={styles.description}>{t('chooseStation')}</p>

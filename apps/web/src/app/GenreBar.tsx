@@ -47,18 +47,31 @@ export function GenreBar({
     <div ref={root} className={styles.genreDock} hidden={hidden}>
       {open && (
         <section className={styles.filterPanel} aria-label={t('filters')}>
-          <button
-            className={styles.filterClose}
-            aria-label={t('closePanel')}
-            onClick={() => setOpen(false)}
-          >
-            <X size={20} aria-hidden="true" />
-          </button>
+          <div className={styles.directoryHeading}>
+            <h2>{t('filters')}</h2>
+            <button
+              aria-label={t('closePanel')}
+              onClick={() => {
+                setOpen(false);
+                root.current
+                  ?.querySelector<HTMLButtonElement>('button[aria-expanded]')
+                  ?.focus({ preventScroll: true });
+              }}
+            >
+              <X size={20} aria-hidden="true" />
+            </button>
+          </div>
           <Filters expanded value={value} manifest={manifest} onChange={onChange} />
         </section>
       )}
       <nav className={styles.genreBar} aria-label={t('filterGenres')}>
-        <button onClick={() => setOpen(!open)} aria-expanded={open}>
+        <button
+          onClick={(event) => {
+            event.currentTarget.focus({ preventScroll: true });
+            setOpen(!open);
+          }}
+          aria-expanded={open}
+        >
           <SlidersHorizontal size={16} aria-hidden="true" />
           {t('filters')}
         </button>

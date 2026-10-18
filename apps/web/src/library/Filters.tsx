@@ -17,13 +17,7 @@ export function Filters({
   onChange(value: ListeningFilters): void;
 }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(
-    expanded ||
-      value.genres !== null ||
-      value.languages !== null ||
-      value.minBitrate > 0 ||
-      value.favoritesOnly,
-  );
+  const [open, setOpen] = useState(expanded);
   const change = (patch: Partial<ListeningFilters>) => onChange({ ...value, ...patch });
   const active =
     (value.genres !== null ? 1 : 0) +

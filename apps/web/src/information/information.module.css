@@ -1,8 +1,8 @@
 .topics {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  padding-bottom: 16px;
+  gap: 4px;
+  padding-block: 12px;
   border-bottom: 1px solid var(--color-border);
 }
 .topics button {
@@ -15,6 +15,7 @@
   line-height: 1.5;
 }
 .topics button[aria-pressed='true'] {
+  background: var(--color-selected-bg);
   border-color: var(--color-secondary);
   color: var(--color-text);
 }
@@ -24,8 +25,8 @@
   overflow-wrap: anywhere;
 }
 .content h3 {
-  font: 400 24px / 1.5 var(--font-display);
-  margin-block: 24px;
+  font: 400 21px / 1.5 var(--font-display);
+  margin-block: 20px;
 }
 .content h4 {
   margin-block: 28px 8px;
@@ -36,8 +37,8 @@
   margin-block: 12px;
 }
 .content .intro {
-  font: 400 28px / 1.6 var(--font-display);
-  margin-block: 24px;
+  font: 400 25px / 1.6 var(--font-display);
+  margin-block: 20px;
 }
 .secondary {
   color: var(--color-text-muted);

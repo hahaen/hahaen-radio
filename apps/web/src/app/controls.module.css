@@ -11,7 +11,7 @@
 }
 .settings h3 {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 19px;
   font-weight: 400;
   margin: 0 0 16px;
 }
@@ -25,6 +25,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 12px;
+  font-size: 14px;
   min-height: 48px;
   margin-block: 8px;
 }
@@ -51,10 +52,51 @@
   margin-block: 8px;
 }
 .check input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--color-accent);
+  appearance: none;
+  position: relative;
+  width: 36px;
+  height: 22px;
+  margin: 0;
+  background: var(--color-bg);
+  border: 1px solid var(--color-secondary);
+  border-radius: 20px;
   flex-shrink: 0;
+  cursor: pointer;
+}
+.check {
+  font-size: 14px;
+  padding-block: 6px;
+}
+.check input::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition: transform 180ms ease;
+}
+.check input:checked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.check input:checked::after {
+  background: var(--color-on-accent);
+  transform: translateX(14px);
+}
+.check input:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.shortcuts kbd {
+  display: inline-block;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  padding: 2px 8px;
 }
 .timerChoices {
   display: flex;
@@ -77,6 +119,7 @@
 }
 .timerChoices button[aria-pressed='true'],
 .favorite[aria-pressed='true'] {
+  background: var(--color-selected-bg);
   border-color: var(--color-accent);
   color: var(--color-accent);
 }
@@ -106,6 +149,8 @@
   color: var(--color-error);
 }
 .immersive {
+  position: relative;
+  z-index: 2;
   max-width: 960px;
   margin: 0 auto;
   text-align: center;

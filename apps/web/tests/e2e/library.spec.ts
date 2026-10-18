@@ -70,6 +70,7 @@ test('combines filter dimensions and favorites without interrupting actual curre
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '暂停', exact: true }).click();
   await openDirectory(page);
+  await page.locator('#station-directory summary').click();
   await page.getByRole('checkbox', { name: '爵士', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 2 个电台');
   await page.getByRole('checkbox', { name: /法语/ }).check();
@@ -80,6 +81,7 @@ test('combines filter dimensions and favorites without interrupting actual curre
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '随机下一站', exact: true })).toBeDisabled();
   await openDirectory(page);
+  await page.locator('#station-directory summary').click();
   await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
   await page
@@ -108,6 +110,7 @@ test('restores successful listening paused and gives a shared station priority o
   await page.goto('/?station=' + second.id);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   await openDirectory(page);
+  await page.locator('#station-directory summary').click();
   await expect(page.getByRole('checkbox', { name: '爵士', exact: true })).toBeChecked();
   await page.keyboard.press('Escape');
   await expect(page.locator('audio')).toHaveCount(0);

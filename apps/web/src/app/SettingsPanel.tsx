@@ -48,11 +48,6 @@ export function SettingsPanel({
             <option value="en">English</option>
           </select>
         </label>
-        <LanguageChoices
-          value={state.filters.languages}
-          manifest={manifest}
-          onChange={onLanguages}
-        />
         <section aria-label={t('playbackPreferences')}>
           <h3>{t('playbackPreferences')}</h3>
           {playback.volumeControllable ? (
@@ -186,6 +181,11 @@ export function SettingsPanel({
           </p>
           <p>{t('sleepBackgroundHint')}</p>
         </section>
+        <LanguageChoices
+          value={state.filters.languages}
+          manifest={manifest}
+          onChange={onLanguages}
+        />
         <section aria-label={t('keyboardHelp')}>
           <h3>{t('keyboardHelp')}</h3>
           <dl className={styles.shortcuts}>

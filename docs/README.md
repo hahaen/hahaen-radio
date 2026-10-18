@@ -1,6 +1,6 @@
 # 技术文档导航
 
-当前页面调整：[全屏地球与紧凑播放器](iterations/2026-10-18-celestial-layout/README.md)。
+当前页面调整：[夜航页面整体优化](iterations/2026-10-18-visual-polish/README.md)，构图基线见[全屏地球与紧凑播放器](iterations/2026-10-18-celestial-layout/README.md)。
 
 
 正式环境部署进展见[正式部署记录](iterations/2026-10-17-production-deployment/README.md)，服务器路径见[项目目录](deployment/containers/server-layout.md)，具体配置见[服务器配置与产物清单](deployment/containers/server-inventory.md)。
