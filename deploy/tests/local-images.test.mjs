@@ -49,11 +49,12 @@ it('protects current, previous and schema images and never sweeps a concurrent b
 });
 it('removes only an explicitly retired successful project image with owned tags', async () => {
   const commands = [],
-    tag = 'radio-local/api:' + 'd'.repeat(40) + '-' + 'd'.repeat(12);
+    tag = 'radio-local/api:' + 'd'.repeat(40) + '-' + 'd'.repeat(12),
+    legacyAlias = 'localhost:5043/radio/api@' + id('d');
   const run = async (args) => {
     commands.push(args);
     return args[1] === 'inspect'
-      ? JSON.stringify([image(args[2].at(-1), args[2] === id('d') ? [tag] : [])])
+      ? JSON.stringify([image(args[2].at(-1), args[2] === id('d') ? [tag, legacyAlias] : [])])
       : '';
   };
   const root = await mkdtemp(join(tmpdir(), 'radio-retired-'));
@@ -71,20 +72,25 @@ it('removes only an explicitly retired successful project image with owned tags'
       { stateDirectory: root },
       [release('api', 'd')],
     );
-    expect(commands.filter((args) => args[1] === 'rm')).toEqual([['image', 'rm', tag]]);
+    expect(commands.filter((args) => args[1] === 'rm')).toEqual([
+      ['image', 'rm', tag, legacyAlias],
+    ]);
     await expect(access(snapshot)).rejects.toThrow();
   } finally {
     await rm(root, { recursive: true, force: true });
   }
 });
-it('refuses to delete an image tagged for another project', async () => {
-  const commands = [];
-  const run = async (args) => {
-    commands.push(args);
-    return JSON.stringify([image('d', ['other-project/service:stable'])]);
-  };
-  await expect(
-    pruneLocalImages(run, { components: {}, previous: {} }, {}, [release('api', 'd')]),
-  ).rejects.toThrow();
-  expect(commands.some((args) => args[1] === 'rm')).toBe(false);
-});
+it.each(['other-project/service:stable', 'localhost:5043/radio/api@' + id('e')])(
+  'refuses unowned or mismatched digest aliases: %s',
+  async (tag) => {
+    const commands = [];
+    const run = async (args) => {
+      commands.push(args);
+      return JSON.stringify([image('d', [tag])]);
+    };
+    await expect(
+      pruneLocalImages(run, { components: {}, previous: {} }, {}, [release('api', 'd')]),
+    ).rejects.toThrow();
+    expect(commands.some((args) => args[1] === 'rm')).toBe(false);
+  },
+);

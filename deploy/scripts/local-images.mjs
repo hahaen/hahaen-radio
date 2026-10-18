@@ -44,8 +44,14 @@ export async function pruneLocalImages(run, state, config, retired) {
       const tags = image.RepoTags ?? [];
       assert(image.Config.Labels['io.haen.project'] === 'radio' || tags.length > 0);
       assert(
-        tags.every((tag) =>
-          /^radio-local\/(frontend|api|jobs|migration):[a-f0-9]{40}-[a-f0-9]{12}$/.test(tag),
+        tags.every(
+          (tag) =>
+            /^radio-local\/(frontend|api|jobs|migration):[a-f0-9]{40}-[a-f0-9]{12}$/.test(tag) ||
+            new RegExp(
+              '^(?:radio-local|localhost:5043/radio)/(frontend|api|jobs|migration)@' +
+                image.Id +
+                '$',
+            ).test(tag),
         ),
       );
       if (tags.length) await run(['image', 'rm', ...tags]);

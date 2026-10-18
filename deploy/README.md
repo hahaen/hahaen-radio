@@ -10,7 +10,7 @@
 | `nginx/` | 共享正式网关的静态路由、API 代理、维护与内部探针 |
 | `systemd/` | 受控运维主机的每日备份 service/timer，实际安装按[说明](../docs/operations/daily-backups.md)执行 |
 
-根 `Jenkinsfile` 已接入前端、API、任务三个独立手动入口及各自检查、构建、验收和分发；[节点配置及范围](../docs/deployment/jenkins/pipeline.md)与目标发布编排分别验收。真实凭据、运行环境文件和数据库不放入此目录。
+根 `Jenkinsfile` 已接入前端、API、任务三个独立手动入口及各自检查、服务器本机构建、验收和部署；[节点配置及范围](../docs/deployment/jenkins/pipeline.md)与目标发布编排分别验收。真实凭据、运行环境文件和数据库不放入此目录。
 
 构建与命令见[运行说明](../docs/deployment/containers/local-and-image-build.md)。完整流程见[部署文档](../docs/deployment/README.md)。
 
