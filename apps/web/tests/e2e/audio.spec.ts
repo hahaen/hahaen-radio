@@ -1,4 +1,4 @@
-import { selectStation } from './listening-fixture.js';
+import { continuousFixture, selectStation } from './listening-fixture.js';
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { testStation, testScene } from '../../src/testing/stations.js';
@@ -27,6 +27,8 @@ async function install(
   delayedMedia?: string,
   scene = false,
 ) {
+  await continuousFixture(page);
+  await page.addInitScript(() => sessionStorage.setItem('haen:exploring:v1', 'true'));
   const requests: string[] = [];
   await page.route('**/api/v1/catalog/scene**', async (route) => {
     requests.push(route.request().url().endsWith('/scene') ? 'scene-manifest' : 'scene-chunk');

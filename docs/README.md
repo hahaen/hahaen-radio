@@ -19,6 +19,8 @@
 
 电台逐台地图展示见[任务记录](iterations/2026-10-18-station-map-density/README.md)。
 
+全系统样式统一见[任务记录](iterations/2026-10-18-unified-visual-style/README.md)。
+
 ## 阅读顺序
 
 标签页图标的候选、尺寸对照及接入见[图标设计记录](iterations/2026-10-18-favicon-concepts/README.md)，当前 C「耳机海湾」已改为透明背景 v2 并接入前端源码，本次修正待发布。

@@ -4,35 +4,6 @@
   min-width: 0;
   min-height: 0;
 }
-.modeTabs {
-  position: fixed;
-  z-index: 4;
-  top: 222px;
-  left: var(--edge);
-  display: flex;
-  gap: 4px;
-  padding: 4px;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: var(--color-panel);
-}
-.modeTabs button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px 14px;
-  font-size: 13px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--color-text-muted);
-}
-.modeTabs button[aria-pressed='true'] {
-  background: var(--color-selected-bg);
-  color: var(--color-text);
-  border-color: var(--color-border);
-}
 .globePanel,
 .globeStage,
 .canvasHost {
@@ -52,24 +23,26 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 12px;
-  height: 12px;
+  width: 44px;
+  height: 44px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.7;
-  border: 1px solid var(--color-accent);
+  opacity: 0.75;
+  border: 1px solid var(--color-text-muted);
+  outline: 4px dotted #b3c1b744;
+  outline-offset: 5px;
   border-radius: 50%;
 }
 .mapNotes {
   position: fixed;
   z-index: 3;
-  left: var(--edge);
-  bottom: calc(var(--player-height) + var(--dock-bottom) + 12px);
-  width: 330px;
+  right: var(--edge);
+  bottom: var(--dock-bottom);
+  width: 260px;
+  text-align: right;
   text-shadow: 0 2px 8px var(--color-bg);
   color: var(--color-text-muted);
-  font-size: 11px;
-  line-height: 1.6;
+  font: 10px / 1.8 var(--font-mono);
 }
 .preview {
   display: flex;
@@ -151,7 +124,7 @@
 }
 .genreAtlas {
   position: absolute;
-  inset: 20px 10% 20px 26%;
+  inset: 100px 4% 150px 36%;
   min-height: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -175,8 +148,8 @@
 }
 .genreCluster span {
   max-width: 100%;
-  font-family: var(--font-display);
-  font-size: 19px;
+  font-family: var(--font-body);
+  font-size: 16px;
   overflow-wrap: anywhere;
 }
 .genreCluster small {
@@ -203,16 +176,17 @@
   touch-action: none;
 }
 .genreAtlas[data-rendered='true'] {
+  inset: 80px 4% 150px 12%;
   display: block;
 }
 .genreAtlas[data-rendered='true'] .genreCluster {
   position: absolute;
   width: 144px;
   min-height: 60px;
-  transform: translate(-50%, 16px);
+  transform: translate(-50%, -64px);
   padding: 8px;
   border-radius: 12px;
-  background: #0b151b9c;
+  background: transparent;
   text-shadow: 0 2px 8px var(--color-bg);
 }
 .genreAtlas[data-rendered='true'] .genreCluster svg {
@@ -275,27 +249,17 @@
 
 @media (width < 1024px) {
   .mapNotes {
-    left: var(--edge);
-    width: 280px;
-  }
-  .modeTabs {
-    left: var(--edge);
+    right: var(--edge);
+    width: 220px;
   }
 }
 @media (width < 768px) {
-  .modeTabs {
-    top: 136px;
-    left: var(--edge);
-    padding: 3px;
-  }
-  .modeTabs button {
-    padding-inline: 12px;
-    font-size: 12px;
-  }
   .mapNotes {
     left: var(--edge);
-    bottom: calc(var(--player-height) + var(--dock-bottom) + 8px);
+    top: 122px;
+    bottom: auto;
     width: calc(100% - 2 * var(--edge));
+    text-align: left;
     display: flex;
     gap: 8px;
     align-items: end;
@@ -322,9 +286,12 @@
     display: none;
   }
   .genreAtlas {
-    inset: 40px 0 10px;
+    inset: 120px 0 40px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 4px;
+  }
+  .genreAtlas[data-rendered='true'] {
+    inset: 120px 0 40px;
   }
   .genreAtlas[data-rendered='true'] .genreCluster {
     width: 92px;
@@ -346,12 +313,6 @@
   }
 }
 @media (height < 600px) and (width >= 600px) {
-  .modeTabs {
-    top: auto;
-    left: auto;
-    right: var(--edge);
-    bottom: var(--dock-bottom);
-  }
   .mapNotes {
     left: auto;
     right: 20px;

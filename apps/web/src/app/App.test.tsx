@@ -43,6 +43,7 @@ beforeEach(async () => {
     },
   });
   localStorage.clear();
+  sessionStorage.setItem('haen:exploring:v1', 'true');
   await setLanguage('zh');
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function (
     this: HTMLMediaElement,

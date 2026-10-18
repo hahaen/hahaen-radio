@@ -9,7 +9,7 @@
   min-height: 44px;
   padding: 8px 12px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: 16px;
   color: var(--color-text-muted);
   background: transparent;
   line-height: 1.5;
@@ -25,7 +25,7 @@
   overflow-wrap: anywhere;
 }
 .content h3 {
-  font: 400 21px / 1.5 var(--font-display);
+  font: 500 17px / 1.5 var(--font-body);
   margin-block: 20px;
 }
 .content h4 {
@@ -98,7 +98,7 @@
   padding: 16px;
   margin-top: 12px;
   border: 1px solid var(--color-secondary);
-  border-radius: 8px;
+  border-radius: 16px;
   font: 14px / 1.8 var(--font-mono);
   color: var(--color-text);
   background: var(--color-bg);
@@ -110,7 +110,7 @@
   min-height: 44px;
   padding: 10px 14px;
   border: 1px solid var(--color-secondary);
-  border-radius: 8px;
+  border-radius: 16px;
   background: transparent;
   color: var(--color-text);
   line-height: 1.5;

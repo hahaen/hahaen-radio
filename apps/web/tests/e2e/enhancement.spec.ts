@@ -61,25 +61,38 @@ async function setup(page: Page, denied = false) {
     });
   });
   const body = await readFile(new URL('../fixtures/audio/normalization.wav', import.meta.url));
+  const dataOffset = body.indexOf(Buffer.from('data'));
+  if (dataOffset < 0) throw new Error('Expected PCM WAV fixture');
+  const pcmOffset = dataOffset + 8;
+  const liveBody = Buffer.concat([
+    body.subarray(0, pcmOffset),
+    ...Array<Buffer>(60).fill(body.subarray(pcmOffset)),
+  ]);
+  liveBody.writeUInt32LE(liveBody.length - 8, 4);
+  liveBody.writeUInt32LE(liveBody.length - pcmOffset, dataOffset + 4);
   let samples = 0;
   await page.route('https://media.haen.test/normalization.wav', async (route) => {
     const sampling = route.request().resourceType() === 'fetch';
     if (sampling) samples++;
+    // Keep the real media continuous while the independent analysis sample stays short.
+    const responseBody = sampling ? body : liveBody;
     const range = route
         .request()
         .headers()
         .range?.match(/^bytes=(\d+)-(\d*)$/),
       start = range ? Number(range[1]) : 0,
-      end = range?.[2] ? Math.min(Number(range[2]), body.length - 1) : body.length - 1;
-    if (start >= body.length) return route.fulfill({ status: 416, body: '' });
+      end = range?.[2]
+        ? Math.min(Number(range[2]), responseBody.length - 1)
+        : responseBody.length - 1;
+    if (start >= responseBody.length) return route.fulfill({ status: 416, body: '' });
     await route.fulfill({
       status: range ? 206 : 200,
-      body: body.subarray(start, end + 1),
+      body: responseBody.subarray(start, end + 1),
       contentType: 'audio/wav',
       headers: {
         'accept-ranges': 'bytes',
         'access-control-allow-origin': denied ? 'https://denied.haen.test' : '*',
-        ...(range ? { 'content-range': `bytes ${start}-${end}/${body.length}` } : {}),
+        ...(range ? { 'content-range': `bytes ${start}-${end}/${responseBody.length}` } : {}),
       },
     });
   });

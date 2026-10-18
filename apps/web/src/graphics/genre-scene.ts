@@ -1,9 +1,11 @@
 import {
+  AdditiveBlending,
+  Color,
   BufferGeometry,
   Float32BufferAttribute,
   PerspectiveCamera,
   Points,
-  PointsMaterial,
+  ShaderMaterial,
   Scene,
   Vector3,
   WebGLRenderer,
@@ -36,41 +38,61 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
   controls.minPolarAngle = Math.PI / 2 - 0.25;
   controls.maxPolarAngle = Math.PI / 2 + 0.25;
   const layout = [
-    [-2.7, 1.75],
-    [-0.7, 2.0],
-    [1.6, 1.65],
-    [3.0, 0.6],
-    [-2.1, 0.0],
-    [0.25, 0.35],
-    [1.7, -0.45],
-    [-3.0, -1.6],
-    [-0.8, -1.9],
-    [1.0, -2.0],
-    [2.9, -1.75],
+    [-3.0, -0.15],
+    [-2.6, 0.4],
+    [3.25, 0.5],
+    [-2.1, 1.8],
+    [-0.65, 0.75],
+    [0.1, -1.25],
+    [-2.8, -2.0],
+    [1.9, 1.7],
+    [0.7, 1.2],
+    [2.8, -1.0],
+    [2.65, -1.3],
   ] as const;
   const objects = clouds.map((cloud, index) => {
     const center = new Vector3();
     const positions: number[] = [];
-    const count = Math.min(powerSave ? 90 : 440, cloud.count);
+    const count = Math.min(powerSave ? 180 : 6000, cloud.count);
     for (let i = 0; i < count; i++) {
       const angle = i * 2.3999632297 + index * 0.7;
-      const radius = Math.pow((i + 0.5) / count, 0.72) * (0.56 + (index % 3) * 0.1);
+      const radius =
+        Math.pow((i + 0.5) / count, 0.8) *
+        (0.35 + Math.sqrt(Math.min(cloud.count, 15000) / 15000) * 0.8);
       positions.push(
         Math.cos(angle + radius * 4.5) * radius,
         Math.sin(angle + radius * 4.5) * radius * (0.45 + (index % 4) * 0.08),
-        Math.sin(i * 7.13) * 0.28,
+        Math.sin(i * 7.13) * radius * 0.42,
       );
     }
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-    const material = new PointsMaterial({
-      color: [
-        0x9cadac, 0xcf9694, 0x95aecb, 0xcf9b83, 0x8ac6bd, 0xc4b363, 0xc0af98, 0xd4cfad, 0xd8ad6b,
-        0xa6bd91, 0x83aaa3,
-      ][index % 11]!,
-      size: powerSave ? 0.025 : 0.024,
+    const material = new ShaderMaterial({
+      uniforms: {
+        tint: {
+          value: new Color(
+            [
+              0x9cadac, 0xcf9694, 0x95aecb, 0xcf9b83, 0x8ac6bd, 0xc4b363, 0xc0af98, 0xd4cfad,
+              0xd8ad6b, 0xa6bd91, 0x83aaa3,
+            ][index % 11]!,
+          ),
+        },
+        pointSize: { value: powerSave ? 1.7 : 2.8 },
+      },
+      vertexShader: `uniform float pointSize; varying float vAlpha;
+        void main(){vec4 p=modelViewMatrix*vec4(position,1.0);
+          float seed=fract(sin(dot(position,vec3(12.98,78.23,37.71)))*43758.54);
+          vAlpha=0.45+seed*0.55;
+          gl_PointSize=pointSize*(0.65+seed)*9.5/max(2.0,-p.z);
+          gl_Position=projectionMatrix*p;}`,
+      fragmentShader: `uniform vec3 tint; varying float vAlpha;
+        void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;
+          float halo=exp(-d*d*24.0);
+          gl_FragColor=vec4(tint,halo*vAlpha);
+          #include <colorspace_fragment>
+        }`,
       transparent: true,
-      opacity: 0.88,
+      blending: AdditiveBlending,
       depthWrite: false,
     });
     const points = new Points(geometry, material);
@@ -120,7 +142,10 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
     // Keep the same complete cloud field visible in a narrow portrait viewport.
     camera.fov = width < 500 ? 49 : 38;
     camera.updateProjectionMatrix();
-    renderer.setPixelRatio(powerSave ? 1 : Math.min(devicePixelRatio || 1, 1.5));
+    const ratio = powerSave ? 1 : Math.min(devicePixelRatio || 1, 1.5);
+    renderer.setPixelRatio(ratio);
+    for (const object of objects)
+      object.points.material.uniforms.pointSize!.value = (powerSave ? 1.7 : 2.8) * ratio;
     renderer.setSize(width, height, false);
     invalidate();
   };

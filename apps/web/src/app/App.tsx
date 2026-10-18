@@ -15,7 +15,9 @@ import {
   X,
   Star,
   Share2,
-  Library as LibraryIcon,
+  Bookmark,
+  Globe2,
+  ListMusic,
   Settings2,
   Disc3,
   Info,
@@ -103,6 +105,22 @@ export function App() {
   const track = useNowPlaying(state);
   const library = useListeningLibrary(player);
   const personal = useStore(library.store);
+  const [exploring, setExploring] = useState(() => {
+    try {
+      return sessionStorage.getItem('haen:exploring:v1') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const intro = !state.station && !exploring;
+  const browse = () => {
+    setExploring(true);
+    try {
+      sessionStorage.setItem('haen:exploring:v1', 'true');
+    } catch {
+      /* Browsing remains available in memory. */
+    }
+  };
   const search = personal.filters.q;
   const [searchInput, setSearchInput] = useState({ base: search, value: search });
   const draft = searchInput.base === search ? searchInput.value : search;
@@ -464,15 +482,31 @@ export function App() {
     setOffset(0);
   };
   return (
-    <div ref={pageRef} className={styles.page} data-power-save={personal.scene.powerSave}>
+    <div
+      ref={pageRef}
+      className={styles.page}
+      data-intro={intro}
+      data-power-save={personal.scene.powerSave}
+    >
       <div className={styles.shell} hidden={immersive}>
-        <a className={styles.skip} href="#main">
+        <a className={styles.skip} href={intro ? '#welcome' : '#main'}>
           {t('skip')}
         </a>
         <header className={styles.header}>
-          <a className={styles.brand} href="#main" aria-label="声屿 HAEN">
-            {t('brand')} <span>HAEN</span>
-          </a>
+          <div className={styles.identity}>
+            <a className={styles.brand} href="#main" aria-label="声屿 HAEN">
+              <Disc3 size={23} aria-hidden="true" />
+              {t('brand')} <span>HAEN</span>
+            </a>
+            <p className={styles.brandCaption} title={t('tagline')}>
+              {sceneManifest
+                ? t('catalogSummary', {
+                    stations: sceneManifest.playableCount.toLocaleString(i18n.language),
+                    countries: sceneManifest.countryCount,
+                  })
+                : t('tagline')}
+            </p>
+          </div>
           <div className={styles.headerSearch} data-expanded={directoryOpen}>
             <button
               ref={searchButtonRef}
@@ -522,24 +556,48 @@ export function App() {
               </button>
             )}
           </div>
+          <div className={styles.viewTabs} role="group" aria-label={t('viewMode')}>
+            {(['globe', 'genres'] as const).map((view) => (
+              <button
+                key={view}
+                aria-pressed={personal.preferences.view === view}
+                onClick={() => {
+                  player.invalidateSelection();
+                  exploration.current?.close();
+                  library.setPreferences({ view });
+                }}
+              >
+                {view === 'globe' ? (
+                  <Globe2 size={16} aria-hidden="true" />
+                ) : (
+                  <ListMusic size={16} aria-hidden="true" />
+                )}
+                {t(view === 'globe' ? 'globeView' : 'genreView')}
+              </button>
+            ))}
+          </div>
+          <div className={styles.libraryControl}>
+            <button
+              className={[styles.openLibrary, styles.libraryButton].join(' ')}
+              title={t('myListening')}
+              aria-expanded={libraryOpen}
+              aria-label={t('myListening')}
+              onClick={(event) => {
+                event.currentTarget.focus({ preventScroll: true });
+                player.invalidateSelection();
+                setLibraryOpen((value) => !value);
+                setInformationOpen(false);
+                setSettingsOpen(false);
+                setDirectoryOpen(false);
+              }}
+            >
+              <Bookmark size={17} aria-hidden="true" />
+              <span className={styles.libraryLabel}>{t('myListening')}</span>
+            </button>
+            <small aria-hidden="true">{personal.favorites.length}</small>
+          </div>
           <button
-            className={styles.openLibrary}
-            title={t('myListening')}
-            aria-expanded={libraryOpen}
-            aria-label={t('myListening')}
-            onClick={(event) => {
-              event.currentTarget.focus({ preventScroll: true });
-              player.invalidateSelection();
-              setLibraryOpen((value) => !value);
-              setInformationOpen(false);
-              setSettingsOpen(false);
-              setDirectoryOpen(false);
-            }}
-          >
-            <LibraryIcon size={20} aria-hidden="true" />
-          </button>
-          <button
-            className={styles.openLibrary}
+            className={[styles.openLibrary, styles.infoButton].join(' ')}
             title={t('informationTitle')}
             aria-expanded={informationOpen}
             aria-label={t('informationTitle')}
@@ -568,7 +626,7 @@ export function App() {
               setDirectoryOpen(false);
             }}
           >
-            <Settings2 size={21} aria-hidden="true" />
+            <Settings2 size={18} aria-hidden="true" />
           </button>
           <div className={styles.languages} role="group" aria-label={t('language')}>
             <button
@@ -597,18 +655,14 @@ export function App() {
           </p>
         )}
         <aside className={styles.listeningTime} aria-label={t('localTime')}>
-          <span>{state.station ? location(state.station) : t('tagline')}</span>
           <StationClock detail={state.detail} />
+          <span>{state.station ? location(state.station) : t('tagline')}</span>
         </aside>
-        <main id="main" tabIndex={-1} className={styles.main}>
+        <main id="main" tabIndex={-1} className={styles.main} inert={intro}>
           <div className={styles.scene}>
             <Exploration
               ref={exploration}
               mode={personal.preferences.view}
-              onModeChange={(view) => {
-                player.invalidateSelection();
-                library.setPreferences({ view });
-              }}
               visible={!immersive}
               onSearch={openDirectory}
               showHints={personal.preferences.showHints}
@@ -825,81 +879,41 @@ export function App() {
         stations={genreStations}
         manifest={sceneManifest}
         onChange={changeFilters}
-        hidden={immersive}
+        hidden={immersive || intro}
       />
-      <footer
+      {intro && (
+        <footer className={styles.introCredits}>
+          {t('directorySource')} ·{' '}
+          <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">
+            Natural Earth
+          </a>
+        </footer>
+      )}
+      <section
+        role={intro ? 'main' : 'contentinfo'}
+        id={intro ? 'welcome' : undefined}
+        tabIndex={intro ? -1 : undefined}
+        data-intro={intro}
+        data-has-station={!!state.station}
         data-immersive={immersive}
         ref={footerRef}
         className={styles.player}
         aria-label={t('player')}
       >
         <section hidden={immersive} className={styles.current} aria-label={t('selectedStation')}>
-          <div className={styles.playerTopline}>
-            <span className={styles.playerLabel}>
-              <Radio size={15} aria-hidden="true" />
-              {t('selectedStation')}
-            </span>
-            {state.station && (
-              <div className={styles.stationActions}>
-                <button
-                  aria-label={[
-                    favoriteIds.has(state.station.id) ? t('favorited') : '',
-                    t(favoriteIds.has(state.station.id) ? 'unfavoriteStation' : 'favoriteStation', {
-                      name: state.station.name,
-                    }),
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  aria-pressed={favoriteIds.has(state.station.id)}
-                  onClick={() => {
-                    if (!state.station) return;
-                    try {
-                      library.toggleFavorite(state.station);
-                    } catch {
-                      setActionMessage('libraryCapacity');
-                    }
-                  }}
-                >
-                  <Star
-                    size={20}
-                    fill={favoriteIds.has(state.station.id) ? 'currentColor' : 'none'}
-                    aria-hidden="true"
-                  />
-                </button>
-                <button
-                  aria-label={t('immersiveListening')}
-                  title={t('immersiveListening')}
-                  onClick={(event) => {
-                    event.currentTarget.focus({ preventScroll: true });
-                    enterImmersive();
-                  }}
-                >
-                  <Disc3 size={20} aria-hidden="true" />
-                </button>
-                <button
-                  aria-label={t('share')}
-                  title={t('share')}
-                  onClick={() => {
-                    if (!state.station) return;
-                    void shareStation(state.station.id, state.station.name).then((result) => {
-                      if (result === 'cancelled') return;
-                      if (result === 'shared' || result === 'copied') {
-                        setActionMessage(result === 'copied' ? 'linkCopied' : 'linkShared');
-                        setManualLink('');
-                      } else {
-                        setManualLink(result);
-                        setActionMessage('copyLinkManually');
-                      }
-                    });
-                  }}
-                >
-                  <Share2 size={20} aria-hidden="true" />
-                </button>
-              </div>
-            )}
-          </div>
+          <p
+            role="status"
+            className={[styles.status, failed ? styles.error : ''].join(' ')}
+            data-state={state.playback.status}
+          >
+            {intro
+              ? sceneManifest
+                ? t('welcomeCountries', { count: sceneManifest.countryCount })
+                : t('welcomeLead')
+              : status}
+          </p>
           <h1 data-long={(state.station?.name.length ?? 0) > 45}>
-            {state.station?.name ?? t('headline')}
+            {state.station?.name ?? t(intro ? 'welcomeHeadline' : 'headline')}
           </h1>
           {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
           {state.station ? (
@@ -915,7 +929,9 @@ export function App() {
               </p>
             </>
           ) : (
-            <p className={styles.description}>{t('chooseStation')}</p>
+            <p className={styles.description}>
+              {t(intro ? 'welcomeDescription' : 'chooseStation')}
+            </p>
           )}
           <p className={styles.note} aria-live="polite">
             {actionMessage ? t(actionMessage) : ''}
@@ -929,13 +945,6 @@ export function App() {
               onFocus={(event) => event.currentTarget.select()}
             />
           )}
-          <p
-            role="status"
-            className={[styles.status, failed ? styles.error : ''].join(' ')}
-            data-state={state.playback.status}
-          >
-            {status}
-          </p>
           {state.station && (
             <details className={styles.stationDetails}>
               <summary>{t('stationDetails')}</summary>
@@ -997,6 +1006,7 @@ export function App() {
             ) : (
               <Play size={24} aria-hidden="true" />
             )}
+            {!state.station && <span>{t('start')}</span>}
           </button>
           <button
             aria-label={t('nextStation')}
@@ -1005,7 +1015,8 @@ export function App() {
               void player.next();
             }}
           >
-            <SkipForward size={20} aria-hidden="true" />
+            <SkipForward size={18} aria-hidden="true" />
+            <span className={styles.nextLabel}>{t('nextStation')}</span>
           </button>
           <button
             aria-label={state.pinned ? t('unpin') : t('pin')}
@@ -1020,6 +1031,69 @@ export function App() {
             )}
           </button>
         </div>
+        {state.station && (
+          <div className={styles.stationActions} hidden={immersive}>
+            <button
+              aria-label={[
+                favoriteIds.has(state.station.id) ? t('favorited') : '',
+                t(favoriteIds.has(state.station.id) ? 'unfavoriteStation' : 'favoriteStation', {
+                  name: state.station.name,
+                }),
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              aria-pressed={favoriteIds.has(state.station.id)}
+              onClick={() => {
+                if (!state.station) return;
+                try {
+                  library.toggleFavorite(state.station);
+                } catch {
+                  setActionMessage('libraryCapacity');
+                }
+              }}
+            >
+              <Star
+                size={20}
+                fill={favoriteIds.has(state.station.id) ? 'currentColor' : 'none'}
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              aria-label={t('immersiveListening')}
+              title={t('immersiveListening')}
+              onClick={(event) => {
+                event.currentTarget.focus({ preventScroll: true });
+                enterImmersive();
+              }}
+            >
+              <Disc3 size={20} aria-hidden="true" />
+            </button>
+            <button
+              aria-label={t('share')}
+              title={t('share')}
+              onClick={() => {
+                if (!state.station) return;
+                void shareStation(state.station.id, state.station.name).then((result) => {
+                  if (result === 'cancelled') return;
+                  if (result === 'shared' || result === 'copied') {
+                    setActionMessage(result === 'copied' ? 'linkCopied' : 'linkShared');
+                    setManualLink('');
+                  } else {
+                    setManualLink(result);
+                    setActionMessage('copyLinkManually');
+                  }
+                });
+              }}
+            >
+              <Share2 size={20} aria-hidden="true" />
+            </button>
+          </div>
+        )}
+        {intro && (
+          <button className={styles.browse} onClick={browse}>
+            {t('browseFirst')}
+          </button>
+        )}
         <div className={styles.volume}>
           <button
             aria-label={state.playback.muted ? t('unmute') : t('mute')}
@@ -1055,7 +1129,7 @@ export function App() {
             {formatRemaining(sleep.remaining)}
           </button>
         )}
-      </footer>
+      </section>
     </div>
   );
 }

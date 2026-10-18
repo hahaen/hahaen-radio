@@ -12,3 +12,5 @@
 | `platform/` | [浏览器与本地存储](platform/browser-and-storage.md) | 能力检测、存储和兼容性 |
 
 完整依赖基线见[技术选型](../overview/technology-stack.md)。返回[文档导航](../README.md)。
+
+全系统样式统一与验证见[任务记录](../iterations/2026-10-18-unified-visual-style/README.md)。

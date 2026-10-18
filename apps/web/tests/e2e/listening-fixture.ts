@@ -30,6 +30,8 @@ export function listenButton(page: Page, name: string, language: 'zh' | 'en' = '
   });
 }
 export async function openDirectory(page: Page) {
+  const browse = page.getByRole('button', { name: /^(先逛逛星图|Explore the map first)$/ });
+  if (await browse.isVisible()) await browse.click();
   if (await page.locator('#station-directory').count()) return;
   await page.getByRole('button', { name: /^(查找电台|Find a station)$/ }).click();
 }
@@ -37,7 +39,25 @@ export async function selectStation(page: Page, name: string, language: 'zh' | '
   await openDirectory(page);
   await listenButton(page, name, language).click();
 }
+export async function continuousFixture(page: Page) {
+  await page.addInitScript(() => {
+    const play = HTMLMediaElement.prototype.play;
+    HTMLMediaElement.prototype.play = function () {
+      // These finite fixtures stand in for continuous radio during UI checks.
+      if (/^https:\/\/media\.haen\.test\/tone\.(mp3|aac)$/.test(this.src)) this.loop = true;
+      return play.call(this);
+    };
+  });
+}
 export async function install(page: Page, scene = true) {
+  await continuousFixture(page);
+  await page.addInitScript(() => {
+    try {
+      sessionStorage.setItem('haen:exploring:v1', 'true');
+    } catch {
+      /* Denial scenarios can enter through the welcome screen. */
+    }
+  });
   let lookupFailed = false;
   const blocked = new Set<string>();
   const uncertain = new Set<string>();

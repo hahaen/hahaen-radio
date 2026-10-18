@@ -29,6 +29,9 @@ for (const [width, height] of [
     await expect(page.getByRole('searchbox')).toBeFocused();
     await expect(page.getByRole('searchbox')).toHaveValue('');
     await page.getByRole('searchbox').press('Escape');
+    await openDirectory(page);
+    await expect(page.getByRole('searchbox')).toBeFocused();
+    await page.getByRole('searchbox').press('Escape');
     await page.getByRole('button', { name: '收听设置', exact: true }).click();
     const panel = page.getByRole('dialog', { name: '收听设置' });
     const close = panel.getByRole('button', { name: '关闭面板', exact: true });

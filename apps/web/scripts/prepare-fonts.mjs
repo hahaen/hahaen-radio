@@ -18,6 +18,22 @@ const glyphs = [
   .join('');
 const definitions = [
   {
+    name: 'Inter',
+    file: 'inter-ui',
+    folder: 'inter',
+    request: 'Inter:wght@300..650',
+    weight: '300 650',
+    text: ascii,
+  },
+  {
+    name: 'JetBrains Mono',
+    file: 'jetbrains-mono-ui',
+    folder: 'jetbrainsmono',
+    request: 'JetBrains Mono:wght@400',
+    weight: '400',
+    text: ascii + '°−',
+  },
+  {
     name: 'Noto Serif SC',
     file: 'noto-serif-sc-ui',
     folder: 'notoserifsc',

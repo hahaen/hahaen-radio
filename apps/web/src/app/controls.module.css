@@ -3,15 +3,15 @@
 }
 .settings section,
 .settings fieldset {
-  padding-block: 20px;
+  padding-block: 12px;
   border: 0;
   border-top: 1px solid var(--color-border);
-  margin-top: 20px;
+  margin-top: 12px;
   min-width: 0;
 }
 .settings h3 {
-  font-family: var(--font-display);
-  font-size: 19px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 400;
   margin: 0 0 16px;
 }
@@ -34,8 +34,8 @@
   padding: 8px 36px 8px 12px;
   color: var(--color-text);
   background-color: var(--color-bg);
-  border: 1px solid var(--color-secondary);
-  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
   font: inherit;
   max-width: 100%;
 }
@@ -47,6 +47,8 @@
 .check {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  flex-direction: row-reverse;
   gap: 12px;
   min-height: 44px;
   margin-block: 8px;
@@ -58,7 +60,7 @@
   height: 22px;
   margin: 0;
   background: var(--color-bg);
-  border: 1px solid var(--color-secondary);
+  border: 1px solid var(--color-border);
   border-radius: 20px;
   flex-shrink: 0;
   cursor: pointer;
@@ -79,11 +81,11 @@
   transition: transform 180ms ease;
 }
 .check input:checked {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+  background: #f36b4570;
+  border-color: transparent;
 }
 .check input:checked::after {
-  background: var(--color-on-accent);
+  background: var(--color-accent);
   transform: translateX(14px);
 }
 .check input:disabled {
@@ -101,7 +103,10 @@
 .timerChoices {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
 }
 .timerChoices button,
 .favorite,
@@ -112,16 +117,22 @@
   gap: 8px;
   min-height: 44px;
   padding: 8px 14px;
-  border: 1px solid var(--color-secondary);
+  border: 1px solid var(--color-border);
   background: transparent;
-  border-radius: 8px;
+  border-radius: 999px;
   color: var(--color-text);
 }
 .timerChoices button[aria-pressed='true'],
 .favorite[aria-pressed='true'] {
-  background: var(--color-selected-bg);
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-on-accent);
+}
+.timerChoices button {
+  flex: 1;
+  border: 0;
+  min-height: 44px;
+  font-size: 12px;
 }
 .settings .timerText {
   font-family: var(--font-mono);
@@ -154,7 +165,9 @@
   max-width: 960px;
   margin: 0 auto;
   text-align: center;
-  padding: 8px 0 24px;
+  padding: 24px 24px 180px;
+  height: 100%;
+  overflow-y: auto;
 }
 .exit {
   display: flex;
@@ -169,7 +182,7 @@
   place-items: center;
   border-radius: 50%;
   border: 1px solid var(--color-border);
-  background: repeating-radial-gradient(circle at center, #14242b 0 1px, #0b151b 1px 5px);
+  background: repeating-radial-gradient(circle at center, #152b26 0 1px, #0d1b17 1px 5px);
   box-shadow: inset 0 0 48px rgb(0 0 0 / 55%);
   animation: turn 28s linear infinite;
   animation-play-state: paused;
@@ -281,7 +294,7 @@
   width: 90%;
   aspect-ratio: 1;
   border-radius: 50%;
-  border: 1px solid var(--color-secondary);
+  border: 1px solid var(--color-border);
   background: radial-gradient(circle at 32% 30%, var(--color-selected-bg), var(--color-bg) 70%);
   box-shadow: inset -18px -12px 36px var(--color-bg);
   overflow: hidden;

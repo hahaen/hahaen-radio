@@ -1,5 +1,4 @@
 import { useCallback, useImperativeHandle, useMemo, useRef, useState, type Ref } from 'react';
-import { Globe2, ListMusic } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Genre, StationPreview } from '@haen/contracts';
 import {
@@ -31,7 +30,6 @@ export function Exploration({
   onSearch,
   onSelect,
   mode,
-  onModeChange,
   visible = true,
   showHints = true,
   powerSave = false,
@@ -49,7 +47,6 @@ export function Exploration({
   onSearch(): void;
   onSelect(station: StationPreview, reason: ExplorationChoice, expected?: SceneExpectation): void;
   mode: 'globe' | 'genres';
-  onModeChange(value: 'globe' | 'genres'): void;
   visible?: boolean;
   showHints?: boolean;
   powerSave?: boolean;
@@ -156,28 +153,6 @@ export function Exploration({
   );
   return (
     <section className={styles.exploration} aria-label={t('exploration')}>
-      <div className={styles.modeTabs} role="group" aria-label={t('viewMode')}>
-        <button
-          aria-pressed={mode === 'globe'}
-          onClick={() => {
-            setSelection(null);
-            onModeChange('globe');
-          }}
-        >
-          <Globe2 size={18} aria-hidden="true" />
-          {t('globeView')}
-        </button>
-        <button
-          aria-pressed={mode === 'genres'}
-          onClick={() => {
-            setSelection(null);
-            onModeChange('genres');
-          }}
-        >
-          <ListMusic size={18} aria-hidden="true" />
-          {t('genreView')}
-        </button>
-      </div>
       <GlobePanel
         details={dataNote}
         groups={groups}
