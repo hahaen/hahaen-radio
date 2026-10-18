@@ -1,0 +1,403 @@
+{
+  "date": "2026-10-18",
+  "scope": "Production HTML icon metadata and image decoding only; app JavaScript stubbed, no API or playback validation.",
+  "icoSizes": [16, 32, 48, 64],
+  "cases": [
+    {
+      "base": "/",
+      "browser": "chromium",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "device": "desktop",
+      "links": [
+        {
+          "path": "/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/",
+      "browser": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "links": [
+        {
+          "path": "/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/",
+      "browser": "firefox",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "device": "desktop",
+      "links": [
+        {
+          "path": "/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/",
+      "browser": "firefox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "links": [
+        {
+          "path": "/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/",
+      "browser": "webkit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "device": "desktop",
+      "links": [
+        {
+          "path": "/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/",
+      "browser": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "links": [
+        {
+          "path": "/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/radio/",
+      "browser": "chromium",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "device": "desktop",
+      "links": [
+        {
+          "path": "/radio/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/radio/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/radio/",
+      "browser": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "links": [
+        {
+          "path": "/radio/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/radio/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/radio/",
+      "browser": "firefox",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "device": "desktop",
+      "links": [
+        {
+          "path": "/radio/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/radio/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/radio/",
+      "browser": "firefox",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "links": [
+        {
+          "path": "/radio/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/radio/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/radio/",
+      "browser": "webkit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "device": "desktop",
+      "links": [
+        {
+          "path": "/radio/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/radio/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    },
+    {
+      "base": "/radio/",
+      "browser": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "device": "mobile",
+      "links": [
+        {
+          "path": "/radio/haen-favicon-v1.ico",
+          "type": "image/x-icon",
+          "sizes": "16x16 32x32 48x48 64x64"
+        },
+        {
+          "path": "/radio/haen-favicon-v1.png",
+          "type": "image/png",
+          "sizes": "32x32"
+        }
+      ],
+      "decoded": [
+        {
+          "type": "image/x-icon",
+          "width": 64,
+          "height": 64
+        },
+        {
+          "type": "image/png",
+          "width": 32,
+          "height": 32
+        }
+      ]
+    }
+  ]
+}

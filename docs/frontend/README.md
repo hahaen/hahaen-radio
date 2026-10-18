@@ -4,7 +4,7 @@
 
 | 子目录 | 文档 | 负责范围 |
 | --- | --- | --- |
-| `design/` | [夜航设计规范](design/night-voyage.md)、[本地字体](design/fonts.md)、[标签页图标候选](../iterations/2026-10-18-favicon-concepts/README.md) | 已确认概念图、设计变量、构图与双端视觉验收；图标候选待选择 |
+| `design/` | [夜航设计规范](design/night-voyage.md)、[本地字体](design/fonts.md)、[标签页图标](../iterations/2026-10-18-favicon-concepts/README.md) | 已确认概念图、设计变量、构图与双端视觉验收；耳机海湾图标已接入，待发布 |
 | `application/` | [应用结构与状态](application/structure-and-state.md) | React、路由、查询、状态和样式 |
 | `application/` | [收听入口与播放器](application/player-flow.md)、[探索界面](application/exploration.md)、[个人收听工具](application/listening-tools.md)、[收听设置](application/listening-controls.md)、[曲目与歌词](application/tracks-and-lyrics.md)、[手动识曲](application/recognition.md)、[产品说明与帮助](application/information-and-help.md)、[精简故障报告](application/playback-diagnostics.md) | 本阶段构图、真实状态与恢复边界 |
 | `rendering/` | [Three.js 渲染](rendering/threejs.md)、[探索目录](rendering/exploration-data.md) | 场景、帧循环、交互与资源 |
