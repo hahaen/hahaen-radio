@@ -1,19 +1,16 @@
 .exploration {
-  min-width: 0;
   position: relative;
   height: 100%;
+  min-width: 0;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: thin;
 }
 .modeTabs {
-  flex-shrink: 0;
+  position: fixed;
+  z-index: 4;
+  top: 184px;
+  left: 28px;
   display: flex;
-  justify-content: center;
-  gap: 12px;
+  gap: 0;
   padding-block: 8px;
 }
 .modeTabs button {
@@ -21,126 +18,98 @@
   align-items: center;
   gap: 8px;
   min-height: 44px;
-  padding: 10px 18px;
+  padding: 8px 14px;
+  font-size: 13px;
   border: 1px solid transparent;
   border-radius: 24px;
   background: transparent;
   color: var(--color-text-muted);
 }
 .modeTabs button[aria-pressed='true'] {
-  color: var(--color-text);
-  border-color: var(--color-secondary);
-  background: var(--color-selected-bg);
+  background: var(--color-text);
+  color: var(--color-bg);
+  border-color: var(--color-text);
 }
-.globePanel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-.globeStage {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-}
-.globePanel[hidden] {
-  display: none;
-}
+.globePanel,
+.globeStage,
 .canvasHost {
   position: absolute;
   inset: 0;
+}
+.globePanel[hidden] {
+  display: none;
 }
 .canvasHost canvas {
   width: 100%;
   height: 100%;
   display: block;
   touch-action: none;
-  border-radius: 12px;
 }
 .reticle {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 24px;
-  height: 24px;
+  width: 12px;
+  height: 12px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.65;
+  opacity: 0.5;
   border: 1px solid var(--color-accent);
   border-radius: 50%;
 }
-.reticle::before,
-.reticle::after {
-  content: '';
-  position: absolute;
-  background: var(--color-accent);
-}
-.reticle::before {
-  width: 1px;
-  height: 36px;
-  top: -7px;
-  left: 10px;
-}
-.reticle::after {
-  width: 36px;
-  height: 1px;
-  left: -7px;
-  top: 10px;
-}
-.mapControls {
-  position: absolute;
-  right: 8px;
-  top: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.mapControls button {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-text);
-}
-.mapControls button:disabled {
-  opacity: 0.35;
-}
-.mapControls button:hover:not(:disabled) {
-  border-color: var(--color-secondary);
+.mapNotes {
+  position: fixed;
+  z-index: 3;
+  left: 34px;
+  bottom: calc(var(--player-height) + var(--dock-bottom) + 12px);
+  width: 330px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+  line-height: 1.6;
 }
 .preview {
-  flex-shrink: 0;
-  margin: 16px 12px 0;
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 8px 20px;
-  text-align: center;
-  line-height: 1.6;
-  color: var(--color-text-muted);
-  font-size: 14px;
+  align-items: center;
+  gap: 4px 12px;
+  margin-bottom: 4px;
 }
 .preview span:first-child {
   color: var(--color-text);
 }
 .preview button {
   min-height: 44px;
-  padding: 4px 12px;
-  border: 1px solid var(--color-secondary);
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: var(--color-surface);
+  background: var(--color-bg);
   color: var(--color-text);
+  font-size: 11px;
 }
 .help {
-  margin: 8px 12px 0;
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  line-height: 1.7;
+  margin: 4px 0;
+}
+.help[hidden] {
+  display: none;
+}
+.dataState {
+  margin-top: 8px;
+}
+.dataState button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-size: inherit;
+}
+.mapSource {
+  margin: 4px 0 0;
 }
 .fallback {
   position: absolute;
@@ -168,37 +137,22 @@
   max-width: 32ch;
   line-height: 1.8;
 }
-.fallback button,
-.dataState button {
+.fallback button {
   min-height: 44px;
-  border: 1px solid var(--color-secondary);
-  border-radius: 8px;
   padding: 8px 12px;
   color: var(--color-text);
   background: var(--color-surface);
-}
-.dataState {
-  flex-shrink: 0;
-  text-align: center;
-  line-height: 1.7;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  min-height: 36px;
-  margin-top: 12px;
-}
-.mapSource {
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: 11px;
-  margin: 4px 0;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
 }
 .genreAtlas {
+  position: absolute;
+  inset: 20px 12% 20px 22%;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px 8px;
-  padding: 28px 0;
-  position: relative;
-  min-height: 480px;
+  align-content: center;
+  gap: 20px 8px;
 }
 .genreCluster {
   min-width: 0;
@@ -208,56 +162,59 @@
   padding: 0 4px 12px;
   background: transparent;
   border: 0;
-  border-radius: 12px;
   color: var(--color-text);
 }
 .genreCluster svg {
   width: 100%;
   max-width: 140px;
-  fill: var(--color-secondary);
+  fill: var(--genre-color, var(--color-secondary));
+}
+.genreCluster span {
+  max-width: 100%;
+  font-family: var(--font-display);
+  font-size: 19px;
+  overflow-wrap: anywhere;
 }
 .genreCluster small {
   color: var(--color-text-muted);
   line-height: 1.8;
   margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
 }
-.genreCluster:hover:not(:disabled) svg {
-  fill: var(--color-accent);
+.genreCluster:hover:not(:disabled) {
+  color: var(--color-accent);
 }
 .genreCluster:disabled {
   opacity: 0.35;
 }
 .genreNote {
-  grid-column: 1/-1;
-  text-align: center;
-  color: var(--color-text-muted);
-  font-size: 12px;
-  line-height: 1.8;
+  display: none;
+}
+.genreAtlas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.genreAtlas[data-rendered='true'] {
+  display: block;
+}
+.genreAtlas[data-rendered='true'] .genreCluster {
+  position: absolute;
+  width: 144px;
+  min-height: 60px;
+  transform: translate(-50%, 16px);
+  padding: 6px;
+  text-shadow: 0 2px 8px var(--color-bg);
+}
+.genreAtlas[data-rendered='true'] .genreCluster svg {
+  display: none;
 }
 .groupList {
   max-width: 620px;
   margin: 0 auto;
-  padding: 0;
-}
-.groupHeading {
-  display: flex;
-  justify-content: space-between;
-  align-items: start;
-  gap: 12px;
-}
-.groupHeading h3 {
-  margin: 4px 0;
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 400;
-  overflow-wrap: anywhere;
-}
-.groupHeading button {
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-muted);
 }
 .groupList p {
   color: var(--color-text-muted);
@@ -309,137 +266,83 @@
 .nearbyNext {
   margin-top: 16px;
 }
-@media (width<768px) {
-  .globeStage {
-    min-height: 0;
-  }
-  .mapControls {
-    display: grid;
-    grid-template-columns: repeat(2, 44px);
-    top: 0;
-    right: 0;
-    gap: 0;
+
+@media (width < 1024px) {
+  .mapNotes {
+    left: 22px;
+    width: 280px;
   }
   .modeTabs {
-    justify-content: start;
+    left: 16px;
+  }
+}
+@media (width < 768px) {
+  .modeTabs {
+    top: 124px;
+    left: 12px;
+    padding: 0;
+  }
+  .modeTabs button {
+    padding-inline: 12px;
+    font-size: 12px;
+  }
+  .mapNotes {
+    left: 18px;
+    bottom: calc(var(--player-height) + var(--dock-bottom) + 8px);
+    width: calc(100% - 36px);
+    display: flex;
+    gap: 8px;
+    align-items: end;
+    font-size: 11px;
+    pointer-events: none;
+  }
+  .preview {
+    flex: 1;
+    margin: 0;
+  }
+  .preview button {
+    pointer-events: auto;
+  }
+  .help,
+  .mapSource {
+    display: none;
+  }
+  .dataState {
+    width: 100px;
+    text-align: right;
+    font-size: 10px;
+  }
+  .dataState span:nth-child(2),
+  .dataState button {
+    display: none;
   }
   .genreAtlas {
+    inset: 44px 0 10px;
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
   }
-  .genreCluster svg {
-    max-width: 110px;
+  .genreAtlas[data-rendered='true'] .genreCluster {
+    width: 92px;
+    min-height: 44px;
   }
   .genreCluster span {
     font-size: 14px;
   }
-  .groupList {
-    padding: 0;
+  .genreCluster svg {
+    max-width: 72px;
   }
 }
-@media (width<390px) {
-  .genreAtlas {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .help {
-    font-size: 11px;
-    inset-inline: 0;
-  }
-}
-
-.groupHeading h3 {
-  scroll-margin-block: 24px calc(var(--player-height, 140px) + 24px);
-}
-
-.genreCluster span {
-  max-width: 100%;
-  overflow-wrap: anywhere;
-}
-
-.canvasHost canvas,
-.genreCluster {
-  scroll-margin-block: 24px calc(var(--player-height, 140px) + 24px);
-}
-
-.genreAtlas canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  touch-action: none;
-}
-.genreAtlas[data-rendered='true'] {
-  display: block;
-  height: clamp(430px, 45vw, 590px);
-}
-.genreAtlas[data-rendered='true'] .genreCluster {
-  position: absolute;
-  width: 124px;
-  min-height: 60px;
-  transform: translate(-50%, 10px);
-  padding: 6px;
-}
-.genreAtlas[data-rendered='true'] .genreCluster svg {
-  display: none;
-}
-.genreAtlas[data-rendered='true'] .genreCluster:hover {
-  background: var(--color-bg);
-}
-.genreAtlas[data-rendered='true'] .genreNote {
-  position: absolute;
-  bottom: 0;
-  left: 12px;
-  right: 12px;
-  pointer-events: none;
-}
-.dataState button {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  margin-left: 12px;
-  padding: 4px 8px;
-  border: 0;
-  background: transparent;
-  color: var(--color-text);
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-@media (width < 768px) {
+@media (height < 600px) and (width >= 600px) {
   .modeTabs {
-    justify-content: center;
-    padding-block: 0;
+    top: 140px;
   }
-  .globePanel .help {
+  .mapNotes {
+    left: auto;
+    right: 20px;
+    bottom: 82px;
+    width: 200px;
+  }
+  .help {
     display: none;
-  }
-  .preview {
-    margin-top: 4px;
-    font-size: 12px;
-  }
-  .dataState {
-    min-height: 20px;
-    margin-top: 4px;
-    font-size: 11px;
-  }
-  .dataState button {
-    display: none;
-  }
-  .mapSource {
-    display: none;
-  }
-  .genreAtlas[data-rendered='true'] {
-    height: 400px;
-    min-height: 400px;
-  }
-  .genreAtlas[data-rendered='true'] .genreCluster {
-    width: 84px;
-    min-height: 44px;
-    font-size: 13px;
-  }
-  .genreAtlas[data-rendered='true'] .genreCluster span {
-    font-size: 13px;
-  }
-  .genreAtlas[data-rendered='true'] .genreNote {
-    font-size: 11px;
   }
 }

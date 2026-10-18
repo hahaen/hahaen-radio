@@ -121,16 +121,6 @@ test('calibrates a decodable CORS sample without replacing the live media or ove
     dialog = await settings(page);
   await dialog.getByRole('checkbox', { name: '音量统一', exact: true }).check();
   await expect(dialog.getByText('正在使用本台的响度校准。', { exact: true })).toBeVisible();
-  await dialog
-    .getByText('默认关闭；暂停、静音或音量为零时不播放。浏览器可能需要你允许声音。', {
-      exact: true,
-    })
-    .scrollIntoViewIfNeeded();
-  await page.screenshot({
-    path: testInfo.outputPath('enhancement-settings.png'),
-    animations: 'disabled',
-  });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await expect(page.locator('audio')).toHaveCount(1);
   expect((await probe(page)).sources).toBe(0);
   await expect
@@ -144,6 +134,17 @@ test('calibrates a decodable CORS sample without replacing the live media or ove
   expect(await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(
     false,
   );
+  // Check attenuation before capturing the page: the short looping fixture may rebuffer during a screenshot.
+  await dialog
+    .getByText('默认关闭；暂停、静音或音量为零时不播放。浏览器可能需要你允许声音。', {
+      exact: true,
+    })
+    .scrollIntoViewIfNeeded();
+  await page.screenshot({
+    path: testInfo.outputPath('enhancement-settings.png'),
+    animations: 'disabled',
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const peer = await context.newPage();
   await install(peer);
   await peer.goto('/');

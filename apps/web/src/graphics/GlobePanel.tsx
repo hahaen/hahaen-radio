@@ -1,6 +1,5 @@
 import { applicationPath } from '../platform/paths';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Focus, Minus, Plus, RotateCcw } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
 import type { GlobeController, PickReason } from './globe';
@@ -10,6 +9,7 @@ import { mapPosition, countryName } from './location';
 import styles from './exploration.module.css';
 export function GlobePanel({
   groups,
+  details,
   station,
   pinned,
   selectionVersion,
@@ -20,6 +20,7 @@ export function GlobePanel({
   expandedId = null,
 }: {
   groups: StationGroup[];
+  details: ReactNode;
   station: StationPreview | null;
   pinned: boolean;
   selectionVersion: number;
@@ -134,7 +135,6 @@ export function GlobePanel({
     if (showHints) canvas.setAttribute('aria-describedby', 'globe-help');
     else canvas.removeAttribute('aria-describedby');
   }, [state, t, showHints]);
-  const disabled = state !== 'ready';
   return (
     <div
       className={styles.globePanel}
@@ -176,74 +176,45 @@ export function GlobePanel({
             )}
           </div>
         )}
-        <div className={styles.mapControls} role="group" aria-label={t('globeControls')}>
-          <button
-            disabled={disabled}
-            aria-label={t('zoomIn')}
-            onClick={() => engine.current?.zoom(0.82)}
-          >
-            <Plus size={20} aria-hidden="true" />
-          </button>
-          <button
-            disabled={disabled}
-            aria-label={t('zoomOut')}
-            onClick={() => engine.current?.zoom(1.22)}
-          >
-            <Minus size={20} aria-hidden="true" />
-          </button>
-          <button
-            disabled={disabled}
-            aria-label={t('resetGlobe')}
-            onClick={() => engine.current?.reset()}
-          >
-            <RotateCcw size={20} aria-hidden="true" />
-          </button>
-          <button
-            disabled={disabled || !position}
-            aria-label={t('locateStation')}
-            onClick={() => {
-              if (station) engine.current?.focus(station);
-            }}
-          >
-            <Focus size={20} aria-hidden="true" />
-          </button>
-        </div>
       </div>
-      <div className={styles.preview}>
-        {preview ? (
-          <>
-            <span>
-              {preview.precision === 'country'
+      <div className={styles.mapNotes}>
+        <div className={styles.preview}>
+          {preview ? (
+            <>
+              <span>
+                {preview.precision === 'country'
+                  ? t('countryPlace', {
+                      country: countryName(preview.stations[0]?.countryCode ?? null, i18n.language),
+                    })
+                  : (preview.stations[0]?.city ??
+                    (preview.stations[0]?.nearbyCity
+                      ? t('nearby', { city: preview.stations[0].nearbyCity })
+                      : t('coordinatePlace')))}
+              </span>
+              <span>{preview.stations[0]?.name}</span>
+            </>
+          ) : station && !position ? (
+            t('noCoordinates')
+          ) : position?.precision === 'country' ? (
+            <span>{t('countryMapHint')}</span>
+          ) : (
+            showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
+          )}
+          {selectedGroup && selectedGroup.stations.length > 1 && (
+            <button onClick={() => onPick(selectedGroup, 'click')}>
+              {selectedGroup.precision === 'country'
                 ? t('countryPlace', {
-                    country: countryName(preview.stations[0]?.countryCode ?? null, i18n.language),
+                    country: countryName(station?.countryCode ?? null, i18n.language),
                   })
-                : (preview.stations[0]?.city ??
-                  (preview.stations[0]?.nearbyCity
-                    ? t('nearby', { city: preview.stations[0].nearbyCity })
-                    : t('coordinatePlace')))}
-            </span>
-            <span>{preview.stations[0]?.name}</span>
-          </>
-        ) : station && !position ? (
-          t('noCoordinates')
-        ) : position?.precision === 'country' ? (
-          <span>{t('countryMapHint')}</span>
-        ) : (
-          showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
-        )}
-        {selectedGroup && selectedGroup.stations.length > 1 && (
-          <button onClick={() => onPick(selectedGroup, 'click')}>
-            {selectedGroup.precision === 'country'
-              ? t('countryPlace', {
-                  country: countryName(station?.countryCode ?? null, i18n.language),
-                })
-              : t('placeStationCount', { count: selectedGroup.stations.length })}
-          </button>
-        )}
+                : t('placeStationCount', { count: selectedGroup.stations.length })}
+            </button>
+          )}
+        </div>
+        <p id="globe-help" className={styles.help} hidden={!showHints}>
+          {t('globeHelp')}
+        </p>
+        {details}
       </div>
-      <p id="globe-help" className={styles.help} hidden={!showHints}>
-        {t('globeHelp')}
-      </p>
     </div>
   );
 }

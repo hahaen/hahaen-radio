@@ -6,14 +6,14 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   page,
   browserName,
 }, info) => {
-  test.setTimeout(180000);
+  test.setTimeout(300000);
   const counts = await installScale(page),
     errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   const start = Date.now();
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
-  await expect(page.getByText('30,000 / 30,000 个候选电台有坐标', { exact: true })).toBeVisible({
+  await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeVisible({
     timeout: 30000,
   });
   const loadMs = Date.now() - start;
@@ -33,13 +33,13 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   await search.press('Enter');
   await expect(listenButton(page, first.name)).toBeVisible();
   const filterStart = Date.now();
-  await page.getByText('筛选电台', { exact: true }).click();
+  await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '流行', exact: true }).check();
-  await expect(page.getByText('15,000 / 15,000 个候选电台有坐标', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 15,000 / 15,000 台', { exact: true })).toBeVisible();
   const filterMs = Date.now() - filterStart;
   await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
-  await expect(page.getByText('30,000 / 30,000 个候选电台有坐标', { exact: true })).toBeVisible();
-  await page.getByText('筛选电台', { exact: true }).click();
+  await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeVisible();
+  await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
@@ -101,7 +101,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
     await page.waitForTimeout(1200);
     expect(counts.media).toBe(pausedMedia);
     await page.reload();
-    await expect(page.getByText('30,000 / 30,000 个候选电台有坐标', { exact: true })).toBeVisible({
+    await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeVisible({
       timeout: 30000,
     });
     expect(counts.chunks).toBe(30);

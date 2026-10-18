@@ -119,49 +119,8 @@ export function Exploration({
     setOffset(0);
     setSelection({ kind: 'genre', genre });
   };
-  return (
-    <section className={styles.exploration} aria-label={t('exploration')}>
-      <div className={styles.modeTabs} role="group" aria-label={t('viewMode')}>
-        <button
-          aria-pressed={mode === 'globe'}
-          onClick={() => {
-            setSelection(null);
-            onModeChange('globe');
-          }}
-        >
-          <Globe2 size={18} aria-hidden="true" />
-          {t('globeView')}
-        </button>
-        <button
-          aria-pressed={mode === 'genres'}
-          onClick={() => {
-            setSelection(null);
-            onModeChange('genres');
-          }}
-        >
-          <ListMusic size={18} aria-hidden="true" />
-          {t('genreView')}
-        </button>
-      </div>
-      <GlobePanel
-        groups={groups}
-        expandedId={selection?.kind === 'place' ? selection.id : null}
-        powerSave={powerSave}
-        station={station}
-        pinned={pinned}
-        selectionVersion={selectionVersion}
-        active={mode === 'globe' && visible}
-        showHints={showHints}
-        onPick={choosePlace}
-      />
-      {mode === 'genres' && (
-        <GenreAtlas
-          stations={stations}
-          onChoose={expand}
-          showHints={showHints}
-          powerSave={powerSave}
-        />
-      )}
+  const dataNote = (
+    <>
       <div className={styles.dataState} aria-live="polite">
         {loading ? (
           t(progress.total ? 'sceneLoading' : 'scenePreparing', {
@@ -188,6 +147,58 @@ export function Exploration({
           </>
         )}
       </div>
+      <p className={styles.mapSource}>
+        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">
+          Natural Earth
+        </a>
+      </p>
+    </>
+  );
+  return (
+    <section className={styles.exploration} aria-label={t('exploration')}>
+      <div className={styles.modeTabs} role="group" aria-label={t('viewMode')}>
+        <button
+          aria-pressed={mode === 'globe'}
+          onClick={() => {
+            setSelection(null);
+            onModeChange('globe');
+          }}
+        >
+          <Globe2 size={18} aria-hidden="true" />
+          {t('globeView')}
+        </button>
+        <button
+          aria-pressed={mode === 'genres'}
+          onClick={() => {
+            setSelection(null);
+            onModeChange('genres');
+          }}
+        >
+          <ListMusic size={18} aria-hidden="true" />
+          {t('genreView')}
+        </button>
+      </div>
+      <GlobePanel
+        details={dataNote}
+        groups={groups}
+        expandedId={selection?.kind === 'place' ? selection.id : null}
+        powerSave={powerSave}
+        station={station}
+        pinned={pinned}
+        selectionVersion={selectionVersion}
+        active={mode === 'globe' && visible}
+        showHints={showHints}
+        onPick={choosePlace}
+      />
+      {mode === 'genres' && <div className={styles.mapNotes}>{dataNote}</div>}
+      {mode === 'genres' && (
+        <GenreAtlas
+          stations={stations}
+          onChoose={expand}
+          showHints={showHints}
+          powerSave={powerSave}
+        />
+      )}
       {selection && (
         <Modal title={title} onClose={close}>
           <section className={styles.groupList} aria-label={title}>
@@ -247,11 +258,6 @@ export function Exploration({
           </section>
         </Modal>
       )}
-      <p className={styles.mapSource}>
-        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">
-          Natural Earth
-        </a>
-      </p>
     </section>
   );
 }

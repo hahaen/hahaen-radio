@@ -71,21 +71,21 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
   if ((await panel.getAttribute('data-state')) === 'ready') {
     await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '16');
-    await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toBeEnabled();
-    await panel.getByRole('button', { name: '定位当前电台', exact: true }).click();
+    await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toHaveCount(0);
     const canvas = panel.getByRole('img', { name: /^可旋转的地球/ });
-    const bounds = await canvas.boundingBox();
-    await canvas.click({ position: { x: bounds!.width / 2, y: bounds!.height / 2 } });
+    await canvas.press('Home');
     await expect(dialog).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   }
   await page.screenshot({ path: info.outputPath('country-map.png') });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await selectStation(page, exact.name);
+  if ((await page.getByRole('contentinfo').locator('details').getAttribute('open')) === null)
+    await page.getByText('电台详情', { exact: true }).click();
   await expect(page.getByText('坐标', { exact: true })).toBeVisible();
   await expect(groupButton).toHaveCount(0);
   await selectStation(page, unknown.name);
-  await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toBeDisabled();
+  await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toHaveCount(0);
   await expect(panel.getByText('暂无法确定地图位置，仍可通过列表收听。')).toBeVisible();
   await page.getByRole('button', { name: 'EN', exact: true }).click();
   await selectStation(page, first.name, 'en');

@@ -33,11 +33,12 @@ for (const [width, height] of [
     const heading = await page.getByRole('heading', { level: 1 }).boundingBox();
     const player = await page.getByRole('contentinfo').boundingBox();
     expect(heading!.y).toBeGreaterThanOrEqual(0);
-    expect(heading!.y + heading!.height).toBeLessThanOrEqual(player!.y);
+    expect(heading!.y).toBeGreaterThanOrEqual(player!.y);
+    expect(heading!.y + heading!.height).toBeLessThanOrEqual(player!.y + player!.height);
     expect(player!.y + player!.height).toBeLessThanOrEqual(height);
     await page.screenshot({ path: info.outputPath('listening-screen.png') });
     await openDirectory(page);
-    const dialog = page.getByRole('dialog', { name: '探索电台', exact: true });
+    const dialog = page.locator('#station-directory');
     await expect(page.getByRole('searchbox')).toBeFocused();
     await dialog.getByRole('link', { name: 'GeoNames', exact: true }).scrollIntoViewIfNeeded();
     await expect(dialog.getByRole('link', { name: 'GeoNames', exact: true })).toBeInViewport();

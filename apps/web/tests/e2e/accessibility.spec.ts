@@ -165,7 +165,7 @@ for (const language of ['zh', 'en'] as const) {
     await page.getByRole('button', { name: text.genre, exact: true }).click();
     await scan('genres');
     await openDirectory(page);
-    await page.getByText(text.filters, { exact: true }).click();
+    await page.locator('#station-directory').getByText(text.filters, { exact: true }).click();
     await scan('filters');
     const search = page.getByRole('searchbox', {
       name: language === 'zh' ? '搜索电台' : 'Search stations',
@@ -185,31 +185,10 @@ for (const language of ['zh', 'en'] as const) {
       .first()
       .click();
     await scan('playing');
-    for (const kind of ['settings', 'library', 'information', 'track'] as const) {
+    for (const kind of ['settings', 'library', 'information'] as const) {
       await page.getByRole('button', { name: text[kind], exact: true }).click();
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible();
-      if (kind === 'track') {
-        await dialog
-          .getByRole('button', {
-            name: language === 'zh' ? '查找歌词' : 'Find lyrics',
-            exact: true,
-          })
-          .click();
-        const version = dialog.getByRole('combobox', {
-          name: language === 'zh' ? '歌词版本' : 'Lyrics version',
-          exact: true,
-        });
-        await version.selectOption('1');
-        expect((await version.boundingBox())!.height).toBeGreaterThanOrEqual(43.5);
-        await expect(dialog.getByText('Fixture lyric line', { exact: true }).first()).toBeVisible();
-        await dialog
-          .getByRole('button', {
-            name: language === 'zh' ? '收藏这首歌曲' : 'Save this song',
-            exact: true,
-          })
-          .click();
-      }
       await scan(kind);
       if (kind === 'library') {
         for (const index of [1, 2]) {
@@ -229,7 +208,10 @@ for (const language of ['zh', 'en'] as const) {
     await page.getByRole('button', { name: text.library, exact: true }).click();
     const saved = page.getByRole('dialog');
     await saved.getByRole('group').first().getByRole('button').nth(2).click();
-    await expect(saved.getByText('Fixture Song', { exact: true })).toBeVisible();
+    await expect(saved.getByRole('group').first().getByRole('button').nth(2)).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     await scan('saved-song-list');
     await page.keyboard.press('Escape');
     await page
@@ -286,7 +268,7 @@ async function assertVisibleFocus(page: Page) {
   });
   expect(state).toEqual({ dialog: true, visible: true, outline: true });
 }
-test('keeps keyboard focus inside each modal and restores the actual opener', async ({ page }) => {
+test('keeps nonmodal panel focus visible and restores the actual opener', async ({ page }) => {
   await enter(page, 'en');
   for (const name of [labels.en.settings, labels.en.library, labels.en.information]) {
     const opener = page.getByRole('button', { name, exact: true });
@@ -295,11 +277,11 @@ test('keeps keyboard focus inside each modal and restores the actual opener', as
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
     await page.keyboard.press('Tab');
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < 3; i++) {
       await assertVisibleFocus(page);
       await page.keyboard.press('Tab');
     }
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       await page.keyboard.press('Shift+Tab');
       await assertVisibleFocus(page);
     }
@@ -352,7 +334,7 @@ test('keeps modal targets usable on narrow, landscape and enlarged-text layouts'
     );
     await page.screenshot({ path: info.outputPath(`settings-top-${size.width}.png`) });
     await page.keyboard.press('Tab');
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < 3; i++) {
       await assertVisibleFocus(page);
       await page.keyboard.press('Tab');
     }

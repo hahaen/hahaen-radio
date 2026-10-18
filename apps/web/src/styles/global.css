@@ -73,3 +73,31 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+[data-genre='pop'] {
+  --genre-color: #cf9694;
+}
+[data-genre='news'] {
+  --genre-color: #95aecb;
+}
+[data-genre='rock'] {
+  --genre-color: #cf9b83;
+}
+[data-genre='electronic'] {
+  --genre-color: #8ac6bd;
+}
+[data-genre='world'] {
+  --genre-color: #c4b363;
+}
+[data-genre='religious'] {
+  --genre-color: #c0af98;
+}
+[data-genre='classical'] {
+  --genre-color: #d4cfad;
+}
+[data-genre='jazz'] {
+  --genre-color: #d8ad6b;
+}
+[data-genre='folk'] {
+  --genre-color: #a6bd91;
+}

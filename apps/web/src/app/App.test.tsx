@@ -29,7 +29,7 @@ function withoutScene(fetcher: (input: string | URL | Request) => Promise<Respon
 beforeEach(async () => {
   // jsdom does not implement the dialog lifecycle; browser tests cover focus and modality.
   Object.defineProperties(HTMLDialogElement.prototype, {
-    showModal: {
+    show: {
       configurable: true,
       value(this: HTMLDialogElement) {
         this.open = true;
@@ -55,7 +55,7 @@ beforeEach(async () => {
 });
 afterEach(() => {
   cleanup();
-  Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'show');
   Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
   vi.unstubAllGlobals();
   vi.restoreAllMocks();

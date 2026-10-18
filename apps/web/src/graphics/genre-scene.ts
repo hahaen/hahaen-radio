@@ -35,36 +35,47 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
   controls.maxAzimuthAngle = 0.45;
   controls.minPolarAngle = Math.PI / 2 - 0.25;
   controls.maxPolarAngle = Math.PI / 2 + 0.25;
+  const layout = [
+    [-2.7, 1.75],
+    [-0.7, 2.0],
+    [1.6, 1.65],
+    [3.0, 0.6],
+    [-2.1, 0.0],
+    [0.25, 0.35],
+    [1.7, -0.45],
+    [-3.0, -1.6],
+    [-0.8, -1.9],
+    [1.0, -2.0],
+    [2.9, -1.75],
+  ] as const;
   const objects = clouds.map((cloud, index) => {
-    const row = Math.floor(index / 4),
-      column = index % 4;
-    const center = new Vector3(
-      (column - 1.5) * 1.65 + (row === 2 ? 0.8 : 0),
-      1.7 - row * 1.65,
-      ((index % 3) - 1) * 0.35,
-    );
+    const center = new Vector3();
     const positions: number[] = [];
-    const count = Math.min(powerSave ? 90 : 220, cloud.count);
+    const count = Math.min(powerSave ? 90 : 440, cloud.count);
     for (let i = 0; i < count; i++) {
-      const angle = i * 2.3999632297;
-      const radius = Math.sqrt((i + 0.5) / count) * 0.58;
+      const angle = i * 2.3999632297 + index * 0.7;
+      const radius = Math.pow((i + 0.5) / count, 0.72) * (0.56 + (index % 3) * 0.1);
       positions.push(
-        Math.cos(angle) * radius,
-        Math.sin(angle) * radius * 0.72,
+        Math.cos(angle + radius * 4.5) * radius,
+        Math.sin(angle + radius * 4.5) * radius * (0.45 + (index % 4) * 0.08),
         Math.sin(i * 7.13) * 0.28,
       );
     }
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
     const material = new PointsMaterial({
-      color: index % 4 === 0 ? 0xd8ad6b : 0x83aaa3,
-      size: powerSave ? 0.025 : 0.018,
+      color: [
+        0x9cadac, 0xcf9694, 0x95aecb, 0xcf9b83, 0x8ac6bd, 0xc4b363, 0xc0af98, 0xd4cfad, 0xd8ad6b,
+        0xa6bd91, 0x83aaa3,
+      ][index % 11]!,
+      size: powerSave ? 0.025 : 0.024,
       transparent: true,
-      opacity: 0.72,
+      opacity: 0.88,
       depthWrite: false,
     });
     const points = new Points(geometry, material);
     points.position.copy(center);
+    points.rotation.z = [0.35, -0.2, 0.15, -0.4][index % 4]!;
     scene.add(points);
     return { points, center, label: cloud.label };
   });
@@ -97,9 +108,10 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
       const row = Math.floor(index / columns),
         column = index % columns;
       const inRow = Math.min(columns, objects.length - row * columns);
+      const [x, y] = layout[index % layout.length]!;
       object.center.set(
-        (column - (inRow - 1) / 2) * (compact ? 2.5 : 1.65),
-        (compact ? 2.8 : 1.7) - row * (compact ? 1.85 : 1.65),
+        compact ? (column - (inRow - 1) / 2) * 2.5 : x,
+        compact ? 2.8 - row * 1.85 : y,
         ((index % 3) - 1) * 0.35,
       );
       object.points.position.copy(object.center);

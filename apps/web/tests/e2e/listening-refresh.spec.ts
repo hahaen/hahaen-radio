@@ -14,9 +14,10 @@ test('keeps mobile station identity and primary controls in the first screen', a
   await page.evaluate(() => scrollTo(0, 0));
   const heading = await page.getByRole('heading', { level: 1 }).boundingBox();
   const footer = await page.getByRole('contentinfo').boundingBox();
-  expect(heading!.y + heading!.height).toBeLessThan(footer!.y);
+  expect(heading!.y).toBeGreaterThanOrEqual(footer!.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('mobile-first-screen.png') });
+  await page.getByText('电台详情', { exact: true }).click();
   const dial = page.getByRole('slider', { name: '拨动选择当前范围内的电台' });
   await dial.focus();
   await dial.press('ArrowRight');

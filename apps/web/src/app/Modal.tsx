@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from '../library/library.module.css';
@@ -14,58 +14,49 @@ export function Modal({
   onClose(): void;
   initialFocus?: string;
 }) {
+  const headingId = useId();
+  const closeRef = useRef(onClose);
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
   const dialog = useRef<HTMLDialogElement>(null);
   const { t } = useTranslation();
   useEffect(() => {
     const element = dialog.current;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    element?.showModal();
+    element?.show();
+    const dismiss = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !element?.contains(event.target) &&
+        !opener?.contains(event.target)
+      )
+        closeRef.current();
+    };
+    const escape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !event.isComposing) {
+        event.preventDefault();
+        closeRef.current();
+      }
+    };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', escape);
     if (initialFocus) element?.querySelector<HTMLElement>(initialFocus)?.focus();
     return () => {
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', escape);
       element?.close();
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
   }, [initialFocus]);
   return (
-    <dialog
-      ref={dialog}
-      className={styles.modal}
-      aria-labelledby="modal-heading"
-      onCancel={onClose}
-      onKeyDown={(event) => {
-        if (event.key !== 'Tab' || event.altKey || event.ctrlKey || event.metaKey) return;
-        const root = event.currentTarget;
-        const controls = [
-          ...root.querySelectorAll<HTMLElement>(
-            'button,a[href],input,select,textarea,[tabindex],[contenteditable="true"]',
-          ),
-        ].filter(
-          (element) =>
-            element.tabIndex >= 0 &&
-            !element.matches(':disabled') &&
-            !element.closest('[inert]') &&
-            element.getClientRects().length > 0 &&
-            getComputedStyle(element).visibility !== 'hidden',
-        );
-        if (controls.length) {
-          event.preventDefault();
-          const index = controls.indexOf(document.activeElement as HTMLElement);
-          const next =
-            index < 0
-              ? event.shiftKey
-                ? controls.length - 1
-                : 0
-              : (index + (event.shiftKey ? -1 : 1) + controls.length) % controls.length;
-          controls[next]?.focus();
-        }
-      }}
-    >
-      <header className={styles.modalHeading}>
-        <h2 id="modal-heading">{title}</h2>
+    <dialog ref={dialog} className={styles.modal} aria-labelledby={headingId} onCancel={onClose}>
+      <div className={styles.modalHeading}>
+        <h2 id={headingId}>{title}</h2>
         <button onClick={onClose} aria-label={t('closePanel')}>
           <X size={22} aria-hidden="true" />
         </button>
-      </header>
+      </div>
       {children}
     </dialog>
   );

@@ -60,7 +60,7 @@ test('combines filter dimensions and favorites without interrupting actual curre
   await enter(page);
   await play(page, first.name);
   await openDirectory(page);
-  await page.getByText('筛选电台', { exact: true }).click();
+  await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '流行', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 1 个电台');
   await expect(page.getByText('当前电台不在这些筛选条件中，播放会继续。')).toBeVisible();
@@ -99,7 +99,7 @@ test('restores successful listening paused and gives a shared station priority o
   await page.getByRole('button', { name: '暂停', exact: true }).click();
   await page.getByRole('button', { name: '收藏 ' + first.name, exact: true }).click();
   await openDirectory(page);
-  await page.getByText('筛选电台', { exact: true }).click();
+  await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '爵士', exact: true }).check();
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(first.name);
@@ -301,7 +301,7 @@ test('uses the same favorite candidates for list and random exploration when the
   await upload(page, transfer([2]));
   await panel(page).getByRole('button', { name: '关闭面板', exact: true }).click();
   await openDirectory(page);
-  await page.getByText('筛选电台', { exact: true }).click();
+  await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '只看收藏', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 1 个电台');
   await page.keyboard.press('Escape');

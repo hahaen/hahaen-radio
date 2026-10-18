@@ -238,11 +238,11 @@ test('reuses the complete scene index from IndexedDB after reload', async ({ pag
     locationPrecision: 'coordinates' as const,
   };
   const requests = await install(page, [station], undefined, undefined, true);
-  await expect(page.getByText('1 / 1 个候选电台有坐标', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 1 / 1 台', { exact: true })).toBeVisible();
   const chunks = requests.filter((value) => value === 'scene-chunk').length;
   expect(chunks).toBeGreaterThan(0);
   await page.reload();
-  await expect(page.getByText('1 / 1 个候选电台有坐标', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 1 / 1 台', { exact: true })).toBeVisible();
   expect(requests.filter((value) => value === 'scene-chunk')).toHaveLength(chunks);
 });
 test('retains list playback when WebGL initialization is unavailable', async ({ page }) => {
@@ -298,7 +298,7 @@ test('pins automatic selection and preserves paused intent after a globe dwell',
   const canvas = panel.locator('canvas');
   const focus = async () => {
     await canvas.scrollIntoViewIfNeeded();
-    await page.getByRole('button', { name: '定位当前电台', exact: true }).click();
+    await canvas.press('Home');
     await page.waitForTimeout(700);
   };
   const drag = async () => {
@@ -405,7 +405,7 @@ test('expands a known-city cluster and cycles its actual stations', async ({ pag
   await expectPlaying(page);
   const canvas = panel.locator('canvas');
   await canvas.scrollIntoViewIfNeeded();
-  await page.getByRole('button', { name: '定位当前电台', exact: true }).click();
+  await canvas.press('Home');
   await page.waitForTimeout(700);
   const bounds = await canvas.boundingBox();
   expect(bounds).not.toBeNull();

@@ -118,17 +118,41 @@ export function createGlobe(
     material(new MeshStandardMaterial({ color: 0x0b1c23, roughness: 1, metalness: 0 })),
   );
   earth.add(body);
-  const pointShader = (size: number, opacity: number) =>
+  const pointShader = (size: number, opacity: number, glow = false) =>
     material(
       new ShaderMaterial({
         transparent: true,
         depthWrite: false,
         vertexColors: true,
-        uniforms: { pointSize: { value: size }, opacity: { value: opacity } },
-        vertexShader:
-          'uniform float pointSize; attribute float approximate; varying float vApproximate; varying vec3 vColor; void main(){vApproximate=approximate;vColor=color; gl_PointSize=pointSize*(1.0+approximate*0.15); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
-        fragmentShader:
-          'uniform float opacity; varying float vApproximate; varying vec3 vColor; void main(){float d=length(gl_PointCoord-0.5); if(d>0.5)discard; float ring=vApproximate>0.5?smoothstep(0.2,0.3,d):1.0; gl_FragColor=vec4(vColor,opacity*ring*(1.0-smoothstep(0.35,0.5,d)));\n#include <colorspace_fragment>\n}',
+        uniforms: {
+          pointSize: { value: size },
+          opacity: { value: opacity },
+          time: { value: 0 },
+          glow: { value: glow ? 1 : 0 },
+        },
+        vertexShader: `
+          uniform float pointSize; uniform float time; uniform float glow;
+          attribute float approximate;
+          varying float vApproximate; varying vec3 vColor; varying float vPulse;
+          void main() {
+            vApproximate=approximate; vColor=color;
+            float seed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
+            vPulse=0.65+0.35*sin(time*(0.65+seed*0.6)+seed*62.8);
+            gl_PointSize=pointSize*(1.0+glow*vPulse*0.6);
+            gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+          }`,
+        fragmentShader: `
+          uniform float opacity; uniform float glow;
+          varying float vApproximate; varying vec3 vColor; varying float vPulse;
+          void main() {
+            float d=length(gl_PointCoord-0.5); if(d>0.5)discard;
+            float ring=vApproximate>0.5?smoothstep(0.08,0.18,d):1.0;
+            float dotAlpha=ring*(1.0-smoothstep(0.3,0.5,d));
+            float halo=exp(-d*d*23.0)*(0.32+0.55*vPulse)*mix(1.0,smoothstep(0.06,0.16,d),vApproximate);
+            float core=(1.0-smoothstep(0.03,0.16,d))*ring;
+            gl_FragColor=vec4(vColor,opacity*mix(dotAlpha,halo+core*0.7,glow));
+            #include <colorspace_fragment>
+          }`,
       }),
     );
   function makePoints(
@@ -155,7 +179,7 @@ export function createGlobe(
     );
     return new Points(buffer, pointShader(size, opacity));
   }
-  const mainland = makePoints(land.points, 1.2, 0.55, 0x83aaa3);
+  const mainland = makePoints(land.points, 1.0, 0.28, 0x83aaa3);
   earth.add(mainland);
   const outline: number[] = [];
   for (const polygon of land.polygons)
@@ -188,7 +212,7 @@ export function createGlobe(
     ),
   );
   earth.add(rim);
-  const markers = new Points(geometry(new BufferGeometry()), pointShader(2.8, 0.88));
+  const markers = new Points(geometry(new BufferGeometry()), pointShader(5.2, 0.84, true));
   earth.add(markers);
   const selection = new Mesh(
     geometry(new RingGeometry(0.018, 0.023, 40)),
@@ -279,9 +303,15 @@ export function createGlobe(
   controls.addEventListener('change', changed);
   controls.addEventListener('start', started);
   controls.addEventListener('end', ended);
+  let lastPaint = 0;
   function draw(now: number) {
     frame = 0;
     if (disposed || !active || lost || document.hidden) return;
+    if (!reduced && !powerSave && now - lastPaint < 32) {
+      invalidate();
+      return;
+    }
+    lastPaint = now;
     if (transition) {
       const t = Math.min(1, (now - transition.start) / 500),
         eased = 1 - (1 - t) ** 3;
@@ -296,14 +326,14 @@ export function createGlobe(
       camera.lookAt(0, 0, 0);
       if (t === 1) transition = undefined;
     }
+    markers.material.uniforms.time!.value = reduced || powerSave ? 0 : now / 1000;
     const moving = controls.update();
     updateMarkerSize();
     renderer.render(scene, camera);
-    if (moving || transition) invalidate();
+    if (moving || transition || (!reduced && !powerSave && groups.length > 0)) invalidate();
   }
   function updateMarkerSize() {
-    const size =
-      width < 768 ? Math.min(2.8, 1.25 + Math.max(0, 2.8 - camera.position.length()) * 0.8) : 2.8;
+    const size = width < 768 ? 3.6 : 5.2;
     markers.material.uniforms.pointSize!.value = Math.max(2, size * renderer.getPixelRatio());
   }
   function resize() {
@@ -314,9 +344,13 @@ export function createGlobe(
     const ratio = powerSave ? 1 : Math.min(devicePixelRatio || 1, width < 768 ? 1.5 : 1.75);
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
-    mainland.material.uniforms.pointSize!.value = 1.2 * ratio;
+    mainland.material.uniforms.pointSize!.value = ratio;
     updateMarkerSize();
     camera.aspect = width / height;
+    camera.fov =
+      camera.aspect < 1
+        ? (Math.atan(Math.tan((19 * Math.PI) / 180) / camera.aspect) * 360) / Math.PI
+        : 38;
     camera.updateProjectionMatrix();
     invalidate();
   }
@@ -593,7 +627,7 @@ export function createGlobe(
     const group = hit?.index === undefined ? undefined : groups[hit.index];
     if (group) {
       showPreview(group);
-      callbacks.pick(group, 'click');
+      callbacks.pick(sourceGroups.find((source) => source.id === group.groupId) ?? group, 'click');
     }
   });
   listen(canvas, 'keydown', (event) => {

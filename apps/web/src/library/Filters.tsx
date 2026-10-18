@@ -8,15 +8,18 @@ import styles from './library.module.css';
 export function Filters({
   value,
   manifest,
+  expanded = false,
   onChange,
 }: {
   value: ListeningFilters;
+  expanded?: boolean;
   manifest: CatalogManifest | undefined;
   onChange(value: ListeningFilters): void;
 }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(
-    value.genres !== null ||
+    expanded ||
+      value.genres !== null ||
       value.languages !== null ||
       value.minBitrate > 0 ||
       value.favoritesOnly,
