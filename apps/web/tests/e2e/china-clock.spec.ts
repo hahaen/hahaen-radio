@@ -25,13 +25,16 @@ for (const [width, height] of [
     await expect(clock).toBeVisible();
     await expect(clock.getByText('21:27', { exact: true })).toBeVisible();
     await expect(clock).toContainText(/2026年10月18日\s*星期日/);
+    await expect(clock.getByText('农历九月初九', { exact: true })).toBeVisible();
     await expect(clock).not.toContainText('—');
     await selectStation(page, first.name);
     await selectStation(page, second.name);
     await expect(page.getByRole('heading', { name: second.name, exact: true })).toBeVisible();
     await page.getByRole('button', { name: '暂停', exact: true }).click();
     await expect(clock.getByText('21:27', { exact: true })).toBeVisible();
-    await expect(clock.locator('time')).toHaveText(/^21:27中国时间 · 2026年10月18日\s*星期日$/);
+    await expect(clock.locator('time')).toHaveText(
+      /^21:27中国时间 · 2026年10月18日\s*星期日农历九月初九$/,
+    );
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
@@ -57,8 +60,22 @@ for (const [width, height] of [
     const english = page.getByRole('complementary', { name: 'China time', exact: true });
     await expect(english).toContainText('21:27');
     await expect(english).toContainText('Sunday, 18 October 2026');
+    await expect(english.getByText('Lunar: month 9, day 9', { exact: true })).toBeVisible();
     const englishBounds = await english.boundingBox();
     expect(englishBounds!.x).toBeGreaterThanOrEqual(0);
     expect(englishBounds!.x + englishBounds!.width).toBeLessThanOrEqual(width);
   });
 }
+
+test('shows a leap lunar month across languages', async ({ page }) => {
+  await page.clock.setFixedTime(new Date('2025-07-25T00:00:00Z'));
+  await install(page);
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+  await page.goto('/');
+  const clock = page.getByRole('complementary', { name: '中国时间', exact: true });
+  await expect(clock.getByText('农历闰六月初一', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await expect(page.getByRole('complementary', { name: 'China time', exact: true })).toContainText(
+    'Lunar: leap month 6, day 1',
+  );
+});

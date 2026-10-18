@@ -21,7 +21,7 @@
 
 全系统样式统一见[任务记录](iterations/2026-10-18-unified-visual-style/README.md)。
 
-中国时间与日期调整见[任务记录](iterations/2026-10-18-china-clock/README.md)。
+中国时间、公历与农历调整见[任务记录](iterations/2026-10-18-china-clock/README.md)。
 
 ## 阅读顺序
 

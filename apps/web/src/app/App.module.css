@@ -246,6 +246,9 @@
   font-variant-numeric: tabular-nums;
 }
 .clockDate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   font: 12px / 1.8 var(--font-body);
   letter-spacing: 0.04em;
 }
@@ -1047,7 +1050,7 @@
     gap: 4px;
   }
   .clockTime {
-    font-size: 48px;
+    font-size: 32px;
   }
   .clockDate {
     line-height: 1.5;

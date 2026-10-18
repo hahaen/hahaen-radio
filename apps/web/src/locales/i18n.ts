@@ -368,6 +368,8 @@ const resources = {
       stationLanguages: '收听语言',
       localTime: '当地时间',
       chinaTime: '中国时间',
+      lunarDate: '农历{{date}}',
+      lunarLeapDate: '农历{{date}}',
       timezoneEvidence: '基于离线地名资料的时区',
       geographySource: '附近地名资料：',
       directorySource: '电台目录由 Radio Browser 提供。线路可用性受电台与当前网络影响。',
@@ -832,6 +834,8 @@ const resources = {
       stationLanguages: 'Broadcast language',
       localTime: 'Local time',
       chinaTime: 'China time',
+      lunarDate: 'Lunar: month {{month}}, day {{day}}',
+      lunarLeapDate: 'Lunar: leap month {{month}}, day {{day}}',
       timezoneEvidence: 'Timezone based on offline place data',
       geographySource: 'Nearby place data:',
       directorySource:

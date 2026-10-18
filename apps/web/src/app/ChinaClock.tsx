@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { createLunarFormatter, lunarDate } from './lunar-date';
 import styles from './App.module.css';
 
 export function ChinaClock() {
@@ -21,8 +22,10 @@ export function ChinaClock() {
         day: 'numeric',
         weekday: 'long',
       }),
+      lunar: createLunarFormatter(),
     };
   }, [i18n.language]);
+  const lunar = lunarDate(formatters.lunar, now);
 
   useEffect(() => {
     const refresh = () => {
@@ -44,7 +47,10 @@ export function ChinaClock() {
     <time className={styles.chinaClock} dateTime={new Date(now).toISOString()}>
       <span className={styles.clockTime}>{formatters.time.format(now)}</span>
       <span className={styles.clockDate}>
-        {t('chinaTime')} · {formatters.date.format(now)}
+        <span>
+          {t('chinaTime')} · {formatters.date.format(now)}
+        </span>
+        {lunar && <span>{t(lunar.leap ? 'lunarLeapDate' : 'lunarDate', lunar)}</span>}
       </span>
     </time>
   );

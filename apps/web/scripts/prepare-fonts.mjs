@@ -7,10 +7,13 @@ const userAgent =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36';
 const ascii = Array.from({ length: 95 }, (_, index) => String.fromCharCode(index + 32)).join('');
 const locale = await readFile(new URL('../src/locales/i18n.ts', import.meta.url), 'utf8');
+const lunar = await readFile(new URL('../src/app/lunar-date.ts', import.meta.url), 'utf8');
 const glyphs = [
   ...new Set(
     ascii +
-      [...locale].filter((character) => character >= '\u3000' && character <= '\u9fff').join('') +
+      [...(locale + lunar)]
+        .filter((character) => character >= '\u3000' && character <= '\u9fff')
+        .join('') +
       '…—·°−',
   ),
 ]

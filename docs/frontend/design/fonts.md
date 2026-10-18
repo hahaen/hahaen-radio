@@ -6,7 +6,7 @@
 
 ## 覆盖与许可
 
-- 中文资源覆盖当前双语语言文件中的汉字、标点和基本拉丁字形，外部电台名称、其他语言和未覆盖字形由系统字体显示，不动态向字体服务发送电台或用户内容。
+- 中文资源覆盖当前双语语言文件和农历月日格式器中的汉字、标点及基本拉丁字形，外部电台名称、其他语言和未覆盖字形由系统字体显示，不动态向字体服务发送电台或用户内容。
 - Inter 提供 300–650、中文正文提供 300–600 可变字重，衬线与等宽字重为 400。没有请求的字重保留浏览器匹配，不伪造额外字体文件。
 - 五个家族均随附 SIL Open Font License 1.1 和版权声明，见字体目录中的 `*-LICENSE.txt`；原始许可入口分别是 [Noto Serif SC](https://github.com/google/fonts/blob/main/ofl/notoserifsc/OFL.txt)、[Noto Sans SC](https://github.com/google/fonts/blob/main/ofl/notosanssc/OFL.txt)、[Inter](https://github.com/google/fonts/blob/main/ofl/inter/OFL.txt)、[JetBrains Mono](https://github.com/google/fonts/blob/main/ofl/jetbrainsmono/OFL.txt) 和 [IBM Plex Mono](https://github.com/google/fonts/blob/main/ofl/ibmplexmono/OFL.txt)。
 - 许可证仅统一换行并去除行尾空白，保留原文字、版权和条款。
