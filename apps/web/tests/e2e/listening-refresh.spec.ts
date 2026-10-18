@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { first, second, install, listenButton } from './listening-fixture.js';
+import { first, second, install, selectStation } from './listening-fixture.js';
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
 });
@@ -9,7 +9,7 @@ test('keeps mobile station identity and primary controls in the first screen', a
   await page.setViewportSize({ width: 390, height: 844 });
   await install(page);
   await page.goto('/');
-  await listenButton(page, first.name).click();
+  await selectStation(page, first.name);
   await page.getByRole('button', { name: '暂停', exact: true }).click();
   await page.evaluate(() => scrollTo(0, 0));
   const heading = await page.getByRole('heading', { level: 1 }).boundingBox();
@@ -44,7 +44,7 @@ test('preserves older preferences and remembers scene choices without changing p
       );
   });
   await page.goto('/');
-  await listenButton(page, first.name).click();
+  await selectStation(page, first.name);
   await page.getByRole('button', { name: '收听设置', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('checkbox', { name: '省电模式', exact: true }).check();

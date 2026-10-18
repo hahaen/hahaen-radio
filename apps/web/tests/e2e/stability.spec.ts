@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { first, second, listenButton } from './listening-fixture.js';
+import { first, second, openDirectory, listenButton, selectStation } from './listening-fixture.js';
 import { installScale } from './scale-fixture.js';
 
 test('loads 30000 entries, reuses cached chunks and keeps resources bounded across 60 station and view switches', async ({
@@ -23,6 +23,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   // A complete index must not fan out one detail request per station.
   expect(counts.details).toBe(0);
   const searchStart = Date.now();
+  await openDirectory(page);
   const search = page.getByRole('searchbox', { name: '搜索电台', exact: true });
   await search.fill('Test radio 29999');
   await search.press('Enter');
@@ -39,7 +40,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
   await expect(page.getByText('30,000 / 30,000 个候选电台有坐标', { exact: true })).toBeVisible();
   await page.getByText('筛选电台', { exact: true }).click();
-  await listenButton(page, first.name).click();
+  await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
   await page.getByRole('slider', { name: '音量', exact: true }).press('Home');
@@ -56,7 +57,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   try {
     for (let index = 0; index < 60; index++) {
       const station = index % 2 ? second : first;
-      await listenButton(page, station.name).click();
+      await selectStation(page, station.name);
       await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(station.name);
       await page.getByRole('button', { name: '流派', exact: true }).click();

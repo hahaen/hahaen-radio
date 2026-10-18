@@ -45,6 +45,7 @@ import { useNowPlaying } from '../tracks/use-now-playing';
 import { TrackPanel, TrackSummary } from '../tracks/TrackPanel';
 import { explorationAutoplay } from '../graphics/model';
 import { StationDial } from './StationDial';
+import { Modal } from './Modal';
 import { StationFacts } from './StationFacts';
 import { InformationPanel } from '../information/InformationPanel';
 import styles from './App.module.css';
@@ -108,7 +109,12 @@ export function App() {
   const [searchInput, setSearchInput] = useState({ base: search, value: search });
   const draft = searchInput.base === search ? searchInput.value : search;
   const setDraft = (value: string) => setSearchInput({ base: search, value });
+  const [directoryOpen, setDirectoryOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const openDirectory = useCallback(() => {
+    player.invalidateSelection();
+    setDirectoryOpen(true);
+  }, [player]);
   const [trackOpen, setTrackOpen] = useState(false);
   const [informationOpen, setInformationOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false),
@@ -122,7 +128,7 @@ export function App() {
     if (immersive) window.scrollTo(0, 0);
     if (!immersive && searchAfterExit.current) {
       searchAfterExit.current = false;
-      document.getElementById('station-search')?.focus();
+      openDirectory();
       immersionOrigin.current = null;
     } else if (!immersive && immersionOrigin.current) {
       if (immersionOrigin.current.isConnected) {
@@ -131,7 +137,7 @@ export function App() {
       }
       immersionOrigin.current = null;
     }
-  }, [immersive]);
+  }, [immersive, openDirectory]);
   const [sleepController] = useState(() => createSleepController(library, player.pause));
   const sleep = useStore(sleepController.store);
   useEffect(() => sleepController.attach(), [sleepController]);
@@ -355,7 +361,7 @@ export function App() {
           if (immersive) {
             searchAfterExit.current = true;
             setImmersive(false);
-          } else document.getElementById('station-search')?.focus();
+          } else openDirectory();
         },
         favorite: favoriteCurrent,
         pin: () => {
@@ -369,12 +375,13 @@ export function App() {
           else exploration.current?.close();
         },
       }),
-    [player, library, favoriteCurrent, enterImmersive, immersive],
+    [player, library, favoriteCurrent, enterImmersive, immersive, openDirectory],
   );
   useEffect(() => {
     if (
       !personal.preferences.idleImmersive ||
       immersive ||
+      directoryOpen ||
       libraryOpen ||
       settingsOpen ||
       trackOpen ||
@@ -388,6 +395,7 @@ export function App() {
   }, [
     personal.preferences.idleImmersive,
     immersive,
+    directoryOpen,
     libraryOpen,
     settingsOpen,
     trackOpen,
@@ -425,7 +433,7 @@ export function App() {
     'playback' + state.playback.status[0]!.toUpperCase() + state.playback.status.slice(1);
   return (
     <div ref={pageRef} className={styles.page} data-power-save={personal.scene.powerSave}>
-      <div hidden={immersive}>
+      <div className={styles.shell} hidden={immersive}>
         <a className={styles.skip} href="#main">
           {t('skip')}
         </a>
@@ -435,7 +443,11 @@ export function App() {
           </a>
           <button
             className={styles.findStation}
-            onClick={() => document.getElementById('station-search')?.focus()}
+            onClick={(event) => {
+              event.currentTarget.focus({ preventScroll: true });
+              openDirectory();
+            }}
+            aria-haspopup="dialog"
           >
             <Search size={18} aria-hidden="true" />
             {t('findStation')}
@@ -510,10 +522,6 @@ export function App() {
                       : t('unknownBitrate')}
                   </span>
                 </p>
-                <details className={styles.stationDetails}>
-                  <summary>{t('stationDetails')}</summary>
-                  <StationFacts station={state.station} detail={state.detail} />
-                </details>
                 <StationDial
                   stations={candidates ?? EMPTY_STATIONS}
                   station={state.station}
@@ -601,6 +609,12 @@ export function App() {
             >
               {status}
             </p>
+            {state.station && (
+              <details className={styles.stationDetails}>
+                <summary>{t('stationDetails')}</summary>
+                <StationFacts station={state.station} detail={state.detail} />
+              </details>
+            )}
             {state.autoSkips > 0 && (
               <p className={styles.note}>{t('autoSkip', { count: state.autoSkips })}</p>
             )}
@@ -639,6 +653,7 @@ export function App() {
                 library.setPreferences({ view });
               }}
               visible={!immersive}
+              onSearch={openDirectory}
               showHints={personal.preferences.showHints}
               powerSave={personal.scene.powerSave}
               stations={candidates ?? EMPTY_STATIONS}
@@ -669,10 +684,29 @@ export function App() {
               }}
             />
           </div>
-          <section className={styles.directory} aria-labelledby="directory-title">
-            <h2 id="directory-title" tabIndex={-1}>
-              {t('explore')}
-            </h2>
+        </main>
+      </div>
+      {immersive && (
+        <Immersive
+          station={state.station}
+          location={state.station ? location(state.station) : ''}
+          status={status}
+          playbackState={state.playback.status}
+          favorite={!!state.station && favoriteIds.has(state.station.id)}
+          onFavorite={favoriteCurrent}
+          onExit={() => setImmersive(false)}
+          track={trackSummary(true)}
+          effect={personal.scene.immersion}
+          powerSave={personal.scene.powerSave}
+        />
+      )}
+      {directoryOpen && (
+        <Modal
+          title={t('explore')}
+          onClose={() => setDirectoryOpen(false)}
+          initialFocus="#station-search"
+        >
+          <section className={styles.directory} aria-label={t('explore')}>
             <form
               className={styles.search}
               role="search"
@@ -692,6 +726,12 @@ export function App() {
                 value={draft}
                 maxLength={200}
                 onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape' && !event.nativeEvent.isComposing) {
+                    event.preventDefault();
+                    setDirectoryOpen(false);
+                  }
+                }}
               />
               {draft && (
                 <button type="button" aria-label={t('clearSearch')} onClick={reset}>
@@ -753,6 +793,7 @@ export function App() {
                     aria-current={state.station?.id === station.id ? 'true' : undefined}
                     onClick={() => {
                       void player.select(station);
+                      setDirectoryOpen(false);
                     }}
                   >
                     <span className={styles.stationText}>
@@ -798,21 +839,7 @@ export function App() {
               </a>
             </p>
           </section>
-        </main>
-      </div>
-      {immersive && (
-        <Immersive
-          station={state.station}
-          location={state.station ? location(state.station) : ''}
-          status={status}
-          playbackState={state.playback.status}
-          favorite={!!state.station && favoriteIds.has(state.station.id)}
-          onFavorite={favoriteCurrent}
-          onExit={() => setImmersive(false)}
-          track={trackSummary(true)}
-          effect={personal.scene.immersion}
-          powerSave={personal.scene.powerSave}
-        />
+        </Modal>
       )}
       {libraryOpen && (
         <LibraryPanel

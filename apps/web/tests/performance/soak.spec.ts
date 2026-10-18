@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
-import { first, second, listenButton } from '../e2e/listening-fixture.js';
+import { first, second, openDirectory, selectStation } from '../e2e/listening-fixture.js';
 import { installScale } from '../e2e/scale-fixture.js';
 import { glReport, installGLProbe, type GLContextReport } from './webgl-probe.js';
 
@@ -49,7 +49,7 @@ test('sustains production playback and exploration with bounded resources', asyn
   await expect(page.getByText('30,000 / 30,000 个候选电台有坐标', { exact: true })).toBeVisible();
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await listenButton(page, first.name).click();
+  await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await page.getByRole('button', { name: '固定当前电台', exact: true }).click();
   await page.getByRole('slider', { name: '音量', exact: true }).press('Home');
@@ -100,10 +100,11 @@ test('sustains production playback and exploration with bounded resources', asyn
   };
   try {
     do {
-      await listenButton(page, switches % 2 ? first.name : second.name).click();
+      await selectStation(page, switches % 2 ? first.name : second.name);
       switches++;
       await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
       if (switches % 6 === 0) {
+        await openDirectory(page);
         await page.getByText('筛选电台', { exact: true }).click();
         await page.getByRole('checkbox', { name: '流行', exact: true }).check();
         await expect(
@@ -111,6 +112,7 @@ test('sustains production playback and exploration with bounded resources', asyn
         ).toBeVisible();
         await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
         await page.getByText('筛选电台', { exact: true }).click();
+        await page.keyboard.press('Escape');
         await page.getByRole('button', { name: '流派', exact: true }).click();
         await page.getByRole('button', { name: '地球', exact: true }).click();
       }

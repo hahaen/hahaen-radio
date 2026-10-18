@@ -1,8 +1,16 @@
 .exploration {
   min-width: 0;
   position: relative;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 .modeTabs {
+  flex-shrink: 0;
   display: flex;
   justify-content: center;
   gap: 12px;
@@ -26,12 +34,15 @@
 }
 .globePanel {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 .globeStage {
   position: relative;
-  aspect-ratio: 1.15;
-  min-height: 260px;
-  max-height: 680px;
+  flex: 1;
+  min-height: 0;
 }
 .globePanel[hidden] {
   display: none;
@@ -80,7 +91,7 @@
 .mapControls {
   position: absolute;
   right: 8px;
-  top: 24px;
+  top: 8px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -102,6 +113,7 @@
   border-color: var(--color-secondary);
 }
 .preview {
+  flex-shrink: 0;
   margin: 16px 12px 0;
   display: flex;
   justify-content: center;
@@ -158,6 +170,7 @@
   background: var(--color-surface);
 }
 .dataState {
+  flex-shrink: 0;
   text-align: center;
   line-height: 1.7;
   color: var(--color-text-muted);
@@ -215,11 +228,8 @@
 }
 .groupList {
   max-width: 620px;
-  margin: 24px auto 0;
-  padding: 20px;
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: var(--color-surface);
+  margin: 0 auto;
+  padding: 0;
 }
 .groupHeading {
   display: flex;
@@ -293,15 +303,14 @@
 }
 @media (width<768px) {
   .globeStage {
-    min-height: 190px;
-    height: clamp(190px, 28svh, 270px);
-    aspect-ratio: auto;
-    max-height: 270px;
+    min-height: 0;
   }
   .mapControls {
-    top: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 44px);
+    top: 0;
     right: 0;
-    gap: 6px;
+    gap: 0;
   }
   .modeTabs {
     justify-content: start;
@@ -316,7 +325,7 @@
     font-size: 14px;
   }
   .groupList {
-    padding: 16px;
+    padding: 0;
   }
 }
 @media (width<390px) {

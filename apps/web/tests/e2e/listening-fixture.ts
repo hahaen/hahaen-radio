@@ -29,6 +29,14 @@ export function listenButton(page: Page, name: string, language: 'zh' | 'en' = '
     name: new RegExp('^' + label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:\\s|$)'),
   });
 }
+export async function openDirectory(page: Page) {
+  if (await page.getByRole('dialog', { name: /^(探索电台|Explore stations)$/ }).count()) return;
+  await page.getByRole('button', { name: /^(查找电台|Find a station)$/ }).click();
+}
+export async function selectStation(page: Page, name: string, language: 'zh' | 'en' = 'zh') {
+  await openDirectory(page);
+  await listenButton(page, name, language).click();
+}
 export async function install(page: Page, scene = true) {
   let lookupFailed = false;
   const blocked = new Set<string>();

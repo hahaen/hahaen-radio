@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import type { RecognitionResult } from '@haen/contracts';
-import { first, second, install, listenButton } from './listening-fixture.js';
+import { first, second, install, selectStation } from './listening-fixture.js';
 const recognized = { artist: 'Original Sample Artist', title: 'Original Sample Song' };
 function result(
   id = first.id,
@@ -26,7 +26,7 @@ async function setup(page: Page, capability: 'available' | 'disabled' = 'availab
   );
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
-  await listenButton(page, first.name).click();
+  await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
 }
 async function section(page: Page) {
@@ -152,7 +152,7 @@ test('drops a late response after station selection and never identifies a new s
   await panel.getByRole('button', { name: '识别当前片段', exact: true }).click();
   await expect.poll(() => posts).toBe(1);
   await page.keyboard.press('Escape');
-  await listenButton(page, second.name).click();
+  await selectStation(page, second.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   const next = await section(page);
   await page.waitForTimeout(800);

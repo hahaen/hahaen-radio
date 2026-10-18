@@ -1,7 +1,14 @@
 import { readFile } from 'node:fs/promises';
 import { expect, test, type Page } from '@playwright/test';
 import { testStation } from '../../src/testing/stations.js';
-import { first, second, originals, install, listenButton } from './listening-fixture.js';
+import {
+  first,
+  second,
+  originals,
+  install,
+  openDirectory,
+  selectStation,
+} from './listening-fixture.js';
 const prefix = 'haen:personal:v1:';
 function transfer(ids: number[], songs = false) {
   return {
@@ -20,10 +27,12 @@ function transfer(ids: number[], songs = false) {
 async function enter(page: Page, path = '/') {
   await page.goto(path);
   await page.getByRole('button', { name: '中文', exact: true }).click();
+  await openDirectory(page);
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
+  await page.keyboard.press('Escape');
 }
 async function play(page: Page, name: string) {
-  await listenButton(page, name).click();
+  await selectStation(page, name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await expect
     .poll(() => page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.currentTime))
@@ -50,6 +59,7 @@ test('combines filter dimensions and favorites without interrupting actual curre
   await install(page);
   await enter(page);
   await play(page, first.name);
+  await openDirectory(page);
   await page.getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '流行', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 1 个电台');
@@ -57,7 +67,9 @@ test('combines filter dimensions and favorites without interrupting actual curre
   expect(await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(
     false,
   );
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '暂停', exact: true }).click();
+  await openDirectory(page);
   await page.getByRole('checkbox', { name: '爵士', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 2 个电台');
   await page.getByRole('checkbox', { name: /法语/ }).check();
@@ -65,7 +77,9 @@ test('combines filter dimensions and favorites without interrupting actual curre
   await expect(page.getByTestId('directory-state')).toHaveText('找到 1 个电台');
   await page.getByRole('checkbox', { name: '只看收藏', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 0 个电台');
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '随机下一站', exact: true })).toBeDisabled();
+  await openDirectory(page);
   await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
   await page
@@ -84,6 +98,7 @@ test('restores successful listening paused and gives a shared station priority o
   await play(page, first.name);
   await page.getByRole('button', { name: '暂停', exact: true }).click();
   await page.getByRole('button', { name: '收藏 ' + first.name, exact: true }).click();
+  await openDirectory(page);
   await page.getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '爵士', exact: true }).check();
   await page.reload();
@@ -92,7 +107,9 @@ test('restores successful listening paused and gives a shared station priority o
   await expect(page.locator('audio')).toHaveCount(0);
   await page.goto('/?station=' + second.id);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
+  await openDirectory(page);
   await expect(page.getByRole('checkbox', { name: '爵士', exact: true })).toBeChecked();
+  await page.keyboard.press('Escape');
   await expect(page.locator('audio')).toHaveCount(0);
   await openLibrary(page);
   await expect(
@@ -283,9 +300,11 @@ test('uses the same favorite candidates for list and random exploration when the
   await openLibrary(page);
   await upload(page, transfer([2]));
   await panel(page).getByRole('button', { name: '关闭面板', exact: true }).click();
+  await openDirectory(page);
   await page.getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '只看收藏', exact: true }).check();
   await expect(page.getByTestId('directory-state')).toHaveText('找到 1 个电台');
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '开始收听', exact: true }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');

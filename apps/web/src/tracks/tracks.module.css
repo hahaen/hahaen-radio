@@ -176,7 +176,18 @@
 }
 @media (width < 768px) {
   .summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    margin-top: 8px;
+    padding-top: 8px;
     text-align: left;
+  }
+  .summary p {
+    flex: 1;
+    min-width: 120px;
+    margin-block: 4px;
   }
   .lyricsScroll button {
     gap: 8px;

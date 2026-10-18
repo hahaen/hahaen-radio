@@ -1,14 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
-import { first, second, install, listenButton } from './listening-fixture.js';
+import { first, second, install, openDirectory, selectStation } from './listening-fixture.js';
 const preferences = 'haen:personal:v1:preferences';
 async function enter(page: Page) {
   await install(page);
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
+  await openDirectory(page);
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
+  await page.keyboard.press('Escape');
 }
 async function play(page: Page, name = first.name) {
-  await listenButton(page, name).click();
+  await selectStation(page, name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
 }
 async function settings(page: Page) {
@@ -147,6 +149,8 @@ test('keeps keyboard commands, immersion, focus, and refreshed previous navigati
   expect(await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(
     false,
   );
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await bodyKey(page, 'Enter');
   const immersive = page.getByRole('main', { name: '沉浸收听', exact: true });
   await expect(immersive).toBeVisible();
@@ -157,6 +161,7 @@ test('keeps keyboard commands, immersion, focus, and refreshed previous navigati
   await bodyKey(page, '/');
   await expect(immersive).toHaveCount(0);
   await expect(page.getByRole('searchbox', { name: '搜索电台', exact: true })).toBeFocused();
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: '沉浸收听', exact: true }).click();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '沉浸收听', exact: true })).toBeFocused();
@@ -178,9 +183,11 @@ test('enters idle immersion only while actually playing and respects editing, di
   await expect(page.getByRole('dialog', { name: '关于与帮助', exact: true })).toBeVisible();
   await expect(page.getByRole('main', { name: '沉浸收听', exact: true })).toHaveCount(0);
   await page.keyboard.press('Escape');
+  await openDirectory(page);
   await page.getByRole('searchbox', { name: '搜索电台', exact: true }).focus();
   await page.clock.fastForward(31000);
   await expect(page.getByRole('main', { name: '沉浸收听', exact: true })).toHaveCount(0);
+  await page.keyboard.press('Escape');
   await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
   await page.clock.fastForward(31000);
   const immersive = page.getByRole('main', { name: '沉浸收听', exact: true });

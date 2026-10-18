@@ -7,10 +7,12 @@ export function Modal({
   title,
   children,
   onClose,
+  initialFocus,
 }: {
   title: string;
   children: ReactNode;
   onClose(): void;
+  initialFocus?: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const { t } = useTranslation();
@@ -18,11 +20,12 @@ export function Modal({
     const element = dialog.current;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     element?.showModal();
+    if (initialFocus) element?.querySelector<HTMLElement>(initialFocus)?.focus();
     return () => {
       element?.close();
       if (opener?.isConnected) opener.focus({ preventScroll: true });
     };
-  }, []);
+  }, [initialFocus]);
   return (
     <dialog
       ref={dialog}

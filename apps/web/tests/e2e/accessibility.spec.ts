@@ -1,7 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { writeFile } from 'node:fs/promises';
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
-import { first, install, listenButton } from './listening-fixture.js';
+import { first, install, openDirectory, listenButton, selectStation } from './listening-fixture.js';
 
 test.beforeEach(async ({ page }, info) => {
   await page.setViewportSize(
@@ -114,7 +114,9 @@ async function enter(page: Page, language: 'zh' | 'en', scene = true) {
   );
   await page.goto('/');
   await page.getByRole('button', { name: language === 'zh' ? '中文' : 'EN', exact: true }).click();
+  await openDirectory(page);
   await expect(page.getByTestId('directory-state')).toContainText('3');
+  await page.keyboard.press('Escape');
 }
 for (const language of ['zh', 'en'] as const) {
   test(`audits named controls, contrast and semantics across listening panels in ${language}`, async ({
@@ -162,6 +164,7 @@ for (const language of ['zh', 'en'] as const) {
     await scan('globe');
     await page.getByRole('button', { name: text.genre, exact: true }).click();
     await scan('genres');
+    await openDirectory(page);
     await page.getByText(text.filters, { exact: true }).click();
     await scan('filters');
     const search = page.getByRole('searchbox', {
@@ -175,7 +178,7 @@ for (const language of ['zh', 'en'] as const) {
     await search.fill('');
     await search.press('Enter');
     await expect(page.getByTestId('directory-state')).toContainText('3');
-    await listenButton(page, first.name, language).click();
+    await selectStation(page, first.name, language);
     await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
     await page
       .getByRole('button', { name: text.favorite + first.name, exact: true })
@@ -249,6 +252,7 @@ for (const language of ['zh', 'en'] as const) {
 
 test('audits the list fallback when the scene service is unavailable', async ({ page }, info) => {
   await enter(page, 'en', false);
+  await openDirectory(page);
   await expect(listenButton(page, first.name, 'en')).toBeVisible();
   const result = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])

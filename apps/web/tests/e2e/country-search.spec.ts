@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { testScene, testStation } from '../../src/testing/stations.js';
-import { install, listenButton } from './listening-fixture.js';
+import { install, openDirectory, listenButton } from './listening-fixture.js';
 
 test('China searches include Taiwan in the complete station collection', async ({
   page,
@@ -21,6 +21,7 @@ test('China searches include Taiwan in the complete station collection', async (
   );
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
+  await openDirectory(page);
   await expect(page.getByTestId('directory-state')).toHaveText('找到 3 个电台');
   const search = page.getByRole('searchbox', { name: '搜索电台' });
   for (const q of ['中国', 'China', 'CN']) {

@@ -1,9 +1,21 @@
 .page {
   --player-height: 112px;
-  min-height: 100svh;
-  padding: 24px 48px calc(var(--player-height) + 32px);
+  height: 100svh;
+  height: 100dvh;
+  overflow: hidden;
+  padding: max(16px, env(safe-area-inset-top)) 48px calc(var(--player-height) + 16px);
+}
+.shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.shell[hidden] {
+  display: none;
 }
 .header {
+  flex-shrink: 0;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -40,15 +52,23 @@
   color: var(--color-text);
 }
 .main {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   display: grid;
   grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.65fr);
-  grid-template-areas: 'current scene' 'directory directory';
+  grid-template-areas: 'current scene';
+  grid-template-rows: minmax(0, 1fr);
   gap: 40px 48px;
   max-width: 1440px;
   margin: 24px auto 0;
-  align-items: start;
+  align-items: stretch;
 }
 .current {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   grid-area: current;
   padding: 44px 0 24px;
 }
@@ -104,8 +124,7 @@
 .directory {
   min-width: 0;
   grid-area: directory;
-  padding-top: 36px;
-  border-top: 1px solid var(--color-border);
+  padding-top: 0;
   margin-top: 0;
   max-width: 1120px;
   width: 100%;
@@ -368,6 +387,7 @@
 .scene {
   grid-area: scene;
   min-width: 0;
+  min-height: 0;
 }
 .findStation {
   margin-left: auto;
@@ -437,7 +457,7 @@
 @media (width < 768px) {
   .page {
     --player-height: 168px;
-    padding: 12px 20px calc(var(--player-height) + 24px);
+    padding: max(8px, env(safe-area-inset-top)) 20px calc(var(--player-height) + 8px);
   }
   .brand {
     font-size: 20px;
@@ -448,9 +468,10 @@
   .main {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'scene' 'current' 'directory';
-    gap: 12px;
-    margin-top: 12px;
+    grid-template-areas: 'scene' 'current';
+    grid-template-rows: minmax(0, 0.7fr) minmax(0, 1fr);
+    gap: 8px;
+    margin-top: 8px;
   }
   .current {
     position: static;
@@ -473,7 +494,7 @@
     justify-content: center;
   }
   .directory {
-    margin-top: 12px;
+    margin-top: 0;
   }
   .stationList {
     grid-template-columns: minmax(0, 1fr);
@@ -700,6 +721,9 @@
   .current .location {
     margin-block: 8px;
   }
+  .current .status {
+    margin-block: 8px;
+  }
   .stationDetails {
     margin-block: 0;
   }
@@ -708,7 +732,7 @@
   }
   .stationActions {
     gap: 8px;
-    margin-top: 16px;
+    margin-top: 8px;
   }
   .stationActions button {
     padding-inline: 10px;

@@ -27,6 +27,21 @@ function withoutScene(fetcher: (input: string | URL | Request) => Promise<Respon
 }
 
 beforeEach(async () => {
+  // jsdom does not implement the dialog lifecycle; browser tests cover focus and modality.
+  Object.defineProperties(HTMLDialogElement.prototype, {
+    showModal: {
+      configurable: true,
+      value(this: HTMLDialogElement) {
+        this.open = true;
+      },
+    },
+    close: {
+      configurable: true,
+      value(this: HTMLDialogElement) {
+        this.open = false;
+      },
+    },
+  });
   localStorage.clear();
   await setLanguage('zh');
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function (
@@ -40,6 +55,8 @@ beforeEach(async () => {
 });
 afterEach(() => {
   cleanup();
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal');
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'close');
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -60,10 +77,13 @@ describe('radio application entry', () => {
   it('survives strict lifecycle replay, loads stations without autoplay and preserves language', async () => {
     vi.stubGlobal('fetch', withoutScene(vi.fn(async () => response())));
     mount(true);
+    await userEvent.click(screen.getByRole('button', { name: '查找电台' }));
     await screen.findByRole('button', { name: '收听 Test radio 1 英国 爵士' });
     expect(screen.getByRole('status')).toHaveTextContent('尚未播放');
     expect(document.querySelectorAll('audio')).toHaveLength(0);
+    await userEvent.click(screen.getByRole('button', { name: '关闭面板' }));
     await userEvent.click(screen.getByRole('button', { name: 'EN' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Find a station' }));
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
       'A wider world. A closer listen.',
     );
@@ -94,6 +114,7 @@ describe('radio application entry', () => {
       ),
     );
     mount();
+    await userEvent.click(screen.getByRole('button', { name: '查找电台' }));
     const retry = await within(screen.getByRole('region', { name: '探索电台' })).findByRole(
       'button',
       { name: '重试' },
@@ -110,6 +131,7 @@ describe('radio application entry', () => {
     );
     vi.stubGlobal('fetch', withoutScene(fetcher));
     mount();
+    await userEvent.click(screen.getByRole('button', { name: '查找电台' }));
     await userEvent.click(
       await screen.findByRole('button', { name: '收听 Test radio 1 英国 爵士' }),
     );

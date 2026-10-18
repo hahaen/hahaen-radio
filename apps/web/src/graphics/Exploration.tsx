@@ -1,13 +1,5 @@
-import {
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState,
-  type Ref,
-} from 'react';
-import { Globe2, ListMusic, X } from 'lucide-react';
+import { useCallback, useImperativeHandle, useMemo, useRef, useState, type Ref } from 'react';
+import { Globe2, ListMusic } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Genre, StationPreview } from '@haen/contracts';
 import {
@@ -20,6 +12,7 @@ import type { PickReason } from './globe';
 import { GlobePanel } from './GlobePanel';
 import { GenreAtlas } from './GenreAtlas';
 import styles from './exploration.module.css';
+import { Modal } from '../app/Modal';
 type Selection = { kind: 'place'; id: string } | { kind: 'genre'; genre: Genre } | null;
 export interface ExplorationHandle {
   close(): void;
@@ -34,6 +27,7 @@ export function Exploration({
   stale,
   progress,
   onRetry,
+  onSearch,
   onSelect,
   mode,
   onModeChange,
@@ -51,6 +45,7 @@ export function Exploration({
   stale: boolean;
   progress: { loaded: number; total: number };
   onRetry(): void;
+  onSearch(): void;
   onSelect(station: StationPreview, reason: ExplorationChoice, expected?: SceneExpectation): void;
   mode: 'globe' | 'genres';
   onModeChange(value: 'globe' | 'genres'): void;
@@ -62,7 +57,6 @@ export function Exploration({
   const { t } = useTranslation();
   const [selection, setSelection] = useState<Selection>(null),
     [offset, setOffset] = useState(0);
-  const heading = useRef<HTMLHeadingElement>(null);
   const origin = useRef<HTMLElement | null>(null);
   const rememberOrigin = () => {
     origin.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -117,12 +111,6 @@ export function Exploration({
     setOffset(0);
     setSelection({ kind: 'genre', genre });
   };
-  useEffect(() => {
-    if (selection) {
-      heading.current?.focus({ preventScroll: true });
-      heading.current?.scrollIntoView({ block: 'nearest' });
-    }
-  }, [selection]);
   return (
     <section className={styles.exploration} aria-label={t('exploration')}>
       <div className={styles.modeTabs} role="group" aria-label={t('viewMode')}>
@@ -182,7 +170,7 @@ export function Exploration({
           <>
             <span>{t('locatedCount', { located, total: stations.length })}</span>
             {located < stations.length && (
-              <button onClick={() => document.getElementById('station-search')?.focus()}>
+              <button onClick={onSearch}>
                 {t('browseUnlocated', { count: stations.length - located })}
               </button>
             )}
@@ -190,62 +178,56 @@ export function Exploration({
         )}
       </div>
       {selection && (
-        <section className={styles.groupList} aria-labelledby="place-heading">
-          <div className={styles.groupHeading}>
-            <h3 id="place-heading" tabIndex={-1} ref={heading}>
-              {title}
-            </h3>
-            <button aria-label={t('closePlace')} onClick={close}>
-              <X size={20} aria-hidden="true" />
-            </button>
-          </div>
-          <p>{t('placeStationCount', { count: members.length })}</p>
-          {members.length === 0 ? (
-            <p>{t('placeEmpty')}</p>
-          ) : (
-            <ul>
-              {members.slice(pageOffset, pageOffset + 12).map((item) => (
-                <li key={item.id}>
-                  <button
-                    aria-current={station?.id === item.id ? 'true' : undefined}
-                    onClick={() => onSelect(item, 'listen')}
-                  >
-                    {t('listenStation', { name: item.name })}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {members.length > 12 && (
-            <nav aria-label={t('placePagination')}>
+        <Modal title={title} onClose={close}>
+          <section className={styles.groupList} aria-label={title}>
+            <p>{t('placeStationCount', { count: members.length })}</p>
+            {members.length === 0 ? (
+              <p>{t('placeEmpty')}</p>
+            ) : (
+              <ul>
+                {members.slice(pageOffset, pageOffset + 12).map((item) => (
+                  <li key={item.id}>
+                    <button
+                      aria-current={station?.id === item.id ? 'true' : undefined}
+                      onClick={() => onSelect(item, 'listen')}
+                    >
+                      {t('listenStation', { name: item.name })}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {members.length > 12 && (
+              <nav aria-label={t('placePagination')}>
+                <button
+                  disabled={pageOffset === 0}
+                  onClick={() => setOffset(Math.max(0, pageOffset - 12))}
+                >
+                  {t('earlier')}
+                </button>
+                <span>{Math.floor(pageOffset / 12) + 1}</span>
+                <button
+                  disabled={pageOffset + 12 >= members.length}
+                  onClick={() => setOffset(pageOffset + 12)}
+                >
+                  {t('later')}
+                </button>
+              </nav>
+            )}
+            {group && members.length > 1 && (
               <button
-                disabled={pageOffset === 0}
-                onClick={() => setOffset(Math.max(0, pageOffset - 12))}
+                className={styles.nearbyNext}
+                onClick={() => {
+                  const index = members.findIndex((item) => item.id === station?.id);
+                  const candidate = members[(index + 1) % members.length];
+                  if (candidate) onSelect(candidate, 'nearby');
+                }}
               >
-                {t('earlier')}
+                {t(group.stations[0]?.city ? 'nextCityStation' : 'nextNearbyStation')}
               </button>
-              <span>{Math.floor(pageOffset / 12) + 1}</span>
-              <button
-                disabled={pageOffset + 12 >= members.length}
-                onClick={() => setOffset(pageOffset + 12)}
-              >
-                {t('later')}
-              </button>
-            </nav>
-          )}
-          {group && members.length > 1 && (
-            <button
-              className={styles.nearbyNext}
-              onClick={() => {
-                const index = members.findIndex((item) => item.id === station?.id);
-                const candidate = members[(index + 1) % members.length];
-                if (candidate) onSelect(candidate, 'nearby');
-              }}
-            >
-              {t(group.stations[0]?.city ? 'nextCityStation' : 'nextNearbyStation')}
-            </button>
-          )}
-        </section>
+            )}
+          </section>
+        </Modal>
       )}
       <p className={styles.mapSource}>
         <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">
