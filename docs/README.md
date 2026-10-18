@@ -10,7 +10,7 @@
 
 ## 阅读顺序
 
-标签页图标的候选、尺寸对照及接入见[图标设计记录](iterations/2026-10-18-favicon-concepts/README.md)，当前已选定 C「耳机海湾」并接入前端源码，待发布。
+标签页图标的候选、尺寸对照及接入见[图标设计记录](iterations/2026-10-18-favicon-concepts/README.md)，当前 C「耳机海湾」已改为透明背景 v2 并接入前端源码，本次修正待发布。
 
 1. 阅读[项目协作规范](../AGENTS.md)，明确开发、验证和自动提交顺序。
 2. 阅读[项目总览](overview/README.md)和[技术选型](overview/technology-stack.md)，了解技术基线。
@@ -141,13 +141,16 @@ docs/
     │   ├── prompts.md
     │   ├── preview.html
     │   ├── favicon-validation.json
+    │   ├── favicon-transparency-validation.json
     │   └── assets/
     │       ├── a-sound-island.png
     │       ├── b-world-radio.png
     │       ├── c-listening-bay.png
+    │       ├── c-listening-bay-transparent.png
     │       ├── d-haen-monogram.png
     │       ├── comparison-desktop.png
-    │       └── comparison-mobile.png
+    │       ├── comparison-mobile.png
+    │       └── transparency-preview.png
     ├── 2026-10-16-mysql-drizzle-kit/
     │   └── README.md
     ├── 2026-10-16-technical-assessment/

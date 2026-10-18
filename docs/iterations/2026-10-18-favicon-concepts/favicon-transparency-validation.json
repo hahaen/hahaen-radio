@@ -1,0 +1,198 @@
+{
+  "date": "2026-10-18",
+  "scope": "v2 production HTML metadata, image bytes and actual canvas alpha; application scripts stubbed.",
+  "cases": [
+    {
+      "base": "/",
+      "browser": "chromium",
+      "viewport": [1440, 900],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/",
+      "browser": "chromium",
+      "viewport": [390, 844],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/",
+      "browser": "firefox",
+      "viewport": [1440, 900],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/",
+      "browser": "firefox",
+      "viewport": [390, 844],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/",
+      "browser": "webkit",
+      "viewport": [1440, 900],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/",
+      "browser": "webkit",
+      "viewport": [390, 844],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/radio/",
+      "browser": "chromium",
+      "viewport": [1440, 900],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/radio/",
+      "browser": "chromium",
+      "viewport": [390, 844],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/radio/",
+      "browser": "firefox",
+      "viewport": [1440, 900],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/radio/",
+      "browser": "firefox",
+      "viewport": [390, 844],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/radio/",
+      "browser": "webkit",
+      "viewport": [1440, 900],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    },
+    {
+      "base": "/radio/",
+      "browser": "webkit",
+      "viewport": [390, 844],
+      "png": {
+        "width": 32,
+        "height": 32,
+        "corners": [0, 0, 0, 0],
+        "transparent": 742,
+        "opaque": 74,
+        "total": 1024,
+        "innerGapAlpha": 0
+      },
+      "icoLayerSizes": [16, 32, 48, 64],
+      "allCornersAndInnerGapTransparent": true
+    }
+  ]
+}

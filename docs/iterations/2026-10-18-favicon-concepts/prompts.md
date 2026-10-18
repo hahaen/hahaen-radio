@@ -1,6 +1,18 @@
 # 图标候选生成提示词
 
-生成方式：内置 image_gen，每款独立生成一张 PNG；本轮仅用于方案选择。
+## C · 透明背景修正
+
+生成方式：内置 image_gen 编辑，开启真正透明背景；先提取背景，再进行边缘清理。
+
+```text
+Use case: background-extraction. Image 1 is the edit target: the approved HAEN favicon. Remove ONLY the entire dark navy background and replace it with genuine fully transparent alpha everywhere, including all open spaces inside the headphones and between the amber circle and seafoam wave. Preserve the exact existing headphone silhouette, ear pads, amber circle, wave shape, positions, scale, generous padding, original canvas proportions, and original ivory / muted seafoam / amber foreground colors. Do not redesign, redraw, stylize, or add anything. Keep all foreground elements fully opaque with clean antialiased edges and no dark matte fringe. Do not add shadows or glow. No solid black, navy, white, gray, or checkerboard background: actual RGBA transparency. Output one square transparent PNG icon with the original composition unchanged.
+```
+
+```text
+Precise cleanup edit of this transparent HAEN headphone icon. The subject has three clean opaque components: one continuous ivory headphone arch joined to both ivory ear pads, one amber filled circle, and one seafoam filled wave. Keep their existing shape, arrangement, color and proportions. Fix the current extraction artifacts: remove EVERY stray white speck, isolated pixel cluster, colored fringe and rough halo floating in the transparent spaces or along the contour. Clean the edges into smooth crisp antialiased silhouettes, like a carefully prepared vector logo. Areas between the three components and outside the icon must be completely empty genuine alpha=0 transparency. Keep the icon flat, no shadows, no outer outline, no added backdrop, no added checkerboard, no texture. Output one clean RGBA transparent PNG with the same square composition. Preserve the headphones, seafoam wave, amber circle and padding.
+```
+
+以下为初始候选的生成记录：使用内置 image_gen，每款独立生成一张 PNG，用于方案选择。
 
 ## A · 声波岛屿
 
