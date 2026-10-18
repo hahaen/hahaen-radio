@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { testStation } from '../testing/stations';
 import { DwellSelection, explorationAutoplay, globePosition, groupStations } from './model';
+import { mapPosition } from './location';
+import countries from './countries.json';
 afterEach(() => vi.useRealTimers());
 describe('geographic scene model', () => {
   it('checks fresh pin, pause and explicit selection before accepting a late dwell', () => {
@@ -39,12 +41,65 @@ describe('geographic scene model', () => {
     };
     const nearby = { ...first, id: testStation(2).id, latitude: 20.001 };
     const distant = { ...first, id: testStation(3).id, longitude: -80 };
-    const unknown = { ...first, id: testStation(4).id, locationPrecision: 'country' as const };
+    const unknown = {
+      ...first,
+      id: testStation(4).id,
+      countryCode: null,
+      latitude: null,
+      longitude: null,
+      locationPrecision: 'unknown' as const,
+    };
     const groups = groupStations([first, nearby, distant, unknown]);
     expect(groups).toHaveLength(2);
     expect(groups[0]?.stations).toHaveLength(2);
     expect(groups[0]?.latitude).toBe(first.latitude);
     expect(groups[0]?.longitude).toBe(first.longitude);
+  });
+  it('groups country-only stations separately without inventing city, coordinates or timezone', () => {
+    const first = { ...testStation(1), countryCode: 'CH', region: 'Bern' };
+    const second = { ...testStation(2), countryCode: 'CH', region: 'Basel' };
+    const exact = {
+      ...testStation(3),
+      countryCode: 'CH',
+      locationPrecision: 'coordinates' as const,
+      latitude: 0,
+      longitude: 0,
+    };
+    const before = structuredClone([first, second, exact]);
+    const groups = groupStations([first, second, exact, { ...testStation(4), countryCode: 'ZZ' }]);
+    expect(groups).toHaveLength(2);
+    expect(groups[0]).toMatchObject({
+      id: 'country:CH',
+      precision: 'country',
+      stations: [first, second],
+    });
+    expect(groups[1]).toMatchObject({ precision: 'coordinates', latitude: 0, longitude: 0 });
+    expect(mapPosition(first)).toMatchObject({ precision: 'country' });
+    expect([first, second, exact]).toEqual(before);
+    expect(groupStations([second])[0]?.id).toBe('country:CH');
+    expect(groupStations([second])[0]?.latitude).toBe(groups[0]?.latitude);
+  });
+  it('covers small territories while leaving absent country evidence unlocated', () => {
+    expect(Object.keys(countries)).toHaveLength(250);
+    for (const code of [
+      'CN',
+      'TW',
+      'CH',
+      'BQ',
+      'BV',
+      'CC',
+      'CX',
+      'GF',
+      'GP',
+      'MQ',
+      'RE',
+      'SJ',
+      'TK',
+      'YT',
+    ])
+      expect(mapPosition({ ...testStation(1), countryCode: code })?.precision).toBe('country');
+    expect(mapPosition({ ...testStation(1), countryCode: null })).toBeNull();
+    expect(mapPosition({ ...testStation(1), countryCode: 'ZZ' })).toBeNull();
   });
   it('waits 650ms after the last movement and cancels old pending selections', async () => {
     vi.useFakeTimers();

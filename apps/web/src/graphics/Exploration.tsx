@@ -13,6 +13,7 @@ import { GlobePanel } from './GlobePanel';
 import { GenreAtlas } from './GenreAtlas';
 import styles from './exploration.module.css';
 import { Modal } from '../app/Modal';
+import { countryName } from './location';
 type Selection = { kind: 'place'; id: string } | { kind: 'genre'; genre: Genre } | null;
 export interface ExplorationHandle {
   close(): void;
@@ -54,7 +55,7 @@ export function Exploration({
   powerSave?: boolean;
   ref?: Ref<ExplorationHandle>;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [selection, setSelection] = useState<Selection>(null),
     [offset, setOffset] = useState(0);
   const origin = useRef<HTMLElement | null>(null);
@@ -83,13 +84,20 @@ export function Exploration({
       ? stations.filter((value) => value.genre === selection.genre)
       : (group?.stations ?? []);
   const located = groups.reduce((count, value) => count + value.stations.length, 0);
+  const countryLocated = groups
+    .filter((value) => value.precision === 'country')
+    .reduce((count, value) => count + value.stations.length, 0);
   const title =
     selection?.kind === 'genre'
       ? t('genre.' + selection.genre)
-      : (group?.stations[0]?.city ??
-        (group?.stations[0]?.nearbyCity
-          ? t('nearby', { city: group.stations[0].nearbyCity })
-          : t('coordinatePlace')));
+      : group?.precision === 'country'
+        ? t('countryPlace', {
+            country: countryName(group.stations[0]?.countryCode ?? null, i18n.language),
+          })
+        : (group?.stations[0]?.city ??
+          (group?.stations[0]?.nearbyCity
+            ? t('nearby', { city: group.stations[0].nearbyCity })
+            : t('coordinatePlace')));
   const pageOffset = Math.min(offset, Math.max(0, Math.floor((members.length - 1) / 12) * 12));
   const choosePlace = (value: StationGroup, reason: PickReason) => {
     if (reason === 'dwell' && pinned) return;
@@ -169,6 +177,9 @@ export function Exploration({
         ) : (
           <>
             <span>{t('locatedCount', { located, total: stations.length })}</span>
+            {countryLocated > 0 && (
+              <span> · {t('countryLocatedCount', { count: countryLocated })}</span>
+            )}
             {located < stations.length && (
               <button onClick={onSearch}>
                 {t('browseUnlocated', { count: stations.length - located })}
@@ -181,6 +192,7 @@ export function Exploration({
         <Modal title={title} onClose={close}>
           <section className={styles.groupList} aria-label={title}>
             <p>{t('placeStationCount', { count: members.length })}</p>
+            {group?.precision === 'country' && <p>{t('countryMapHint')}</p>}
             {members.length === 0 ? (
               <p>{t('placeEmpty')}</p>
             ) : (
@@ -223,7 +235,13 @@ export function Exploration({
                   if (candidate) onSelect(candidate, 'nearby');
                 }}
               >
-                {t(group.stations[0]?.city ? 'nextCityStation' : 'nextNearbyStation')}
+                {t(
+                  group.precision === 'country'
+                    ? 'nextCountryStation'
+                    : group.stations[0]?.city
+                      ? 'nextCityStation'
+                      : 'nextNearbyStation',
+                )}
               </button>
             )}
           </section>

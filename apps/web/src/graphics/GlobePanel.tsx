@@ -6,6 +6,7 @@ import type { StationPreview } from '@haen/contracts';
 import type { GlobeController, PickReason } from './globe';
 import type { StationGroup } from './model';
 import { loadLand } from './land';
+import { mapPosition, countryName } from './location';
 import styles from './exploration.module.css';
 export function GlobePanel({
   groups,
@@ -28,7 +29,7 @@ export function GlobePanel({
   powerSave?: boolean;
   expandedId?: string | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const host = useRef<HTMLDivElement>(null),
     engine = useRef<GlobeController | null>(null);
   const latest = useRef({
@@ -43,8 +44,12 @@ export function GlobePanel({
   });
   const [state, setState] = useState<'loading' | 'ready' | 'unavailable' | 'lost'>('loading');
   const [generation, setGeneration] = useState(0),
-    [preview, setPreview] = useState<StationGroup | null>(null),
-    [notice, setNotice] = useState(false);
+    [preview, setPreview] = useState<StationGroup | null>(null);
+  const position = station ? mapPosition(station) : null;
+  const countryGroup =
+    position?.precision === 'country'
+      ? groups.find((group) => group.id === `country:${station?.countryCode}`)
+      : null;
   useEffect(() => {
     latest.current = {
       groups,
@@ -191,10 +196,10 @@ export function GlobePanel({
             <RotateCcw size={20} aria-hidden="true" />
           </button>
           <button
-            disabled={disabled || !station || station.locationPrecision !== 'coordinates'}
+            disabled={disabled || !position}
             aria-label={t('locateStation')}
             onClick={() => {
-              if (station) setNotice(!engine.current?.focus(station));
+              if (station) engine.current?.focus(station);
             }}
           >
             <Focus size={20} aria-hidden="true" />
@@ -202,17 +207,32 @@ export function GlobePanel({
         </div>
       </div>
       <div className={styles.preview}>
-        {notice || (station && station.locationPrecision !== 'coordinates') ? (
-          t('noCoordinates')
-        ) : preview ? (
+        {preview ? (
           <>
             <span>
-              {preview.stations[0]?.city ??
-                (preview.stations[0]?.nearbyCity
-                  ? t('nearby', { city: preview.stations[0].nearbyCity })
-                  : t('coordinatePlace'))}
+              {preview.precision === 'country'
+                ? t('countryPlace', {
+                    country: countryName(preview.stations[0]?.countryCode ?? null, i18n.language),
+                  })
+                : (preview.stations[0]?.city ??
+                  (preview.stations[0]?.nearbyCity
+                    ? t('nearby', { city: preview.stations[0].nearbyCity })
+                    : t('coordinatePlace')))}
             </span>
             <span>{t('placeStationCount', { count: preview.stations.length })}</span>
+          </>
+        ) : station && !position ? (
+          t('noCoordinates')
+        ) : position?.precision === 'country' ? (
+          <>
+            {countryGroup && (
+              <button onClick={() => onPick(countryGroup, 'click')}>
+                {t('countryPlace', {
+                  country: countryName(station?.countryCode ?? null, i18n.language),
+                })}
+              </button>
+            )}
+            <span>{t('countryMapHint')}</span>
           </>
         ) : (
           showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>

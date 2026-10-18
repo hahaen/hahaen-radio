@@ -37,3 +37,22 @@ it('omits unknown and invalid timezones rather than guessing a station time', ()
   expect(screen.queryByText('当地时间')).toBeNull();
   expect(screen.getByText('英语')).toBeInTheDocument();
 });
+it('labels a country map position without presenting its anchor as station coordinates', async () => {
+  const station = testStation(1);
+  const result = render(<StationFacts station={station} detail={station} />);
+  expect(screen.getByText('国家级位置')).toBeInTheDocument();
+  expect(screen.queryByText('坐标')).toBeNull();
+  expect(screen.queryByText('当地时间')).toBeNull();
+  await act(async () => {
+    await setLanguage('en');
+  });
+  expect(screen.getByText('Country-level location')).toBeInTheDocument();
+  result.rerender(
+    <StationFacts
+      station={{ ...station, locationPrecision: 'coordinates', latitude: 47.5, longitude: 7.6 }}
+      detail={station}
+    />,
+  );
+  expect(screen.getByText('Coordinates')).toBeInTheDocument();
+  expect(screen.queryByText('Country-level location')).toBeNull();
+});

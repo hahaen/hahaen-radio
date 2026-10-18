@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationDetail, type StationPreview } from '@haen/contracts';
 import styles from './App.module.css';
+import { mapPosition } from '../graphics/location';
 function LocalTime({ zone }: { zone: string }) {
   const { t, i18n } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
@@ -53,6 +54,7 @@ export function StationFacts({
     }
   };
   const languages = normalizeLanguages(station.languages);
+  const position = mapPosition(station);
   return (
     <dl className={styles.facts}>
       {station.locationPrecision === 'coordinates' &&
@@ -67,6 +69,12 @@ export function StationFacts({
             </dd>
           </div>
         )}
+      {position?.precision === 'country' && (
+        <div className={styles.coordinateFact}>
+          <dt>{t('mapLocation')}</dt>
+          <dd title={t('countryMapHint')}>{t('countryLocation')}</dd>
+        </div>
+      )}
       <div>
         <dt>{t('stationLanguages')}</dt>
         <dd>{languages.length ? languages.map(language).join(' / ') : t('unknownLanguage')}</dd>

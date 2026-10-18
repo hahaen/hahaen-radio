@@ -28,6 +28,14 @@
 - 只有电台坐标距聚落点不超过 100m，且同国家 20km 内的候选时区全部一致，才补充 `timezone` 并标注 `timezoneSource=geonames`。这是保守的地名点证据，并非行政边界测绘；其他电台继续保持未知时区，不展示虚构当地时间。
 - 匹配过程不改变电台坐标、码率、线路或可用性。无法匹配不妨碍列表、搜索与播放。
 
+## 国家级地图展示位置
+
+前端单独维护 `src/graphics/countries.json`，来自 Natural Earth 5.1.2 的 10m 地图单元 `ISO_A2_EH`、`LABEL_Y`、`LABEL_X`。同代码出现多个单元时选择 `POP_EST` 最大的单元标签，250 个代码的展示位置与原始下载及生成文件摘要记录在 `public/geography/countries-source.json`；许可为公有领域。
+
+从来源清单的固定 HTTPS 地址下载 GeoJSON 后，运行 `node apps/web/scripts/prepare-countries.mjs /absolute/path/ne_10m_admin_0_map_units.geojson`，脚本核对原始 SHA-256、代码、坐标和数量再生成本地资源。普通构建与浏览不访问该数据源。
+
+只有缺少可用原始坐标时才取国家标签点，作为空心国家聚合标记；这不是电台经纬度、城市或时区证据，不写入数据库，不影响已有 GeoNames 反向补充规则。原始 API 和缓存格式保持兼容，不需要重新同步目录。交互与验证范围见[任务记录](../iterations/2026-10-18-country-map/README.md)。
+
 ## 地形资源再生成
 
 `apps/web/public/geography/` 包含 `land.json`（127 个多边形、7,595 个约等距大陆点）、`world.svg`（静态地理降级资源）和 `source.json`（版本与摘要）。这些文件是地图数据与渲染输入，尚不代表地球交互已实现。

@@ -29,6 +29,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { StationPreview } from '@haen/contracts';
 import type { LandData } from './land';
 import { DwellSelection, globePosition, type StationGroup } from './model';
+import { mapPosition } from './location';
 export type PickReason = 'click' | 'dwell';
 export interface GlobeController {
   cancelSelection(): void;
@@ -124,9 +125,9 @@ export function createGlobe(
         vertexColors: true,
         uniforms: { pointSize: { value: size }, opacity: { value: opacity } },
         vertexShader:
-          'uniform float pointSize; varying vec3 vColor; void main(){vColor=color; gl_PointSize=pointSize; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+          'uniform float pointSize; attribute float approximate; varying float vApproximate; varying vec3 vColor; void main(){vApproximate=approximate;vColor=color; gl_PointSize=pointSize*(1.0+approximate*1.4); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
         fragmentShader:
-          'uniform float opacity; varying vec3 vColor; void main(){float d=length(gl_PointCoord-0.5); if(d>0.5)discard; gl_FragColor=vec4(vColor,opacity*(1.0-smoothstep(0.25,0.5,d)));\n#include <colorspace_fragment>\n}',
+          'uniform float opacity; varying float vApproximate; varying vec3 vColor; void main(){float d=length(gl_PointCoord-0.5); if(d>0.5)discard; float ring=vApproximate>0.5?smoothstep(0.2,0.3,d):1.0; gl_FragColor=vec4(vColor,opacity*ring*(1.0-smoothstep(0.35,0.5,d)));\n#include <colorspace_fragment>\n}',
       }),
     );
   function makePoints(
@@ -147,6 +148,10 @@ export function createGlobe(
       rgb = new Color(color);
     for (let index = 0; index < coordinates.length; index++) rgb.toArray(colors, index * 3);
     buffer.setAttribute('color', new BufferAttribute(colors, 3));
+    buffer.setAttribute(
+      'approximate',
+      new BufferAttribute(new Float32Array(coordinates.length), 1),
+    );
     return new Points(buffer, pointShader(size, opacity));
   }
   const mainland = makePoints(land.points, 1.2, 0.55, 0x83aaa3);
@@ -340,12 +345,11 @@ export function createGlobe(
         ).toArray(colors.array, index * 3);
       colors.needsUpdate = true;
     }
-    selection.visible =
-      selected?.locationPrecision === 'coordinates' &&
-      selected.latitude !== null &&
-      selected.longitude !== null;
-    if (selection.visible && selected) {
-      selection.position.fromArray(globePosition(selected.latitude!, selected.longitude!, 1.018));
+    const position = selected ? mapPosition(selected) : null;
+    selection.visible = position !== null;
+    if (position) {
+      selection.position.fromArray(globePosition(position.latitude, position.longitude, 1.018));
+      selection.scale.setScalar(position.precision === 'country' ? 1.8 : 1);
       selection.lookAt(selection.position.clone().multiplyScalar(2));
     }
     invalidate();
@@ -357,7 +361,11 @@ export function createGlobe(
     const coordinates: number[] = [];
     for (const group of sourceGroups) {
       const center = new Vector3().fromArray(globePosition(group.latitude, group.longitude, 1.012));
-      if (group.id === expandedId && group.stations.length > 1) {
+      if (
+        group.precision === 'coordinates' &&
+        group.id === expandedId &&
+        group.stations.length > 1
+      ) {
         const normal = center.clone().normalize();
         const east = new Vector3().crossVectors(new Vector3(0, 1, 0), normal);
         if (east.lengthSq() < 0.001) east.set(1, 0, 0);
@@ -387,6 +395,13 @@ export function createGlobe(
     positions = new Float32Array(coordinates);
     buffer.setAttribute('position', new BufferAttribute(positions, 3));
     buffer.setAttribute('color', new BufferAttribute(new Float32Array(groups.length * 3), 3));
+    buffer.setAttribute(
+      'approximate',
+      new Float32BufferAttribute(
+        groups.map((group) => (group.precision === 'country' ? 1 : 0)),
+        1,
+      ),
+    );
     markers.geometry = buffer;
     markers.visible = groups.length > 0;
     updateSelection();
@@ -407,7 +422,15 @@ export function createGlobe(
       rebuildMarkers();
       const group = sourceGroups.find((value) => value.id === id);
       if (group)
-        moveTo(new Vector3().fromArray(globePosition(group.latitude, group.longitude, 1.65)));
+        moveTo(
+          new Vector3().fromArray(
+            globePosition(
+              group.latitude,
+              group.longitude,
+              group.precision === 'country' ? 2.8 : 1.65,
+            ),
+          ),
+        );
     },
     setPowerSave(value) {
       powerSave = value;
@@ -468,13 +491,18 @@ export function createGlobe(
       moveTo(new Vector3().fromArray(globePosition(25, 80, 3.25)));
     },
     focus(station) {
-      if (
-        station.locationPrecision !== 'coordinates' ||
-        station.latitude === null ||
-        station.longitude === null
-      )
-        return false;
-      moveTo(new Vector3().fromArray(globePosition(station.latitude, station.longitude, 2.55)));
+      const position = mapPosition(station);
+      if (!position) return false;
+      showPreview(null);
+      moveTo(
+        new Vector3().fromArray(
+          globePosition(
+            position.latitude,
+            position.longitude,
+            position.precision === 'country' ? 2.8 : 2.55,
+          ),
+        ),
+      );
       return true;
     },
     destroy() {

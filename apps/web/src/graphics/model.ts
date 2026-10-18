@@ -1,8 +1,7 @@
 import type { StationPreview } from '@haen/contracts';
-export interface StationGroup {
+import { mapPosition, type MapPosition } from './location.js';
+export interface StationGroup extends MapPosition {
   id: string;
-  latitude: number;
-  longitude: number;
   stations: StationPreview[];
 }
 export function globePosition(
@@ -21,20 +20,17 @@ export function globePosition(
 export function groupStations(stations: readonly StationPreview[]): StationGroup[] {
   const groups = new Map<string, StationGroup>();
   for (const station of stations) {
-    if (
-      station.locationPrecision !== 'coordinates' ||
-      station.latitude === null ||
-      station.longitude === null
-    )
-      continue;
+    const position = mapPosition(station);
+    if (!position) continue;
     const id =
-      station.city && station.countryCode
-        ? `city:${station.countryCode}:${station.region ?? ''}:${station.city}:${Math.floor(station.latitude * 2)}:${Math.floor(station.longitude * 2)}`
-        : `near:${station.countryCode ?? ''}:${Math.floor(station.latitude * 12)}:${Math.floor(((((station.longitude + 180) % 360) + 360) % 360) * 12)}`;
+      position.precision === 'country'
+        ? `country:${station.countryCode}`
+        : station.city && station.countryCode
+          ? `city:${station.countryCode}:${station.region ?? ''}:${station.city}:${Math.floor(position.latitude * 2)}:${Math.floor(position.longitude * 2)}`
+          : `near:${station.countryCode ?? ''}:${Math.floor(position.latitude * 12)}:${Math.floor(((((position.longitude + 180) % 360) + 360) % 360) * 12)}`;
     const group = groups.get(id) ?? {
       id,
-      latitude: station.latitude,
-      longitude: station.longitude,
+      ...position,
       stations: [],
     };
     group.stations.push(station);

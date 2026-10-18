@@ -127,6 +127,14 @@
 .preview span:first-child {
   color: var(--color-text);
 }
+.preview button {
+  min-height: 44px;
+  padding: 4px 12px;
+  border: 1px solid var(--color-secondary);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
 .help {
   margin: 8px 12px 0;
   text-align: center;
