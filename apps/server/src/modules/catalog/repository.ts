@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { and, desc, eq, gt, inArray, notInArray, or, sql } from 'drizzle-orm';
 import {
   CatalogManifestSchema,
+  countrySearchText,
   SceneEntrySchema,
   decodeSceneEntry,
   type StationPreview,
@@ -37,13 +38,10 @@ export interface CatalogQuery {
 const jsonText = (field: 'name' | 'region' | 'city' | 'nearbyCity' | 'countryCode' | 'genre') =>
   sql<string>`COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(${catalogEntries.payload}, ${`$.${field}`})), 'null'), '')`;
 const fold = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
-const names = [
-  new Intl.DisplayNames(['en'], { type: 'region' }),
-  new Intl.DisplayNames(['zh-CN'], { type: 'region' }),
-];
-const countryTerms = Array.from({ length: 676 }, (_, index) =>
-  String.fromCharCode(65 + Math.floor(index / 26), 65 + (index % 26)),
-).map((code) => ({ code, text: fold([code, ...names.map((name) => name.of(code))].join(' ')) }));
+const countryTerms = Array.from({ length: 676 }, (_, index) => {
+  const code = String.fromCharCode(65 + Math.floor(index / 26), 65 + (index % 26));
+  return { code, text: countrySearchText(code) };
+});
 export class LeaseLostError extends Error {
   constructor() {
     super('CATALOG_LEASE_LOST');

@@ -1,17 +1,6 @@
-import type { StationPreview } from '@haen/contracts';
+import { countrySearchText, type StationPreview } from '@haen/contracts';
 import type { SearchFilters } from '../services/catalog';
 const fold = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
-const countryTerms = new Map<string, string>();
-const countryNames = [
-  new Intl.DisplayNames(['en'], { type: 'region' }),
-  new Intl.DisplayNames(['zh-CN'], { type: 'region' }),
-];
-function countryText(code: string | null) {
-  if (!code) return '';
-  if (!countryTerms.has(code))
-    countryTerms.set(code, fold([code, ...countryNames.map((names) => names.of(code))].join(' ')));
-  return countryTerms.get(code)!;
-}
 export function createStationCollection(stations: readonly StationPreview[]) {
   const indexed = stations.map((station) => ({
     station,
@@ -21,7 +10,7 @@ export function createStationCollection(stations: readonly StationPreview[]) {
         station.region,
         station.city,
         station.nearbyCity,
-        countryText(station.countryCode),
+        countrySearchText(station.countryCode),
       ].join(' '),
     ),
   }));

@@ -137,6 +137,42 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
       streams: [],
     });
   });
+  it('includes Taiwan in China searches with correct totals, pagination and filters', async () => {
+    const repository = createCatalogRepository(database);
+    const stations = ['CN', 'TW', 'JP'].map((code, index) =>
+      normalizeStation({
+        stationuuid: `00000000-0000-4000-8000-00000000006${index}`,
+        name: `Search fixture ${index}`,
+        countrycode: code,
+        state: index === 1 ? '台北' : '',
+        url: 'https://radio.example/live',
+        tags: index === 1 ? 'jazz' : 'news',
+        languagecodes: 'zh',
+        bitrate: 192,
+        lastcheckok: 1,
+      })!,
+    );
+    await synchronizeCatalog(repository, {
+      load: async () => ({ stations, sourceCount: stations.length, invalidCount: 0 }),
+    });
+    const service = createCatalogService(repository);
+    for (const q of ['中国', 'China', 'cN']) {
+      const result = await service.search(StationSearchSchema.parse({ q, playableOnly: 'true' }));
+      expect(result.total).toBe(2);
+      expect(result.items.map((station) => station.countryCode)).toEqual(['CN', 'TW']);
+      const page = await service.search(StationSearchSchema.parse({ q, offset: 1, limit: 1 }));
+      expect(page.total).toBe(2);
+      expect(page.items[0]?.countryCode).toBe('TW');
+      const filtered = await service.search(StationSearchSchema.parse({ q, genres: 'jazz' }));
+      expect(filtered.total).toBe(1);
+      expect(filtered.items[0]?.countryCode).toBe('TW');
+    }
+    for (const q of ['台湾', 'Taiwan', 'TW', '中国 台北']) {
+      const result = await service.search(StationSearchSchema.parse({ q }));
+      expect(result.total).toBe(1);
+      expect(result.items[0]?.countryCode).toBe('TW');
+    }
+  });
   it('atomically replaces offline places and rolls back a cancelled import after its first batch', async () => {
     const original = Array.from({ length: 1001 }, (_, index) => ({
       id: index + 1,

@@ -27,3 +27,5 @@ export * from './tracks.js';
 
 export * from './recognition.js';
 export * from './diagnostics.js';
+
+export * from './country-search.js';
