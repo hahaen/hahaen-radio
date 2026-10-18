@@ -1,5 +1,5 @@
 import { applicationPath } from '../platform/paths';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Focus, Minus, Plus, RotateCcw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
@@ -46,10 +46,13 @@ export function GlobePanel({
   const [generation, setGeneration] = useState(0),
     [preview, setPreview] = useState<StationGroup | null>(null);
   const position = station ? mapPosition(station) : null;
-  const countryGroup =
-    position?.precision === 'country'
-      ? groups.find((group) => group.id === `country:${station?.countryCode}`)
-      : null;
+  const selectedGroup = useMemo(
+    () =>
+      station
+        ? groups.find((group) => group.stations.some((item) => item.id === station.id))
+        : null,
+    [groups, station],
+  );
   useEffect(() => {
     latest.current = {
       groups,
@@ -219,23 +222,23 @@ export function GlobePanel({
                     ? t('nearby', { city: preview.stations[0].nearbyCity })
                     : t('coordinatePlace')))}
             </span>
-            <span>{t('placeStationCount', { count: preview.stations.length })}</span>
+            <span>{preview.stations[0]?.name}</span>
           </>
         ) : station && !position ? (
           t('noCoordinates')
         ) : position?.precision === 'country' ? (
-          <>
-            {countryGroup && (
-              <button onClick={() => onPick(countryGroup, 'click')}>
-                {t('countryPlace', {
-                  country: countryName(station?.countryCode ?? null, i18n.language),
-                })}
-              </button>
-            )}
-            <span>{t('countryMapHint')}</span>
-          </>
+          <span>{t('countryMapHint')}</span>
         ) : (
           showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
+        )}
+        {selectedGroup && selectedGroup.stations.length > 1 && (
+          <button onClick={() => onPick(selectedGroup, 'click')}>
+            {selectedGroup.precision === 'country'
+              ? t('countryPlace', {
+                  country: countryName(station?.countryCode ?? null, i18n.language),
+                })
+              : t('placeStationCount', { count: selectedGroup.stations.length })}
+          </button>
         )}
       </div>
       <p id="globe-help" className={styles.help} hidden={!showHints}>

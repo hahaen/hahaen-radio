@@ -1,6 +1,24 @@
 import { test, expect } from '@playwright/test';
 import { first, second, third, install, selectStation } from './listening-fixture.js';
 import { testStation, testScene } from '../../src/testing/stations.js';
+import type { StationDetail } from '@haen/contracts';
+
+async function installMap(page: Parameters<typeof install>[0], items: StationDetail[]) {
+  await install(page);
+  const entries = items.map((s) => ({
+    ...s,
+    streams: [{ ...s.streams[0]!, url: 'https://media.haen.test/tone.mp3' }],
+  }));
+  const scene = testScene(entries);
+  await page.route('**/api/v1/catalog**', (route) =>
+    route.fulfill({
+      json: route.request().url().includes('/chunks/') ? scene.chunk : scene.manifest,
+    }),
+  );
+  await page.route(/\/api\/v1\/stations\/[0-9a-f-]{36}$/, (route) =>
+    route.fulfill({ json: entries.find((s) => s.id === route.request().url().split('/').at(-1)) }),
+  );
+}
 
 test('browses country-only stations, paginates and distinguishes actual coordinates on both layouts', async ({
   page,
@@ -9,7 +27,6 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const mobile = info.project.name === 'mobile-chromium';
   await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 });
-  await install(page);
   const country = [
     first,
     second,
@@ -29,19 +46,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
     countryCode: null,
     locationPrecision: 'unknown' as const,
   };
-  const entries = [...country, exact, unknown].map((s) => ({
-    ...s,
-    streams: [{ ...s.streams[0]!, url: 'https://media.haen.test/tone.mp3' }],
-  }));
-  const scene = testScene(entries);
-  await page.route('**/api/v1/catalog**', (route) =>
-    route.fulfill({
-      json: route.request().url().includes('/chunks/') ? scene.chunk : scene.manifest,
-    }),
-  );
-  await page.route(/\/api\/v1\/stations\/[0-9a-f-]{36}$/, (route) =>
-    route.fulfill({ json: entries.find((s) => s.id === route.request().url().split('/').at(-1)) }),
-  );
+  await installMap(page, [...country, exact, unknown]);
   await page.goto('/');
   await expect(page.getByText('地图可浏览 16 / 17 台')).toBeVisible();
   await expect(page.getByText('含国家级 15 台')).toBeVisible();
@@ -55,7 +60,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await groupButton.click();
   const dialog = page.getByRole('dialog', { name: '英国 · 国家级位置' });
   await expect(dialog.getByText('15 个电台', { exact: true })).toBeVisible();
-  await expect(dialog.getByText('仅确定国家；空心点为国家聚合位置。')).toBeVisible();
+  await expect(dialog.getByText('仅确定国家；空心点不代表真实台址。')).toBeVisible();
   await expect(dialog.getByRole('button', { name: '附近下一站', exact: true })).toHaveCount(0);
   await dialog.getByRole('button', { name: '下一页', exact: true }).click();
   await expect(
@@ -65,13 +70,14 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
   if ((await panel.getAttribute('data-state')) === 'ready') {
+    await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '16');
     await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toBeEnabled();
     await panel.getByRole('button', { name: '定位当前电台', exact: true }).click();
     const canvas = panel.getByRole('img', { name: /^可旋转的地球/ });
     const bounds = await canvas.boundingBox();
     await canvas.click({ position: { x: bounds!.width / 2, y: bounds!.height / 2 } });
-    await expect(dialog).toBeVisible();
-    await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   }
   await page.screenshot({ path: info.outputPath('country-map.png') });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -86,4 +92,44 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await expect(
     panel.getByRole('button', { name: 'United Kingdom · Country-level location' }),
   ).toBeVisible();
+});
+
+test('draws one point per station and retains every marker during cluster expansion and power saving', async ({
+  page,
+}, info) => {
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize(
+    info.project.name === 'mobile-chromium'
+      ? { width: 390, height: 844 }
+      : { width: 1440, height: 900 },
+  );
+  const countries = ['CN', 'JP', 'GB', 'CH', 'US', 'BR', 'AU'];
+  const scattered = Array.from({ length: 600 }, (_, i) => ({
+    ...testStation(i + 100),
+    countryCode: countries[i % countries.length]!,
+  }));
+  const coincident = Array.from({ length: 100 }, (_, i) => ({
+    ...testStation(i + 1000),
+    name: `Cluster ${i}`,
+    countryCode: 'CH',
+    locationPrecision: 'coordinates' as const,
+    latitude: 47.5,
+    longitude: 7.6,
+  }));
+  await installMap(page, [...coincident, ...scattered]);
+  await page.goto('/');
+  const panel = page.getByTestId('globe-panel');
+  await expect(panel).toHaveAttribute('data-state', 'ready');
+  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '700');
+  await page.screenshot({ path: info.outputPath('individual-stations.png') });
+  await selectStation(page, coincident[0]!.name);
+  await panel.getByRole('button', { name: '100 个电台', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '700');
+  await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+  await page.getByRole('button', { name: '收听设置', exact: true }).click();
+  await page.getByRole('checkbox', { name: '省电模式', exact: true }).check();
+  await page.getByRole('button', { name: '关闭面板', exact: true }).click();
+  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '700');
 });

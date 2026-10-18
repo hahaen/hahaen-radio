@@ -5,9 +5,12 @@
   "sha256": "57da82be755f4afccd8f3b14251bb2752f5df1395f47d2d86f817470c4a48862",
   "license": "Public domain",
   "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
-  "fields": ["ISO_A2_EH", "LABEL_Y", "LABEL_X", "POP_EST"],
+  "fields": ["ISO_A2_EH", "LABEL_Y", "LABEL_X", "POP_EST", "geometry"],
   "selection": "For repeated country codes use the most populated map unit",
-  "purpose": "Country-level map labels; never station coordinates",
+  "purpose": "Country labels and interior display areas; never station coordinates",
   "count": 250,
-  "assetSha256": "7583e38cce2927a85daac0b801ec46d45a842c71c4eb246eb2e35f91b7f909e7"
+  "assetSha256": "7583e38cce2927a85daac0b801ec46d45a842c71c4eb246eb2e35f91b7f909e7",
+  "interiorSha256": "1e5548a0440f30fef2acc267419ea7e05eb29cfb3e9569fe464e816c84d4f79d",
+  "interiorScale": "Coordinates are offsets from country labels; the first value is the quantization scale",
+  "interiorRule": "Up to sixteen largest safe interior triangles per code, inset and checked against the source face; holes excluded"
 }

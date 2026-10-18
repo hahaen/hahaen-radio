@@ -29,7 +29,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { StationPreview } from '@haen/contracts';
 import type { LandData } from './land';
 import { DwellSelection, globePosition, type StationGroup } from './model';
-import { mapPosition } from './location';
+import { stationMarkers, stationPosition, type StationMarker } from './markers';
 export type PickReason = 'click' | 'dwell';
 export interface GlobeController {
   cancelSelection(): void;
@@ -98,9 +98,10 @@ export function createGlobe(
   let sourceGroups: StationGroup[] = [];
   let expandedId: string | null = null,
     powerSave = false;
-  let groups: StationGroup[] = [],
+  let groups: StationMarker[] = [],
     selected: StationPreview | null = null,
     previewId: string | null = null;
+  const markerIndices = new Map<string, number>();
   let transition: { from: Vector3; to: Vector3; rotation: Quaternion; start: number } | undefined;
   const easingRotation = new Quaternion();
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -125,7 +126,7 @@ export function createGlobe(
         vertexColors: true,
         uniforms: { pointSize: { value: size }, opacity: { value: opacity } },
         vertexShader:
-          'uniform float pointSize; attribute float approximate; varying float vApproximate; varying vec3 vColor; void main(){vApproximate=approximate;vColor=color; gl_PointSize=pointSize*(1.0+approximate*1.4); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+          'uniform float pointSize; attribute float approximate; varying float vApproximate; varying vec3 vColor; void main(){vApproximate=approximate;vColor=color; gl_PointSize=pointSize*(1.0+approximate*0.15); gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
         fragmentShader:
           'uniform float opacity; varying float vApproximate; varying vec3 vColor; void main(){float d=length(gl_PointCoord-0.5); if(d>0.5)discard; float ring=vApproximate>0.5?smoothstep(0.2,0.3,d):1.0; gl_FragColor=vec4(vColor,opacity*ring*(1.0-smoothstep(0.35,0.5,d)));\n#include <colorspace_fragment>\n}',
       }),
@@ -187,7 +188,7 @@ export function createGlobe(
     ),
   );
   earth.add(rim);
-  const markers = new Points(geometry(new BufferGeometry()), pointShader(3.6, 0.88));
+  const markers = new Points(geometry(new BufferGeometry()), pointShader(2.8, 0.88));
   earth.add(markers);
   const selection = new Mesh(
     geometry(new RingGeometry(0.018, 0.023, 40)),
@@ -296,8 +297,14 @@ export function createGlobe(
       if (t === 1) transition = undefined;
     }
     const moving = controls.update();
+    updateMarkerSize();
     renderer.render(scene, camera);
     if (moving || transition) invalidate();
+  }
+  function updateMarkerSize() {
+    const size =
+      width < 768 ? Math.min(2.8, 1.25 + Math.max(0, 2.8 - camera.position.length()) * 0.8) : 2.8;
+    markers.material.uniforms.pointSize!.value = Math.max(2, size * renderer.getPixelRatio());
   }
   function resize() {
     const bounds = container.getBoundingClientRect();
@@ -308,7 +315,7 @@ export function createGlobe(
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
     mainland.material.uniforms.pointSize!.value = 1.2 * ratio;
-    markers.material.uniforms.pointSize!.value = 3.6 * ratio;
+    updateMarkerSize();
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     invalidate();
@@ -345,11 +352,18 @@ export function createGlobe(
         ).toArray(colors.array, index * 3);
       colors.needsUpdate = true;
     }
-    const position = selected ? mapPosition(selected) : null;
+    const position = selected ? stationPosition(selected) : null;
     selection.visible = position !== null;
     if (position) {
-      selection.position.fromArray(globePosition(position.latitude, position.longitude, 1.018));
-      selection.scale.setScalar(position.precision === 'country' ? 1.8 : 1);
+      const index = selected ? markerIndices.get(selected.id) : undefined;
+      if (index !== undefined)
+        selection.position
+          .fromArray(positions, index * 3)
+          .normalize()
+          .multiplyScalar(1.018);
+      else
+        selection.position.fromArray(globePosition(position.latitude, position.longitude, 1.018));
+      selection.scale.setScalar(position.precision === 'country' ? 1.4 : 1);
       selection.lookAt(selection.position.clone().multiplyScalar(2));
     }
     invalidate();
@@ -357,35 +371,36 @@ export function createGlobe(
   function rebuildMarkers() {
     allowDwell = false;
     dwell.cancel();
-    groups = [];
+    groups = stationMarkers(sourceGroups);
+    markerIndices.clear();
     const coordinates: number[] = [];
-    for (const group of sourceGroups) {
-      const center = new Vector3().fromArray(globePosition(group.latitude, group.longitude, 1.012));
+    for (const [index, marker] of groups.entries()) {
+      markerIndices.set(marker.stations[0]!.id, index);
+      const center = new Vector3().fromArray(
+        globePosition(marker.latitude, marker.longitude, 1.012),
+      );
       if (
-        group.precision === 'coordinates' &&
-        group.id === expandedId &&
-        group.stations.length > 1
+        marker.precision === 'coordinates' &&
+        marker.groupId === expandedId &&
+        marker.memberCount > 1
       ) {
         const normal = center.clone().normalize();
         const east = new Vector3().crossVectors(new Vector3(0, 1, 0), normal);
         if (east.lengthSq() < 0.001) east.set(1, 0, 0);
         east.normalize();
         const north = new Vector3().crossVectors(normal, east).normalize();
-        for (const [index, station] of group.stations.slice(0, 48).entries()) {
-          const angle = index * 2.3999632297,
-            radius = 0.012 * Math.sqrt(index + 1);
-          const point = center
-            .clone()
-            .addScaledVector(east, Math.cos(angle) * radius)
-            .addScaledVector(north, Math.sin(angle) * radius)
-            .normalize()
-            .multiplyScalar(1.014);
-          coordinates.push(...point.toArray());
-          groups.push({ ...group, id: group.id + ':' + station.id, stations: [station] });
-        }
+        const angle = marker.memberIndex * 2.3999632297,
+          radius =
+            0.012 * Math.sqrt((marker.memberIndex + 1) * Math.min(1, 48 / marker.memberCount));
+        const point = center
+          .clone()
+          .addScaledVector(east, Math.cos(angle) * radius)
+          .addScaledVector(north, Math.sin(angle) * radius)
+          .normalize()
+          .multiplyScalar(1.014);
+        coordinates.push(...point.toArray());
       } else {
         coordinates.push(...center.toArray());
-        groups.push(group);
       }
     }
     const old = markers.geometry;
@@ -404,6 +419,7 @@ export function createGlobe(
     );
     markers.geometry = buffer;
     markers.visible = groups.length > 0;
+    canvas.dataset.markerCount = String(groups.length);
     updateSelection();
     showPreview(null);
   }
@@ -450,7 +466,9 @@ export function createGlobe(
     setSelection(station) {
       if (selected?.id !== station?.id) {
         allowDwell = false;
+        transition = undefined;
         dwell.cancel();
+        showPreview(null);
       }
       selected = station;
       updateSelection();
@@ -491,17 +509,18 @@ export function createGlobe(
       moveTo(new Vector3().fromArray(globePosition(25, 80, 3.25)));
     },
     focus(station) {
-      const position = mapPosition(station);
+      const position = stationPosition(station);
       if (!position) return false;
       showPreview(null);
+      const index = markerIndices.get(station.id);
+      const radius = position.precision === 'country' ? 2.8 : 2.55;
       moveTo(
-        new Vector3().fromArray(
-          globePosition(
-            position.latitude,
-            position.longitude,
-            position.precision === 'country' ? 2.8 : 2.55,
-          ),
-        ),
+        index === undefined
+          ? new Vector3().fromArray(globePosition(position.latitude, position.longitude, radius))
+          : new Vector3()
+              .fromArray(positions, index * 3)
+              .normalize()
+              .multiplyScalar(radius),
       );
       return true;
     },
@@ -525,6 +544,7 @@ export function createGlobe(
       canvas.remove();
       groups = [];
       sourceGroups = [];
+      markerIndices.clear();
       selected = null;
     },
   };
@@ -563,6 +583,7 @@ export function createGlobe(
     const surface = ray.intersectObject(body, false)[0]?.distance ?? Infinity;
     const hit = ray
       .intersectObject(markers, false)
+      .sort((a, b) => (a.distanceToRay ?? Infinity) - (b.distanceToRay ?? Infinity))
       .find(
         (value) =>
           value.distance <= surface + 0.04 &&
