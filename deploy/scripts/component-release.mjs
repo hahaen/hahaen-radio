@@ -3,25 +3,11 @@ import { createHash, randomBytes } from 'node:crypto';
 import { chmod, lstat, mkdtemp, readFile, readdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import {
-  docker,
-  outputDirectory,
-  load,
-  save,
-  platform,
-  localEngine,
-  registryFor,
-} from './release/common.mjs';
-import {
-  currentSource,
-  sourceMigrations,
-  imageIdentity,
-  registryConfiguration,
-} from './release/images.mjs';
+import { docker, outputDirectory, load, save, platform, localEngine } from './release/common.mjs';
+import { currentSource, sourceMigrations, imageIdentity } from './release/images.mjs';
 import { componentRelease, components, webRelease } from './component-state.mjs';
 import { prepareStaticWeb } from './static-web.mjs';
-import { verifyPublishedImage } from './published-image.mjs';
-import { registryManifest } from './registry-manifest.mjs';
+import { engineIdentity, localImage } from './local-images.mjs';
 import { checkedDeployEnvironment } from './release/handoff.mjs';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 export async function sourceDescriptor(env) {
@@ -71,31 +57,6 @@ function context(env) {
     databaseFingerprint: env.HAEN_TARGET_DATABASE_FINGERPRINT,
   };
 }
-async function publishImage(run, item, revision, targetPlatform, auth, caFile) {
-  await run(['push', item.tag], { capture: false, timeout: 900000 });
-  const image = await imageIdentity(run, item.tag, revision, targetPlatform);
-  assert.equal(image.Id, item.id);
-  const repository = item.tag.slice(0, item.tag.lastIndexOf(':'));
-  const references = (image.RepoDigests ?? []).filter((value) =>
-    value.startsWith(repository + '@'),
-  );
-  assert.equal(references.length, 1);
-  let reference = references[0],
-    remote = await registryManifest(reference, auth, caFile);
-  if (remote.manifests) {
-    const matched = remote.manifests.filter(
-      (value) => value.platform.os + '/' + value.platform.architecture === targetPlatform,
-    );
-    assert.equal(matched.length, 1);
-    reference = repository + '@' + matched[0].digest;
-    remote = await registryManifest(reference, auth, caFile);
-  }
-  const native = image.Descriptor
-    ? JSON.parse(await run(['image', 'inspect', '--platform', targetPlatform, item.tag]))[0]
-    : image;
-  verifyPublishedImage(image, native, reference, remote, revision, targetPlatform);
-  return reference;
-}
 export async function componentPipeline(stage, env) {
   const directory = await outputDirectory();
   const descriptor = await sourceDescriptor(env);
@@ -105,7 +66,6 @@ export async function componentPipeline(stage, env) {
     return;
   }
   if (stage === 'build') {
-    registryFor(env.HAEN_IMAGE_REPOSITORY);
     assert.equal(await localEngine(run), descriptor.platform);
     const nonce = randomBytes(6).toString('hex'),
       images = {};
@@ -119,8 +79,7 @@ export async function componentPipeline(stage, env) {
               : []),
           ];
     for (const [key, target, repository] of targets) {
-      const tag =
-        env.HAEN_IMAGE_REPOSITORY + '/' + repository + ':' + descriptor.revision + '-' + nonce;
+      const tag = 'radio-local/' + repository + ':' + descriptor.revision + '-' + nonce;
       await run(
         [
           'build',
@@ -135,6 +94,10 @@ export async function componentPipeline(stage, env) {
           'VCS_REF=' + descriptor.revision,
           '--build-arg',
           'HAEN_WEB_BASE_PATH=/radio/',
+          '--label',
+          'io.haen.project=radio',
+          '--label',
+          'io.haen.component=' + repository,
           '--tag',
           tag,
           '.',
@@ -154,7 +117,12 @@ export async function componentPipeline(stage, env) {
   if (stage === 'seal') {
     const release = componentRelease(await load(join(directory, 'component-release.json')));
     for (const [key, value] of Object.entries(descriptor)) assert.deepEqual(release[key], value);
-    await save(join(directory, 'component-handoff.json'), { format: 2, ...context(env), release });
+    await save(join(directory, 'component-handoff.json'), {
+      format: 2,
+      ...context(env),
+      engineId: await engineIdentity(run),
+      release,
+    });
     return sha(await readFile(join(directory, 'component-handoff.json')));
   }
   if (stage === 'accept') {
@@ -172,9 +140,14 @@ export async function componentPipeline(stage, env) {
     const value = JSON.parse(bytes);
     assert.deepEqual(
       Object.keys(value).sort(),
-      ['format', ...Object.keys(context(env)), 'release'].sort(),
+      ['format', ...Object.keys(context(env)), 'engineId', 'release'].sort(),
     );
     assert.equal(value.format, 2);
+    assert.equal(
+      value.engineId,
+      await engineIdentity(run),
+      'Build and target must share one Docker engine',
+    );
     for (const [key, expected] of Object.entries(context(env))) assert.equal(value[key], expected);
     const release = componentRelease(value.release);
     for (const [key, expected] of Object.entries(descriptor))
@@ -264,43 +237,14 @@ export async function componentPipeline(stage, env) {
     images: build.images,
     passed: true,
   });
-  const auth = await registryConfiguration(
-    env.HAEN_REGISTRY_CONFIG_FILE,
-    directory,
-    env.HAEN_IMAGE_REPOSITORY,
+  const image = await localImage(run, build.images.image, build.revision, build.platform);
+  const migrationImage = build.images.migration
+    ? await localImage(run, build.images.migration, build.revision, build.platform)
+    : null;
+  await save(
+    join(directory, 'component-release.json'),
+    componentRelease({ ...descriptor, image, migrationImage, validationRun: build.validationRun }),
   );
-  try {
-    const authenticated = docker(undefined, { ...env, DOCKER_CONFIG: auth });
-    const image = await publishImage(
-      authenticated,
-      build.images.image,
-      build.revision,
-      build.platform,
-      auth,
-      env.HAEN_REGISTRY_CA_FILE,
-    );
-    const migrationImage = build.images.migration
-      ? await publishImage(
-          authenticated,
-          build.images.migration,
-          build.revision,
-          build.platform,
-          auth,
-          env.HAEN_REGISTRY_CA_FILE,
-        )
-      : null;
-    await save(
-      join(directory, 'component-release.json'),
-      componentRelease({
-        ...descriptor,
-        image,
-        migrationImage,
-        validationRun: build.validationRun,
-      }),
-    );
-  } finally {
-    await rm(auth, { recursive: true, force: true });
-  }
 }
 if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
   try {

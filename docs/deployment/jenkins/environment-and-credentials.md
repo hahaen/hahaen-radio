@@ -10,8 +10,6 @@
 
 | 任务环境变量 | 输入要求 |
 | --- | --- |
-| HAEN_IMAGE_REPOSITORY | 镜像仓库/项目路径，例如命名结构为 registry-host/team；不含账号、口令、scheme 或 query |
-| HAEN_REGISTRY_CA_FILE | 管理员保管、不可被组/其他用户写入的公开仓库 CA；用于显式 HTTPS manifest 校验 |
 | HAEN_RELEASE_PLATFORM | linux/amd64 或 linux/arm64，与原生引擎及目标机一致 |
 | HAEN_TEST_MYSQL_IMAGE | 独立容器专项使用的 MySQL 8.0.46 固定摘要，日常组件任务不重复该专项 |
 | HAEN_RELEASE_APPROVERS | 获授权发起组件发布的 Jenkins 用户 ID，以逗号分隔；同时须在目标清单内 |
@@ -26,19 +24,13 @@ BRANCH 是唯一界面参数；完整提交和分发由流水线固定，范围�
 
 Linux 构建节点的 Firefox 图形检查使用带认证、禁止 TCP 监听的 Xvfb 虚拟屏幕；通过构建身份的 `DISPLAY`、`XAUTHORITY` 连接。CI 的 Firefox 项目采用 headed 模式，Chromium 与 WebKit 保持原模式；生产客户端不依赖该屏幕。原生反馈显示此节点 Firefox headless 的 WebGL 2 不可用，同一版本在虚拟屏幕下可创建软件渲染上下文。
 
-## 镜像仓库认证
+## 服务器本地镜像
 
-Credentials 中创建 ID 为 haen-image-registry-config 的 Secret file，仅供验收通过后的分发阶段绑定为 HAEN_REGISTRY_CONFIG_FILE。文件在节点权限须为 400 或 600，仅当前用户可读；只允许单个目标 registry-host 的 auths/auth 配置，不支持额外 credential helper、credsStore 或其他仓库条目。
+构建和目标节点必须共用服务器的 `/var/run/docker.sock`。构建标签使用 `radio-local/<component>:<revision>-<validationRun>`；验收后只交接不可变镜像 ID，并绑定 Docker 引擎 ID。目标不下载缺失镜像：本地镜像丢失时明确失败，需重新构建或从独立备份恢复。
 
-示意结构只说明字段，不能把真实值填入可提交文件：
+日常三个任务不使用 `HAEN_IMAGE_REPOSITORY`、`HAEN_REGISTRY_CA_FILE` 或镜像仓库 Secret file。`radio-registry`、`radio-registry-gateway` 不再是发布依赖。基础镜像仍按 Dockerfile 从上游获取，冻结依赖安装仍需要网络。
 
-```json
-{"auths":{"<registry-host>":{"auth":""}}}
-```
-
-auth 为账号与访问令牌的 Docker Basic 认证编码，编码后仍是秘密。由操作者在私有环境准备，不能从个人全量配置直接复制或写入仓库、镜像和普通日志。仓库地址需与 HAEN_IMAGE_REPOSITORY 的首段完全一致；服务使用可信 HTTPS，不配置远程 insecure registry。推送身份只授予本项目仓库的必要权限。
-
-工具分发时写临时 700 目录及 600 config.json，Docker 通过 DOCKER_CONFIG 读取凭据，显式 HTTPS manifest 校验器在内存读取同一份私有 auth，finally 删除；临时目录不在归档清单。进程被强杀时 finally 可能未执行，应先核对本轮进程与目录归属，再清理残留；不自动删除其他活动任务资料。Jenkins Credentials 的原始文件由插件控制生命周期，勿把整个 workspace@tmp 或 `.local/` 归档。
+成功发布保留各组件当前及上一成功版本、相应配置快照和前端目录；数据库结构对应的迁移工具仍保留。仅清理本次替换掉的更早成功版本，不清理活动构建、其他业务镜像或共享构建缓存。失败/中止构建的未发布镜像需核对后清理。
 
 ## 首次目标节点验收
 
@@ -50,11 +42,11 @@ curl --fail --netrc-file "$JENKINS_NETRC_FILE" -F 'jenkinsfile=<Jenkinsfile' "$J
 
 JENKINS_URL 使用已核对的 HTTPS 地址，不在 URL 中携带凭据。上述命令只做语法验证，不创建或运行任务；接口行为见 [Jenkins Linter](https://www.jenkins.io/doc/book/pipeline/development/#linter)。实际版本、插件、凭据域、SCM 和 submitter 解析由目标实例验收，不以普通 Groovy 或模拟 CLI 通过代替。
 
-先完成适用的工程与隔离镜像验证；获授权人工发起对应组件任务，实际验证分发、摘要解析与认证清理。当前没有额外分发开关；只有存在待迁移项时才确认数据库变更。拒绝缺少验收、标签变动和清理失败的产物，并在未授权用户、非人工 Cause 下确认无法分发，并确认从阶段重启不可用、不能跳过审批。
+先完成适用的工程与隔离镜像验证；获授权人工发起对应组件任务，实际验证本地构建、镜像 ID 交接与目标更新。当前没有额外分发开关；只有存在待迁移项时才确认数据库变更。拒绝缺少验收、标签变动或不同引擎的产物，并在未授权用户、非人工 Cause 下确认无法分发，并确认从阶段重启不可用、不能跳过审批。
 
 ## 目标应用服务器
 
-已接入独立haen-linux-target人工更新阶段。数据库变更确认、站点/数据库配置指纹、外部私有环境与只读拉取凭据haen-image-registry-pull-config见[目标阶段](target-stage.md)。构建节点不加载目标数据库配置，目标预检和更新通过显式 env-file 加载并核对目标指纹；不将凭据文件或目标状态复制至stash/归档。
+已接入独立haen-linux-target人工更新阶段。数据库变更确认、站点/数据库配置指纹、外部私有环境见[目标阶段](target-stage.md)。构建节点不加载目标数据库配置，目标预检和更新通过显式 env-file 加载并核对目标指纹；不将凭据文件或目标状态复制至stash/归档。
 
 Ubuntu 24.04 LTS、Docker Compose、持久存储、域名/HTTPS、MySQL 8.0.46、可信CA、角色权限、固定备份helper与共享锁由操作者按[执行器](../releases/target-executor.md)准备；三个目标任务已实际成功上线，结果见[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。当前直接使用目标agent，不增加SSH链路；未来采用SSH时仍须核验主机密钥。
 

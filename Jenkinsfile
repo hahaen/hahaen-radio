@@ -55,7 +55,7 @@ pnpm exec prettier --check 'deploy/**/*.{mjs,json,yaml}' 'packages/contracts/src
 pnpm exec eslint deploy/scripts deploy/tests packages/contracts/src "apps/$app/src" --max-warnings 0
 pnpm --filter @haen/contracts build
 pnpm --filter "@haen/$app" typecheck
-pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/component-state.test.mjs deploy/tests/component-release.test.mjs deploy/tests/runtime-environment.test.mjs deploy/tests/registry-manifest.test.mjs deploy/tests/static-web.test.mjs --maxWorkers=1
+pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/component-state.test.mjs deploy/tests/component-release.test.mjs deploy/tests/runtime-environment.test.mjs deploy/tests/local-images.test.mjs deploy/tests/static-web.test.mjs --maxWorkers=1
 '''
             }
             post {
@@ -71,16 +71,14 @@ pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/compone
                         checkout([$class: 'GitSCM', branches: [[name: selected.source]], userRemoteConfigs: scm.userRemoteConfigs, extensions: [[$class: 'CloneOption', noTags: true, shallow: false]]])
                         withEnv(["HAEN_SOURCE_COMMIT=${selected.source}", "HAEN_DEPLOY_SCOPE=${selected.component}", "HAEN_RELEASE_PLATFORM=${selected.platform}", "HAEN_EXPECTED_SITE=${selected.site}", "HAEN_EXPECTED_DATABASE_FINGERPRINT=${selected.fingerprint}"]) {
                             sh 'pnpm install --frozen-lockfile'
-                            withCredentials([file(credentialsId: 'haen-image-registry-pull-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) {
-                                def text = sh(returnStdout: true, script: '''#!/bin/sh
+                            def text = sh(returnStdout: true, script: '''#!/bin/sh
 set -eu
 set +x
 node --env-file="$HAEN_DEPLOY_ENV_FILE" --import tsx deploy/scripts/component-plan.mjs
 ''').trim()
-                                if (!(text ==~ /(true|false) [0-9]+/)) { error('目标只读预检失败') }
-                                def fields = text.tokenize(' ')
-                                databasePlan = [empty: fields[0] == 'true', pending: fields[1].toInteger()]
-                            }
+                            if (!(text ==~ /(true|false) [0-9]+/)) { error('目标只读预检失败') }
+                            def fields = text.tokenize(' ')
+                            databasePlan = [empty: fields[0] == 'true', pending: fields[1].toInteger()]
                         }
                     }
                 }
@@ -101,7 +99,7 @@ node deploy/scripts/component-release.mjs test
 '''
                     }
                 }
-                withCredentials([file(credentialsId: 'haen-image-registry-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) { sh 'node deploy/scripts/component-release.mjs publish' }
+                sh 'node deploy/scripts/component-release.mjs publish'
                 script {
                     handoffDigest = sh(returnStdout: true, script: 'node deploy/scripts/component-release.mjs seal').trim()
                     if (!(handoffDigest ==~ /[a-f0-9]{64}/)) { error('无效的发布交接摘要') }
@@ -129,13 +127,11 @@ node deploy/scripts/component-release.mjs test
                                 input(message: "${selected.component} / ${selected.site} / ${selected.source}：${databasePlan.empty ? '首次空库初始化及真实目录同步' : '执行迁移，先完成备份和独立副本校验'}。确认其他写入方与长事务已停止；需要停写的未发布部分恢复原版本。", submitter: env.HAEN_DEPLOY_APPROVERS, ok: '确认数据库变更并发布')
                             }
                             withEnv(['HAEN_CI_DEPLOY=true', 'HAEN_DEPLOY_ACTION=apply', "HAEN_EXPECTED_RELEASE_SHA256=${releaseDigest}", "HAEN_RELEASE_FILE=${pwd()}/.local/archive/release-pipeline/target-release.json", "HAEN_OTHER_WRITERS_STOPPED=${databasePlan.pending > 0}", "MIGRATION_INITIALIZE_EMPTY=${databasePlan.empty}", "HAEN_BOOTSTRAP_CATALOG=${databasePlan.empty}"]) {
-                                withCredentials([file(credentialsId: 'haen-image-registry-pull-config', variable: 'HAEN_REGISTRY_CONFIG_FILE')]) {
-                                    sh '''#!/bin/sh
+                                sh '''#!/bin/sh
 set -eu
 set +x
 node --env-file="$HAEN_DEPLOY_ENV_FILE" --import tsx apps/server/src/entrypoints/deploy.ts
 '''
-                                }
                             }
                         }
                     }

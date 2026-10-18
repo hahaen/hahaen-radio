@@ -37,11 +37,9 @@
     │   ├── api_logs/                 # radio_api_logs 的实际目录
     │   ├── jobs_logs/                # radio_jobs_logs 的实际目录
     │   └── recognition_state/        # radio_recognition_state 的实际目录
-    ├── registry/                     # 私有仓库数据及受限 TLS/认证配置
     ├── runtime/
     │   ├── node/                     # Node.js 24.9.0
     │   ├── java/                     # agent 运行时
-    │   ├── certs/radio-registry-ca.pem
     │   └── operations/current        # 管理员保管的编译运维包
     ├── jenkins/build/                # 构建身份、agent、工作区和缓存
     ├── jenkins/target/               # 发布身份、agent、工作区和缓存
@@ -63,17 +61,17 @@
 | --- | --- |
 | 常驻应用容器 | `radio-api`、`radio-jobs` |
 | 静态前端 | 共享 `nginx`，不保留 `radio-web` 容器 |
-| 项目仓库容器 | `radio-registry`、`radio-registry-gateway` |
-| 项目网络 | `radio_application`、`radio-registry-net` |
+| 项目仓库容器 | 已退役，日常发布直接使用服务器本地镜像 |
+| 项目网络 | `radio_application` |
 | 项目持久卷 | `radio_api_logs`、`radio_jobs_logs`、`radio_recognition_state` |
 | 构建定义 | `source/deploy/docker/Dockerfile` |
 | 应用编排 | `source/deploy/compose/compose.yaml` |
 | 手动任务 | `radio/radio-frontend`、`radio/radio-api`、`radio/radio-jobs` |
-| 镜像仓库 | 本机 TLS 私库的 `radio/frontend`、`radio/api`、`radio/jobs`、按需 `radio/migration` |
+| 本地构建标签 | `radio-local/frontend`、`radio-local/api`、`radio-local/jobs`、按需 `radio-local/migration` |
 
 旧 deploy.env 是兼容链接，实际修改以主环境为准；角色 raw 文件由发布工具按所选组件生成。`state/environments/` 保留对应发布的配置快照。
 
-三个任务各自归档 `source.json`、`component-source.json`、`component-build.json`、`component-check.json`、`component-release.json`、`component-handoff.json`。正式部署以平台 manifest 摘要为准，不能把构建标签或任务成功推断为其他组件也已更新。私有环境快照和目标持久状态不作为 Jenkins 公开产物。
+三个任务各自归档 `source.json`、`component-source.json`、`component-build.json`、`component-check.json`、`component-release.json`、`component-handoff.json`。后续本地发布以不可变镜像 ID 为准，不能把构建标签或任务成功推断为其他组件也已更新。私有环境快照和目标持久状态不作为 Jenkins 公开产物。
 
 ## 数据库与验证
 
@@ -82,3 +80,5 @@
 正式库最终为 3 条已应用迁移、0 条待迁移、11 张表；真实城市 34165 条、电台 69018 个，开发库未改动。旧任务、临时容器、失败本机镜像引用、旧工作区和诊断夹具已清理，必要的版本/配置与受限审计记录保留。
 
 实际发布版本、SQL 执行结果、健康与清理结果见[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。
+
+2026-10-18 的仓库退役和本地构建调整见[本地发布记录](../../iterations/2026-10-18-local-image-deployment/README.md)。

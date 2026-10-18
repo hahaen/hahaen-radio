@@ -2,12 +2,7 @@ import assert from 'node:assert/strict';
 import { lstat, readFile, open, unlink, mkdtemp, rm, mkdir, copyFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { docker, command, load, save, localEngine } from './release/common.mjs';
-import {
-  currentSource,
-  sourceMigrations,
-  imageIdentity,
-  registryConfiguration,
-} from './release/images.mjs';
+import { currentSource, sourceMigrations, imageIdentity } from './release/images.mjs';
 import { targetConfiguration, replaceState, synchronizeRuntimeEnvironment } from './target.mjs';
 import {
   componentFlow,
@@ -15,6 +10,7 @@ import {
   compatibleCombination,
   webRelease,
 } from './component-state.mjs';
+import { pruneLocalImages } from './local-images.mjs';
 import { sourceDescriptor } from './component-release.mjs';
 import { prepareStaticWeb, activateStaticWeb, assertStaticWeb } from './static-web.mjs';
 import { assertRuntimeLogImage, runtimeLogProbe } from './runtime-logs.mjs';
@@ -110,19 +106,7 @@ export async function planComponent(env) {
   let status;
   if (source.component === 'frontend') {
     assert(state.schema && state.components.api, 'Publish the API before the frontend');
-    const scratch = await mkdtemp(join(config.stateDirectory, '.plan-'));
-    try {
-      const auth = await registryConfiguration(
-        env.HAEN_REGISTRY_CONFIG_FILE,
-        scratch,
-        state.schema.image.split('/').slice(0, -1).join('/'),
-      );
-      const run = docker(undefined, { ...env, DOCKER_CONFIG: auth });
-      await run(['pull', state.schema.image], { capture: false, timeout: 900000 });
-      status = await storedMigrationStatus(run, config, state.schema);
-    } finally {
-      await rm(scratch, { recursive: true, force: true });
-    }
+    status = await storedMigrationStatus(docker(undefined, env), config, state.schema);
     assert.equal(status.pending.length, 0);
   } else status = await hostMigrationStatus(config, readDatabaseConfig);
   compatibleCombination(
@@ -150,9 +134,10 @@ export async function executeComponentTarget(env, signal, database, targetFinger
   const statePath = join(config.stateDirectory, 'state.json'),
     marker = join(config.maintenanceDirectory, 'enabled'),
     work = await mkdtemp(join(config.stateDirectory, '.component-'));
-  let run = docker(signal, env),
+  const run = docker(signal, env),
     cleanup = docker(undefined, env);
   const invoke = (args, options) => (cleanMode ? cleanup : run)(args, options);
+  const retired = [];
   const persist = () => replaceState(statePath, state);
   const instances = async (role) => {
     const owned = (
@@ -338,15 +323,7 @@ export async function executeComponentTarget(env, signal, database, targetFinger
         }
         await preserveEnvironment(candidate, sourceCheck);
         assert.equal(await localEngine(run), candidate.platform);
-        const auth = await registryConfiguration(
-          env.HAEN_REGISTRY_CONFIG_FILE,
-          work,
-          candidate.image.split('/').slice(0, -1).join('/'),
-        );
-        run = docker(signal, { ...env, DOCKER_CONFIG: auth });
-        cleanup = docker(undefined, { ...env, DOCKER_CONFIG: auth });
         for (const reference of [candidate.image, candidate.migrationImage].filter(Boolean)) {
-          await run(['pull', reference], { capture: false, timeout: 900000 });
           const image = await imageIdentity(run, reference, candidate.revision, candidate.platform);
           if (reference === candidate.image && candidate.component !== 'frontend')
             assertRuntimeLogImage(image);
@@ -513,6 +490,9 @@ export async function executeComponentTarget(env, signal, database, targetFinger
             '--detach',
             '--no-deps',
             '--force-recreate',
+            '--pull',
+            'never',
+            '--no-build',
             ...(candidate.component === 'api' ? ['--wait', '--wait-timeout', '120'] : []),
             candidate.component,
           ],
@@ -532,6 +512,7 @@ export async function executeComponentTarget(env, signal, database, targetFinger
       verify,
       activate: async (candidate) => {
         const previous = state.components[component];
+        if (state.previous[component]) retired.push(state.previous[component]);
         state = {
           ...state,
           components: { ...state.components, [component]: candidate },
@@ -586,6 +567,11 @@ export async function executeComponentTarget(env, signal, database, targetFinger
         };
         delete state.attempt;
         await persist();
+        try {
+          await pruneLocalImages(invoke, state, config, retired);
+        } catch {
+          console.error(JSON.stringify({ event: 'local_image_cleanup_incomplete' }));
+        }
       },
       fail: async (failedStage, cleanupConfirmed) => {
         cleanMode = true;

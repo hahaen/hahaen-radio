@@ -2,6 +2,7 @@ name: radio
 
 x-runtime: &runtime
   image: ${HAEN_SERVER_IMAGE:?Set an immutable server image}
+  pull_policy: never
   restart: unless-stopped
   init: true
   read_only: true
@@ -76,6 +77,7 @@ services:
 
   migration:
     image: ${HAEN_MIGRATION_IMAGE:?Set the same-commit migration image}
+    pull_policy: never
     profiles: [tools]
     restart: 'no'
     init: true

@@ -35,8 +35,24 @@ async function fixture() {
   git('init', '-q');
   git('add', 'packages', 'apps', 'deploy');
   git('-c', 'user.name=Test', '-c', 'user.email=test@example.invalid', 'commit', '-qm', 'fixture');
+  const bin = join(root, 'bin');
+  await mkdir(bin);
+  await writeFile(
+    join(bin, 'docker'),
+    `#!${process.execPath}
+const args = process.argv.slice(2);
+if(args[0] === 'context') console.log(JSON.stringify([{Endpoints:{docker:{Host:'unix:///var/run/docker.sock'}}}]));
+else if(args[0] === 'info' && args[2] === '{{.ID}}') console.log(process.env.TEST_ENGINE_ID || 'test-engine-123456');
+else if(args[0] === 'info') console.log(JSON.stringify({OSType:'linux',Architecture:'amd64',RegistryConfig:{InsecureRegistryCIDRs:['127.0.0.0/8']}}));
+else process.exit(1);
+`,
+    { mode: 0o700 },
+  );
   const env = {
     ...process.env,
+    PATH: bin + ':' + process.env.PATH,
+    DOCKER_HOST: 'unix:///var/run/docker.sock',
+    DOCKER_CONTEXT: '',
     CI: 'true',
     HAEN_DEPLOY_SCOPE: 'frontend',
     HAEN_SOURCE_COMMIT: git('rev-parse', 'HEAD'),
@@ -101,6 +117,7 @@ it('binds immutable component metadata to the approved digest and target context
   expect(() =>
     f.run('accept', { ...extra, HAEN_APPROVED_HANDOFF_SHA256: 'c'.repeat(64) }),
   ).toThrow();
+  expect(() => f.run('accept', { ...extra, TEST_ENGINE_ID: 'other-engine-12345' })).toThrow();
   expect(f.run('accept', extra)).toMatch(/^[a-f0-9]{64}$/);
   expect(
     JSON.parse(await readFile(join(f.directory, 'target-release.json'), 'utf8')).component,

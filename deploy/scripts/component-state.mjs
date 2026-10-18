@@ -1,12 +1,15 @@
 import assert from 'node:assert/strict';
 import { createHash, randomBytes } from 'node:crypto';
-import { imageReference, platform, revisionPattern } from './release/common.mjs';
+import { imageReference, idPattern, platform, revisionPattern } from './release/common.mjs';
 export const components = ['frontend', 'api', 'jobs'];
 export const schemaHash = (migrations) =>
   createHash('sha256')
     .update(JSON.stringify(migrations.map(({ file, sha256 }) => [file, sha256])))
     .digest('hex');
 const digest = /^[a-f0-9]{64}$/;
+function componentImage(value) {
+  if (!idPattern.test(value)) imageReference(value);
+}
 export function componentRelease(value) {
   assert(value?.format === 2 && components.includes(value.component));
   assert.deepEqual(
@@ -27,7 +30,7 @@ export function componentRelease(value) {
   );
   assert(revisionPattern.test(value.revision));
   platform(value.platform);
-  imageReference(value.image);
+  componentImage(value.image);
   assert(digest.test(value.contractHash));
   assert(/^[a-f0-9]{12}$/.test(value.validationRun));
   assert(
@@ -50,7 +53,7 @@ export function componentRelease(value) {
     );
   if (value.migrationImage !== null) {
     assert(value.component !== 'frontend');
-    imageReference(value.migrationImage);
+    componentImage(value.migrationImage);
   }
   return value;
 }

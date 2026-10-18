@@ -4,11 +4,12 @@
 
 | 路径 | 用途 |
 | --- | --- |
-| `component-release.mjs`、`component-plan.mjs` | 三个日常任务的独立构建、分发、交接和目标只读预检 |
+| `component-release.mjs`、`component-plan.mjs` | 三个日常任务的独立本机构建、交接和目标只读预检 |
 | `release/source-selection.mjs`、`release/target-plan.mjs` | 固定所选分支的实际提交、只读判断数据库变更确认 |
 | `release/handoff.mjs` | 同任务跨节点交接、目标准备及材料验收 |
 | `release/common.mjs`、`release/images.mjs`、`release/smoke.mjs`、`release/seed.mjs` | 公共校验、迁移清单、镜像检查及隔离样例工具 |
 | `target.mjs`、`component-target.mjs`、`component-state.mjs` | 配置校验、组件发布执行器与独立版本状态管理，由后端受控运维入口调用 |
+| `local-images.mjs` | 绑定同一 Docker 引擎与本地镜像 ID，保护当前/上一成功版本和结构工具，清理明确淘汰的成功版本 |
 | `static-web.mjs` | 验证并提取不可变前端产物、校验保留版本、原子发布静态目录 |
 | `runtime-logs.mjs` | 发布与恢复时的运行日志探测 |
 

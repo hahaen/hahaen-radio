@@ -21,7 +21,7 @@
 
 Jenkins 两个节点的 remote FS 已指向上述 agent 目录，`HAEN_DEPLOY_ENV_FILE`、`XAUTHORITY`、运行时 PATH、systemd 工作目录与私有 target/备份路径同步采用总目录。环境文件仍由启动命令显式加载；迁移目录不会让变量自动生效。
 
-迁移前先确认运行构建结束、没有发布进程或迁移，再停止项目 agent 与 CI 辅助服务。移动保留原所有者、权限和文件内容；节点重新上线后核对配置指纹、私有 target 路径、虚拟音频和镜像仓库认证。目录整理本身不执行 SQL、不清理发布状态、不重跑迁移。
+迁移前先确认运行构建结束、没有发布进程或迁移，再停止项目 agent 与 CI 辅助服务。移动保留原所有者、权限和文件内容；节点重新上线后核对配置指纹、私有 target 路径、虚拟音频和共享 Docker 引擎。目录整理本身不执行 SQL、不清理发布状态、不重跑迁移。
 
 旧绝对路径保留兼容链接，实际内容存放在总目录。旧执行器对 `/var/lib/haen-maintenance/` 使用严格 `lstat` 与 fd/inode 验证，因此该路径采用受保护的持久 bind mount 指向 `locks/`，保持原锁 inode；不能用普通符号链接或新锁文件替代。挂载已写入系统 fstab，重启后须确认挂载存在再发版。
 
@@ -29,7 +29,7 @@ systemd 的系统入口与固定 sudo helper 保留在标准系统位置，指�
 
 ## Docker 命名
 
-Compose 项目为 `radio`，常驻应用容器固定为 `radio-api`、`radio-jobs`，前端由共享 Nginx 读取 `web/current/`，发布时重建同名容器；应用网络为 `radio_application`，命名卷以 `radio_` 开头，仍绑定 `data/` 中原设备路径。项目私有仓库容器为 `radio-registry` 与 `radio-registry-gateway`，镜像命名空间为 `radio`。共享 MySQL、Nginx 与 Jenkins 保留各自名称。目标执行器同时核对固定容器名与 Compose 归属，拒绝接管名称冲突的其他容器。
+Compose 项目为 `radio`，常驻应用容器固定为 `radio-api`、`radio-jobs`，前端由共享 Nginx 读取 `web/current/`，发布时重建同名容器；应用网络为 `radio_application`，命名卷以 `radio_` 开头，仍绑定 `data/` 中原设备路径。项目镜像由本机 Docker 引擎保存，构建标签以 `radio-local/` 开头，不运行项目私有镜像仓库。共享 MySQL、Nginx 与 Jenkins 保留各自名称。目标执行器同时核对固定容器名与 Compose 归属，拒绝接管名称冲突的其他容器。
 
 ## 当前验证边界
 
