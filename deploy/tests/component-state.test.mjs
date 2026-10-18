@@ -1,5 +1,8 @@
 import { expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { componentFlow, componentRelease, schemaHash } from '../scripts/component-state.mjs';
+const policy = JSON.parse(readFileSync(new URL('../compatibility/policy.json', import.meta.url)));
+const installedContract = 'a371c03455a214cc8addabd4b806a007ba37db0d2706ab96efb2e34484e8b552';
 const migrations = (letter = 'a') => [{ file: '0000_initial.sql', sha256: letter.repeat(64) }];
 const release = (component, letter = 'a', extra = {}) => ({
   format: 2,
@@ -122,6 +125,58 @@ it('blocks undeclared mixed schema or contract versions before maintenance', asy
       ),
     ).rejects.toThrow();
     expect(f.events.some(([name]) => name === 'begin')).toBe(false);
+  }
+});
+it.each([
+  ['api', 'jobs', 'frontend'],
+  ['api', 'frontend', 'jobs'],
+  ['jobs', 'api', 'frontend'],
+  ['jobs', 'frontend', 'api'],
+  ['frontend', 'api', 'jobs'],
+  ['frontend', 'jobs', 'api'],
+])('permits the reviewed contract window in update order %s, %s, %s', async (...order) => {
+  const f = fixture();
+  for (const value of Object.values(f.state.components)) value.contractHash = installedContract;
+  for (const component of order) {
+    const before = structuredClone(f.state.components);
+    await componentFlow(
+      {
+        component,
+        release: release(component, 'b', {
+          contractHash: 'b'.repeat(64),
+          compatibleContracts: policy.compatibleContracts,
+        }),
+      },
+      f.io,
+    );
+    for (const name of Object.keys(before))
+      if (name !== component) expect(f.state.components[name]).toEqual(before[name]);
+  }
+  expect(f.events.some(([name]) => ['migrate', 'backup'].includes(name))).toBe(false);
+  expect(f.state.attempt).toBeUndefined();
+});
+it('keeps unknown contracts and schema changes blocked with the reviewed policy', async () => {
+  for (const extra of [
+    { contractHash: 'c'.repeat(64) },
+    { contractHash: installedContract, migrations: migrations('c') },
+  ]) {
+    const f = fixture();
+    for (const value of Object.values(f.state.components)) Object.assign(value, extra);
+    await expect(
+      componentFlow(
+        {
+          component: 'api',
+          release: release('api', 'b', {
+            contractHash: 'b'.repeat(64),
+            compatibleContracts: policy.compatibleContracts,
+          }),
+        },
+        f.io,
+      ),
+    ).rejects.toThrow();
+    expect(f.events.some(([name]) => ['begin', 'maintenance', 'publish'].includes(name))).toBe(
+      false,
+    );
   }
 });
 it('backs up before SQL and restores the unselected writer using its original record', async () => {
