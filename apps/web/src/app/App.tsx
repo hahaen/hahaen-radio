@@ -44,7 +44,8 @@ import { SettingsPanel } from './SettingsPanel';
 import { Immersive } from './Immersive';
 import { useNowPlaying } from '../tracks/use-now-playing';
 import { explorationAutoplay } from '../graphics/model';
-import { StationFacts, StationClock } from './StationFacts';
+import { StationFacts } from './StationFacts';
+import { ChinaClock } from './ChinaClock';
 import { StationDial } from './StationDial';
 import { GenreBar } from './GenreBar';
 import { InformationPanel } from '../information/InformationPanel';
@@ -654,9 +655,8 @@ export function App() {
             {t('storage.' + (personal.storageProblem ?? 'unavailable'))}
           </p>
         )}
-        <aside className={styles.listeningTime} aria-label={t('localTime')}>
-          <StationClock detail={state.detail} />
-          <span>{state.station ? location(state.station) : t('tagline')}</span>
+        <aside className={styles.listeningTime} aria-label={t('chinaTime')}>
+          <ChinaClock />
         </aside>
         <main id="main" tabIndex={-1} className={styles.main} inert={intro}>
           <div className={styles.scene}>

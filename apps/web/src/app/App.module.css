@@ -232,22 +232,22 @@
   font: 10px / 1.8 var(--font-mono);
   letter-spacing: 0.08em;
 }
-.stationClock {
-  margin: 0;
+.chinaClock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
-.stationClock dt {
-  display: none;
-}
-.stationClock dd {
-  margin: 0;
+.clockTime {
   font: 300 116px / 1 var(--font-body);
   letter-spacing: -0.065em;
   color: transparent;
   -webkit-text-stroke: 1px #f5f1e847;
+  font-variant-numeric: tabular-nums;
 }
-.clockUnavailable {
-  font: 11px var(--font-mono);
-  opacity: 0.75;
+.clockDate {
+  font: 12px / 1.8 var(--font-body);
+  letter-spacing: 0.04em;
 }
 .main {
   position: absolute;
@@ -859,27 +859,24 @@
     right: var(--edge);
     bottom: calc(var(--player-height, 240px) + var(--dock-bottom) + 8px);
     max-width: none;
-    flex-direction: row-reverse;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    font: 11px / 1.7 var(--font-body);
-    letter-spacing: 0;
+    align-items: stretch;
   }
-  .stationClock > div {
-    display: flex;
+  .chinaClock {
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 4px;
+    justify-content: space-between;
+    gap: 4px 12px;
   }
-  .stationClock dt {
-    display: block;
-    font-size: 11px;
-  }
-  .stationClock dd {
-    font: 12px var(--font-mono);
+  .clockTime {
+    font: 20px / 1.2 var(--font-mono);
     letter-spacing: 0;
     color: var(--color-text-muted);
     -webkit-text-stroke: 0;
+  }
+  .clockDate {
+    font-size: 12px;
+    letter-spacing: 0;
   }
   .main {
     inset: 0 0 180px;
@@ -1035,9 +1032,25 @@
   .header {
     inset-block-start: 12px;
   }
-  .brandCaption,
-  .listeningTime {
+  .brandCaption {
     display: none;
+  }
+  .listeningTime {
+    top: 64px;
+    left: auto;
+    bottom: auto;
+    max-width: 340px;
+  }
+  .chinaClock {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .clockTime {
+    font-size: 48px;
+  }
+  .clockDate {
+    line-height: 1.5;
   }
   .player {
     width: 360px;
@@ -1128,8 +1141,7 @@
 .page[data-intro='true'] .viewTabs,
 .page[data-intro='true'] .libraryControl,
 .page[data-intro='true'] .openLibrary:not(.infoButton),
-.page[data-intro='true'] .languages,
-.page[data-intro='true'] .listeningTime {
+.page[data-intro='true'] .languages {
   visibility: hidden;
 }
 .page[data-intro='true'] .brandCaption {
@@ -1178,6 +1190,10 @@
   letter-spacing: 0.04em;
 }
 @media (width < 768px) {
+  .page[data-intro='true'] .listeningTime {
+    top: 112px;
+    bottom: auto;
+  }
   .player[data-intro='true'] {
     bottom: calc(54px + env(safe-area-inset-bottom));
     max-height: calc(100% - 160px);

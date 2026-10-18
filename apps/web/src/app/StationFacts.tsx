@@ -85,14 +85,3 @@ export function StationFacts({
     </dl>
   );
 }
-
-export function StationClock({ detail }: { detail: StationDetail | null }) {
-  const { t } = useTranslation();
-  return detail?.timezone && detail.timezoneSource === 'geonames' ? (
-    <dl className={styles.stationClock}>
-      <LocalTime key={detail.id + detail.timezone} zone={detail.timezone} />
-    </dl>
-  ) : (
-    <span className={styles.clockUnavailable}>{t('localTime')} · —</span>
-  );
-}
