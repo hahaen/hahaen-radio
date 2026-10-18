@@ -46,3 +46,7 @@
 新增 `GET /catalog/scene` 与 `GET /catalog/scene/:version/chunks/:index`，返回格式号 1、规则摘要与定序数组，字段及缓存一致性见[探索目录](../../frontend/rendering/exploration-data.md)。旧目录与电台接口保持兼容，无新增迁移；需要先更新 API 再更新 Web。
 
 返回[后端导航](../README.md)。
+
+## 语言兼容与目录归类
+
+语言筛选接受旧目录的常见名称和 ISO 别名，与规范语言代码匹配；接口路径、DTO 和分页结构保持不变。新目录同步将有效语言代码与名称合并去重，剔除数字、网址等错误语言值，并对明确音乐标签补充流派规则。既有快照的持久内容不会因代码发布自动改写，需要后续正常目录同步发布新版本。无新增迁移，详见[体验记录](../../iterations/2026-10-18-listening-refresh/README.md)。

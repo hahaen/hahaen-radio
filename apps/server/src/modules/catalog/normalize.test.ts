@@ -59,3 +59,22 @@ describe('directory normalization', () => {
     expect(normalizeStation({ ...station, lastcheckok: 0 })?.availability).toBe('unavailable');
   });
 });
+
+it('uses language codes and useful labels together without retaining malformed vocabulary', () => {
+  expect(
+    normalizeStation({
+      ...station,
+      languagecodes: 'eng,123',
+      language: 'English,French,rock,https://radio.example',
+    })?.languages,
+  ).toEqual(['en', 'fr']);
+});
+it.each([
+  ['chillout', 'electronic'],
+  ['oldies', 'pop'],
+  ['bossa nova', 'jazz'],
+  ['salsa', 'world'],
+  ['unclassified', 'general'],
+])('classifies the explicit tag %s as %s', (tags, genre) => {
+  expect(normalizeStation({ ...station, tags })?.genre).toBe(genre);
+});

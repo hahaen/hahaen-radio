@@ -3,6 +3,7 @@ import { and, desc, eq, gt, inArray, notInArray, or, sql } from 'drizzle-orm';
 import {
   CatalogManifestSchema,
   countrySearchText,
+  languageFilterAliases,
   SceneEntrySchema,
   decodeSceneEntry,
   type StationPreview,
@@ -390,7 +391,7 @@ export function createCatalogRepository(database: Database): CatalogRepository {
           if (query.genres) filters.push(inArray(jsonText('genre'), query.genres));
           if (query.languages)
             filters.push(
-              sql`JSON_OVERLAPS(JSON_EXTRACT(${catalogEntries.payload}, '$.languages'), CAST(${JSON.stringify(query.languages)} AS JSON))`,
+              sql`JSON_OVERLAPS(JSON_EXTRACT(${catalogEntries.payload}, '$.languages'), CAST(${JSON.stringify(languageFilterAliases(query.languages))} AS JSON))`,
             );
           if (query.minBitrate > 0)
             filters.push(

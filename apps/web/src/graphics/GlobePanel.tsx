@@ -15,6 +15,8 @@ export function GlobePanel({
   active,
   onPick,
   showHints = true,
+  powerSave = false,
+  expandedId = null,
 }: {
   groups: StationGroup[];
   station: StationPreview | null;
@@ -23,18 +25,38 @@ export function GlobePanel({
   active: boolean;
   onPick(group: StationGroup, reason: PickReason): void;
   showHints?: boolean;
+  powerSave?: boolean;
+  expandedId?: string | null;
 }) {
   const { t } = useTranslation();
   const host = useRef<HTMLDivElement>(null),
     engine = useRef<GlobeController | null>(null);
-  const latest = useRef({ groups, station, pinned, active, onPick });
+  const latest = useRef({
+    groups,
+    station,
+    pinned,
+    active,
+    onPick,
+    powerSave,
+    expandedId,
+    label: t('globeCanvas'),
+  });
   const [state, setState] = useState<'loading' | 'ready' | 'unavailable' | 'lost'>('loading');
   const [generation, setGeneration] = useState(0),
     [preview, setPreview] = useState<StationGroup | null>(null),
     [notice, setNotice] = useState(false);
   useEffect(() => {
-    latest.current = { groups, station, pinned, active, onPick };
-  }, [groups, station, pinned, active, onPick]);
+    latest.current = {
+      groups,
+      station,
+      pinned,
+      active,
+      onPick,
+      powerSave,
+      expandedId,
+      label: t('globeCanvas'),
+    };
+  }, [groups, station, pinned, active, onPick, powerSave, expandedId, t]);
   useEffect(() => {
     const container = host.current;
     if (!container) return;
@@ -44,6 +66,7 @@ export function GlobePanel({
       .then(([module, land]) => {
         if (controller.signal.aborted) return;
         instance = module.createGlobe(container, land, {
+          label: latest.current.label,
           pick: (group, reason) => latest.current.onPick(group, reason),
           preview: setPreview,
           lost: () => setState('lost'),
@@ -59,6 +82,8 @@ export function GlobePanel({
         instance.setSelection(value.station);
         instance.setPinned(value.pinned);
         instance.setActive(value.active);
+        instance.setPowerSave(value.powerSave);
+        instance.setExpanded(value.expandedId);
         setState('ready');
       })
       .catch(() => {
@@ -73,6 +98,12 @@ export function GlobePanel({
       if (engine.current === instance) engine.current = null;
     };
   }, [generation]);
+  useEffect(() => {
+    engine.current?.setPowerSave(powerSave);
+  }, [powerSave]);
+  useEffect(() => {
+    engine.current?.setExpanded(expandedId);
+  }, [expandedId]);
   useEffect(() => {
     engine.current?.setData(groups);
   }, [groups]);

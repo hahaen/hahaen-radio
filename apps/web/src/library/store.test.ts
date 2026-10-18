@@ -223,3 +223,27 @@ it('keeps audio preferences separate from older preferences and merges independe
   expect(restored.audio).toEqual({ normalize: true, tuning: true });
   expect(restored.preferences.volume).toBe(0.3);
 });
+
+it('stores scene options independently so older tabs can still parse and save their preferences', () => {
+  const env = environment();
+  const first = createLibrary(env),
+    second = createLibrary(env);
+  first.setPreferences({ volume: 0.3 });
+  first.toggleFavorite(testStation(1));
+  first.setSceneOptions({ powerSave: true });
+  second.setSceneOptions({ immersion: 'landscape' });
+  second.setPreferences({ muted: true });
+  const restored = createLibrary(env).store.getState();
+  expect(restored.scene).toEqual({ powerSave: true, immersion: 'landscape' });
+  expect(restored.preferences).toMatchObject({ volume: 0.3, muted: true });
+  expect(restored.favorites).toHaveLength(1);
+  expect(restored.storageProblem).toBeNull();
+  const legacy = JSON.parse(env.values.get(LIBRARY_PREFIX + 'preferences')!).value;
+  expect(Object.keys(legacy).sort()).toEqual([
+    'idleImmersive',
+    'muted',
+    'showHints',
+    'view',
+    'volume',
+  ]);
+});

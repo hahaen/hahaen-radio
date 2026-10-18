@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { GenreSchema, type Genre, type StationPreview } from '@haen/contracts';
 import { useTranslation } from 'react-i18next';
 import styles from './exploration.module.css';
@@ -11,12 +11,15 @@ export function GenreAtlas({
   stations,
   onChoose,
   showHints = true,
+  powerSave = false,
 }: {
   stations: readonly StationPreview[];
   onChoose(genre: Genre): void;
   showHints?: boolean;
+  powerSave?: boolean;
 }) {
   const { t } = useTranslation();
+  const host = useRef<HTMLDivElement>(null);
   const groups = useMemo(
     () =>
       GenreSchema.options.map((genre) => ({
@@ -25,11 +28,40 @@ export function GenreAtlas({
       })),
     [stations],
   );
+  useEffect(() => {
+    const container = host.current;
+    if (!container) return;
+    let cancelled = false;
+    let dispose: (() => void) | undefined;
+    void import('./genre-scene')
+      .then(({ createGenreScene }) => {
+        if (cancelled) return;
+        try {
+          dispose = createGenreScene(
+            container,
+            groups.map((group) => ({
+              id: group.genre,
+              count: group.stations.length,
+              label: container.querySelector<HTMLElement>(`[data-genre="${group.genre}"]`)!,
+            })),
+            powerSave,
+          );
+        } catch {
+          /* The same labelled buttons remain available without WebGL. */
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+      dispose?.();
+    };
+  }, [groups, powerSave]);
   return (
-    <div className={styles.genreAtlas} role="group" aria-label={t('genreAtlas')}>
+    <div ref={host} className={styles.genreAtlas} role="group" aria-label={t('genreAtlas')}>
       {groups.map((group) => (
         <button
           key={group.genre}
+          data-genre={group.genre}
           className={styles.genreCluster}
           disabled={!group.stations.length}
           onClick={() => onChoose(group.genre)}

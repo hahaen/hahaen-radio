@@ -3,6 +3,9 @@ import { z } from 'zod';
 import {
   FilterSchema,
   AudioOptionsSchema,
+  SceneOptionsSchema,
+  defaultSceneOptions,
+  type SceneOptions,
   defaultAudioOptions,
   type AudioOptions,
   SavedSongSchema,
@@ -29,7 +32,15 @@ export const LIBRARY_PREFIX = 'haen:personal:v1:';
 type StorageLike = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
 type Problem = 'unavailable' | 'corrupt' | null;
 type Category =
-  'favorite' | 'song' | 'history' | 'filters' | 'last' | 'preferences' | 'sleep' | 'audio';
+  | 'favorite'
+  | 'song'
+  | 'history'
+  | 'filters'
+  | 'last'
+  | 'preferences'
+  | 'sleep'
+  | 'audio'
+  | 'scene';
 export interface LibraryState {
   favorites: SavedStation[];
   songs: SavedSong[];
@@ -38,6 +49,7 @@ export interface LibraryState {
   filters: ListeningFilters;
   preferences: Preferences;
   audio: AudioOptions;
+  scene: SceneOptions;
   sleep: SleepTimer | null;
   storageProblem: Problem;
 }
@@ -45,6 +57,7 @@ const stationRecord = z.strictObject({ version: z.literal(1), value: SavedStatio
 const songRecord = z.strictObject({ version: z.literal(1), value: SavedSongSchema });
 const filterRecord = z.strictObject({ version: z.literal(1), value: FilterSchema });
 const preferencesRecord = z.strictObject({ version: z.literal(1), value: PreferencesSchema });
+const sceneRecord = z.strictObject({ version: z.literal(1), value: SceneOptionsSchema });
 const audioRecord = z.strictObject({ version: z.literal(1), value: AudioOptionsSchema });
 const sleepRecord = z.strictObject({ version: z.literal(1), value: SleepSchema });
 const newest = <T extends { savedAt: number }>(values: Iterable<T>) =>
@@ -59,6 +72,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   let filters = defaultFilters(),
     preferences = defaultPreferences(),
     audio = defaultAudioOptions(),
+    scene = defaultSceneOptions(),
     sleep: SleepTimer | null = null,
     lastStation: SavedStation | null = null,
     storageProblem: Problem = null,
@@ -87,6 +101,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         lastStation = input === null ? null : stationRecord.parse(input).value;
       else if (suffix === 'preferences')
         preferences = input === null ? defaultPreferences() : preferencesRecord.parse(input).value;
+      else if (suffix === 'scene')
+        scene = input === null ? defaultSceneOptions() : sceneRecord.parse(input).value;
       else if (suffix === 'audio')
         audio = input === null ? defaultAudioOptions() : audioRecord.parse(input).value;
       else if (suffix === 'sleep') sleep = input === null ? null : sleepRecord.parse(input).value;
@@ -124,6 +140,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     filters = defaultFilters();
     preferences = defaultPreferences();
     audio = defaultAudioOptions();
+    scene = defaultSceneOptions();
     sleep = null;
     lastStation = null;
     try {
@@ -145,6 +162,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     filters,
     preferences,
     audio,
+    scene,
     sleep,
     storageProblem,
   });
@@ -161,6 +179,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         ...(category === 'last' ? { lastStation } : {}),
         ...(category === 'preferences' ? { preferences } : {}),
         ...(category === 'audio' ? { audio } : {}),
+        ...(category === 'scene' ? { scene } : {}),
         ...(category === 'sleep' ? { sleep } : {}),
       });
   }
@@ -224,6 +243,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
             'preferences',
             'sleep',
             'audio',
+            'scene',
           ].includes(suffix!)
         ) {
           changed.add(suffix as Category);
@@ -248,6 +268,11 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
       refresh(LIBRARY_PREFIX + 'audio');
       write(LIBRARY_PREFIX + 'audio', AudioOptionsSchema.parse({ ...audio, ...patch }));
       publish('audio');
+    },
+    setSceneOptions(patch: Partial<SceneOptions>) {
+      refresh(LIBRARY_PREFIX + 'scene');
+      write(LIBRARY_PREFIX + 'scene', SceneOptionsSchema.parse({ ...scene, ...patch }));
+      publish('scene');
     },
     setPreferences(patch: Partial<Preferences>) {
       refresh(LIBRARY_PREFIX + 'preferences');

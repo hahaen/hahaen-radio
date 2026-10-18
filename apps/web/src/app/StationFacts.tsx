@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { StationDetail, StationPreview } from '@haen/contracts';
+import { normalizeLanguages, type StationDetail, type StationPreview } from '@haen/contracts';
 import styles from './App.module.css';
 function LocalTime({ zone }: { zone: string }) {
   const { t, i18n } = useTranslation();
@@ -52,6 +52,7 @@ export function StationFacts({
       return code;
     }
   };
+  const languages = normalizeLanguages(station.languages);
   return (
     <dl className={styles.facts}>
       {station.locationPrecision === 'coordinates' &&
@@ -68,11 +69,7 @@ export function StationFacts({
         )}
       <div>
         <dt>{t('stationLanguages')}</dt>
-        <dd>
-          {station.languages.length
-            ? station.languages.map(language).join(' / ')
-            : t('unknownLanguage')}
-        </dd>
+        <dd>{languages.length ? languages.map(language).join(' / ') : t('unknownLanguage')}</dd>
       </div>
       {detail?.timezone && detail.timezoneSource === 'geonames' && (
         <LocalTime key={detail.id + detail.timezone} zone={detail.timezone} />

@@ -1,8 +1,9 @@
-import { countrySearchText, type StationPreview } from '@haen/contracts';
+import { countrySearchText, normalizeLanguages, type StationPreview } from '@haen/contracts';
 import type { SearchFilters } from '../services/catalog';
 const fold = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
 export function createStationCollection(stations: readonly StationPreview[]) {
   const indexed = stations.map((station) => ({
+    languages: normalizeLanguages(station.languages),
     station,
     text: fold(
       [
@@ -16,15 +17,17 @@ export function createStationCollection(stations: readonly StationPreview[]) {
   }));
   return {
     filter(filters: SearchFilters): StationPreview[] {
+      const languages =
+        filters.languages === undefined ? undefined : normalizeLanguages(filters.languages);
       const terms = fold(filters.q.trim()).split(/\s+/).filter(Boolean);
       return indexed
         .filter(
-          ({ station, text }) =>
+          ({ station, text, languages: stationLanguages }) =>
             station.availability === 'available' &&
             terms.every((term) => text.includes(term)) &&
             (filters.genres === undefined || filters.genres.includes(station.genre)) &&
-            (filters.languages === undefined ||
-              station.languages.some((language) => filters.languages!.includes(language))) &&
+            (languages === undefined ||
+              stationLanguages.some((language) => languages.includes(language))) &&
             (!filters.minBitrate ||
               (station.bitrate !== null && station.bitrate >= filters.minBitrate)),
         )

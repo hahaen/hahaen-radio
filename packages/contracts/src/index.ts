@@ -29,3 +29,4 @@ export * from './recognition.js';
 export * from './diagnostics.js';
 
 export * from './country-search.js';
+export * from './languages.js';

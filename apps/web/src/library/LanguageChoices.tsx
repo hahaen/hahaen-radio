@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { CatalogManifest } from '@haen/contracts';
+import { normalizeLanguage, normalizeLanguages, type CatalogManifest } from '@haen/contracts';
 import { useTranslation } from 'react-i18next';
 import { getCatalog } from '../services/catalog';
 import styles from './library.module.css';
@@ -36,13 +36,20 @@ export function LanguageChoices({
       return code;
     }
   };
-  const languages =
-    metadata?.languages.filter((item) =>
+  const groups = new Map<string, { id: string; count: number }>();
+  for (const item of metadata?.languages ?? []) {
+    const id = normalizeLanguage(item.id);
+    if (id) groups.set(id, { id, count: (groups.get(id)?.count ?? 0) + item.count });
+  }
+  const selected = value === null ? null : normalizeLanguages(value);
+  const languages = [...groups.values()]
+    .sort((a, b) => b.count - a.count || a.id.localeCompare(b.id))
+    .filter((item) =>
       [item.id, nameOf(item.id)]
         .join(' ')
         .toLowerCase()
         .includes(languageSearch.trim().toLowerCase()),
-    ) ?? [];
+    );
   return (
     <fieldset>
       <legend>{t('stationLanguages')}</legend>
@@ -68,17 +75,17 @@ export function LanguageChoices({
           <label key={item.id}>
             <input
               type="checkbox"
-              checked={value?.includes(item.id) ?? false}
-              disabled={!value?.includes(item.id) && (value?.length ?? 0) >= 32}
+              checked={selected?.includes(item.id) ?? false}
+              disabled={!selected?.includes(item.id) && (selected?.length ?? 0) >= 32}
               onChange={(event) =>
                 onChange(
                   event.target.checked
-                    ? [...(value ?? []), item.id]
-                    : (value ?? []).filter((code) => code !== item.id),
+                    ? [...(selected ?? []), item.id]
+                    : (selected ?? []).filter((code) => code !== item.id),
                 )
               }
             />
-            {nameOf(item.id)} <small>{item.count.toLocaleString(i18n.language)}</small>
+            {nameOf(item.id)}
           </label>
         ))}
       </div>

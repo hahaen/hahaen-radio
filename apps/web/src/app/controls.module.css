@@ -109,7 +109,7 @@
   max-width: 960px;
   margin: 0 auto;
   text-align: center;
-  padding: 12px 0 40px;
+  padding: 8px 0 24px;
 }
 .exit {
   display: flex;
@@ -117,9 +117,9 @@
   margin-bottom: 28px;
 }
 .record {
-  width: clamp(180px, 40vw, 370px);
+  width: 100%;
   aspect-ratio: 1;
-  margin: 20px auto 36px;
+  margin: 0;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -129,7 +129,7 @@
   animation: turn 28s linear infinite;
   animation-play-state: paused;
 }
-.record[data-playing='true'] {
+.artwork[data-playing='true'] .record {
   animation-play-state: running;
 }
 .record span {
@@ -146,7 +146,7 @@
 }
 .immersive h1 {
   font-family: var(--font-display);
-  font-size: clamp(28px, 4vw, 48px);
+  font-size: clamp(28px, 3.5vw, 44px);
   font-weight: 400;
   overflow-wrap: anywhere;
   line-height: 1.4;
@@ -217,5 +217,86 @@
     grid-column: 2;
     grid-row: 5;
     margin: 0;
+  }
+}
+
+.artwork {
+  width: clamp(180px, 35vw, 330px);
+  aspect-ratio: 1;
+  margin: 12px auto 24px;
+  display: grid;
+  place-items: center;
+}
+.artwork[data-still='true'] .record,
+.artwork[data-still='true'] .orb {
+  animation: none;
+}
+.orb {
+  position: relative;
+  width: 90%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--color-secondary);
+  background: radial-gradient(circle at 32% 30%, var(--color-selected-bg), var(--color-bg) 70%);
+  box-shadow: inset -18px -12px 36px var(--color-bg);
+  overflow: hidden;
+  animation: breathe 12s ease-in-out infinite;
+  animation-play-state: paused;
+}
+.artwork[data-playing='true'] .orb {
+  animation-play-state: running;
+}
+.orb i {
+  position: absolute;
+  inset: 14% -15%;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  transform: rotate(-32deg);
+}
+.orb i:nth-child(2) {
+  inset: 30% -12%;
+  border-color: var(--color-secondary);
+}
+.orb i:nth-child(3) {
+  inset: 43% -12%;
+  border-color: var(--color-accent);
+}
+.landscape {
+  width: 125%;
+  max-width: 85vw;
+  fill: none;
+  stroke: var(--color-secondary);
+  stroke-width: 0.8;
+}
+.landscape path:nth-child(3n) {
+  stroke: var(--color-accent);
+  opacity: 0.7;
+}
+@keyframes breathe {
+  50% {
+    transform: scale(0.96) rotate(4deg);
+  }
+}
+@media (width < 768px) {
+  .artwork {
+    width: clamp(180px, 28svh, 260px);
+    margin-block: 8px 20px;
+  }
+  .immersive .exit {
+    margin-bottom: 16px;
+  }
+  .immersive h1 {
+    font-size: 28px;
+  }
+}
+@media (height < 500px) and (width >= 600px) {
+  .artwork {
+    grid-column: 1;
+    grid-row: 2 / span 4;
+    width: 160px;
+    margin: 0;
+  }
+  .record {
+    width: 100%;
   }
 }

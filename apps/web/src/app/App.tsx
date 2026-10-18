@@ -23,7 +23,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { StationPreview } from '@haen/contracts';
+import { normalizeLanguages, type StationPreview } from '@haen/contracts';
 import { observeLanguage, setLanguage } from '../locales/i18n';
 import { createPlayerController, type PlayerState } from '../audio/controller';
 import { lookupStations, randomStation, searchStations } from '../services/catalog';
@@ -44,6 +44,7 @@ import { Immersive } from './Immersive';
 import { useNowPlaying } from '../tracks/use-now-playing';
 import { TrackPanel, TrackSummary } from '../tracks/TrackPanel';
 import { explorationAutoplay } from '../graphics/model';
+import { StationDial } from './StationDial';
 import { StationFacts } from './StationFacts';
 import { InformationPanel } from '../information/InformationPanel';
 import styles from './App.module.css';
@@ -204,6 +205,14 @@ export function App() {
     staleTime: 60000,
     refetchInterval: 300000,
   });
+  const sceneManifest = useMemo(() => {
+    if (!scene.data) return undefined;
+    const counts = new Map<string, number>();
+    for (const station of scene.data.stations)
+      for (const language of normalizeLanguages(station.languages))
+        counts.set(language, (counts.get(language) ?? 0) + 1);
+    return { ...scene.data.manifest, languages: [...counts].map(([id, count]) => ({ id, count })) };
+  }, [scene.data]);
   const catalogSource =
     scene.data?.stations ??
     (personal.filters.favoritesOnly ? (savedLookup.data?.items ?? EMPTY_STATIONS) : undefined);
@@ -415,7 +424,7 @@ export function App() {
   const shortStatus =
     'playback' + state.playback.status[0]!.toUpperCase() + state.playback.status.slice(1);
   return (
-    <div ref={pageRef} className={styles.page}>
+    <div ref={pageRef} className={styles.page} data-power-save={personal.scene.powerSave}>
       <div hidden={immersive}>
         <a className={styles.skip} href="#main">
           {t('skip')}
@@ -483,7 +492,9 @@ export function App() {
         )}
         <main id="main" tabIndex={-1} className={styles.main}>
           <section className={styles.current} aria-label={t('selectedStation')}>
-            <h1>{state.station?.name ?? t('headline')}</h1>
+            <h1 data-long={(state.station?.name.length ?? 0) > 45}>
+              {state.station?.name ?? t('headline')}
+            </h1>
             {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
             {state.station ? (
               <>
@@ -499,7 +510,17 @@ export function App() {
                       : t('unknownBitrate')}
                   </span>
                 </p>
-                <StationFacts station={state.station} detail={state.detail} />
+                <details className={styles.stationDetails}>
+                  <summary>{t('stationDetails')}</summary>
+                  <StationFacts station={state.station} detail={state.detail} />
+                </details>
+                <StationDial
+                  stations={candidates ?? EMPTY_STATIONS}
+                  station={state.station}
+                  onSelect={(station) => {
+                    void player.select(station, player.store.getState().intent);
+                  }}
+                />
                 {trackSummary()}
                 <div className={styles.stationActions}>
                   <button
@@ -619,6 +640,7 @@ export function App() {
               }}
               visible={!immersive}
               showHints={personal.preferences.showHints}
+              powerSave={personal.scene.powerSave}
               stations={candidates ?? EMPTY_STATIONS}
               station={state.station}
               pinned={state.pinned}
@@ -680,11 +702,7 @@ export function App() {
                 {t('searchSubmit')}
               </button>
             </form>
-            <Filters
-              value={personal.filters}
-              manifest={scene.data?.manifest}
-              onChange={changeFilters}
-            />
+            <Filters value={personal.filters} manifest={sceneManifest} onChange={changeFilters} />
             <div className={styles.directoryState} aria-live="polite" data-testid="directory-state">
               {stations.isPending ? (
                 t('directoryLoading')
@@ -792,6 +810,8 @@ export function App() {
           onFavorite={favoriteCurrent}
           onExit={() => setImmersive(false)}
           track={trackSummary(true)}
+          effect={personal.scene.immersion}
+          powerSave={personal.scene.powerSave}
         />
       )}
       {libraryOpen && (
@@ -834,7 +854,7 @@ export function App() {
         <SettingsPanel
           library={library}
           player={player}
-          manifest={scene.data?.manifest}
+          manifest={sceneManifest}
           sleep={sleep}
           languageFailed={languageFailed}
           onLanguage={chooseLanguage}

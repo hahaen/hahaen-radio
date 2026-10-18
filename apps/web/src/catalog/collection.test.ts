@@ -71,3 +71,12 @@ describe('shared exploration candidates', () => {
     }
   });
 });
+
+it('matches canonical and saved legacy language filters against the same stations', () => {
+  const legacy = { ...testStation(1), languages: ['english', 'eng'] };
+  const current = testStation(2);
+  const collection = createStationCollection([legacy, current]);
+  expect(collection.filter({ q: '', languages: ['en'] })).toEqual([legacy, current]);
+  expect(collection.filter({ q: '', languages: ['english'] })).toEqual([legacy, current]);
+  expect(collection.filter({ q: '', languages: ['123'] })).toEqual([]);
+});

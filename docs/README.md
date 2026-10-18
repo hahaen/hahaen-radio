@@ -292,3 +292,5 @@ docs/
 新文档按主题放入现有子目录，并更新本索引。文件和目录使用小写英文、连字符命名；正文以中文为主，代码标识保持原名。
 
 - [服务器本地构建与镜像仓库退役](iterations/2026-10-18-local-image-deployment/README.md)
+
+2026-10-18：[夜航收听体验与目录整理](iterations/2026-10-18-listening-refresh/README.md)。

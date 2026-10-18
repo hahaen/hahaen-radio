@@ -173,6 +173,31 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
       expect(result.items[0]?.countryCode).toBe('TW');
     }
   });
+  it('matches canonical language filters against a published legacy snapshot', async () => {
+    const repository = createCatalogRepository(database);
+    const station = normalizeStation({
+      stationuuid: '00000000-0000-4000-8000-000000000090',
+      name: 'Legacy language fixture',
+      tags: 'jazz',
+      language: 'English',
+      url: 'https://radio.example/live',
+      lastcheckok: 1,
+    })!;
+    station.languages = ['english', 'eng'];
+    await synchronizeCatalog(repository, {
+      load: async () => ({ stations: [station], sourceCount: 1, invalidCount: 0 }),
+    });
+    const service = createCatalogService(repository);
+    const result = await service.search(
+      StationSearchSchema.parse({ languages: 'en', q: 'Legacy language' }),
+    );
+    expect(result.total).toBe(1);
+    expect(result.items[0]?.id).toBe(station.id);
+    expect(
+      (await service.search(StationSearchSchema.parse({ languages: 'fr', q: 'Legacy language' })))
+        .total,
+    ).toBe(0);
+  });
   it('atomically replaces offline places and rolls back a cancelled import after its first batch', async () => {
     const original = Array.from({ length: 1001 }, (_, index) => ({
       id: index + 1,

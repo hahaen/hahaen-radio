@@ -4,6 +4,15 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   zh: {
     translation: {
+      browseUnlocated: '{{count}} 台无坐标，可在列表查找',
+      stationDetails: '电台详情',
+      stationDial: '拨动选择当前范围内的电台',
+      scenePreferences: '画面与沉浸',
+      powerSave: '省电模式',
+      powerSaveHint: '降低画面精度并停止唱片动画，收听不受影响。',
+      immersionEffect: '沉浸画面',
+      effects: { auto: '随流派变化', record: '唱片', orb: '潮汐', landscape: '山峦' },
+
       diagnostics: {
         title: '精简播放故障报告',
         disclosure:
@@ -341,7 +350,7 @@ const resources = {
       nextNearbyStation: '附近下一站',
       genreAtlas: '按流派探索',
       genreCount: '{{count, number}} 台',
-      genreAtlasHelp: '选择流派查看电台；点簇按数量取样展示。',
+      genreAtlasHelp: '拖动探索流派，点击名称查看电台；光点为数量取样。',
       sceneLoading: '正在载入地球目录 {{loaded, number}} / {{total, number}}',
       scenePreparing: '正在载入地球目录…',
       sceneUnavailable: '地球目录暂不可用，仍可使用下方列表。',
@@ -414,6 +423,15 @@ const resources = {
   },
   en: {
     translation: {
+      browseUnlocated: 'Find {{count}} unlocated stations in the list',
+      stationDetails: 'Station details',
+      stationDial: 'Tune within the current selection',
+      scenePreferences: 'Scene and immersion',
+      powerSave: 'Power saving',
+      powerSaveHint: 'Lower visual detail and pause artwork animations. Audio keeps playing.',
+      immersionEffect: 'Immersive artwork',
+      effects: { auto: 'Follow the genre', record: 'Record', orb: 'Tide', landscape: 'Contours' },
+
       diagnostics: {
         title: 'Minimal playback failure report',
         disclosure:
@@ -782,7 +800,8 @@ const resources = {
       nextNearbyStation: 'Next nearby station',
       genreAtlas: 'Explore by genre',
       genreCount: '{{count, number}} stations',
-      genreAtlasHelp: 'Choose a genre to see its stations. Dots are sampled by count.',
+      genreAtlasHelp:
+        'Drag to explore genres; choose a name to see stations. Dots are sampled by count.',
       sceneLoading: 'Loading globe directory {{loaded, number}} / {{total, number}}',
       scenePreparing: 'Loading globe directory…',
       sceneUnavailable: 'The globe directory is unavailable. The list below still works.',

@@ -3,6 +3,8 @@ import { ArrowLeft, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
 import type { PlaybackSnapshot } from '../audio/engine';
+import { ListeningArt } from './ListeningArt';
+import type { SceneOptions } from '../library/model';
 import styles from './controls.module.css';
 export function Immersive({
   station,
@@ -13,6 +15,8 @@ export function Immersive({
   onFavorite,
   onExit,
   track,
+  effect,
+  powerSave,
 }: {
   station: StationPreview | null;
   location: string;
@@ -22,6 +26,8 @@ export function Immersive({
   onFavorite(): void;
   onExit(): void;
   track?: ReactNode;
+  effect: SceneOptions['immersion'];
+  powerSave: boolean;
 }) {
   const { t } = useTranslation(),
     exit = useRef<HTMLButtonElement>(null);
@@ -34,9 +40,12 @@ export function Immersive({
         <ArrowLeft size={20} aria-hidden="true" />
         {t('exitImmersive')}
       </button>
-      <div className={styles.record} data-playing={playbackState === 'playing'} aria-hidden="true">
-        <span>HAEN</span>
-      </div>
+      <ListeningArt
+        effect={effect}
+        genre={station?.genre}
+        playing={playbackState === 'playing'}
+        powerSave={powerSave}
+      />
       <h1>{station?.name ?? t('tagline')}</h1>
       <p className={styles.location}>{location}</p>
       <p role="status" data-state={playbackState}>

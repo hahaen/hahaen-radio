@@ -3,6 +3,7 @@ import { validateRemoteUrl } from '../../integrations/public-http.js';
 import { z } from 'zod';
 import {
   StationDetailSchema,
+  normalizeLanguages,
   type Genre,
   type StationDetail,
   type StreamCandidate,
@@ -27,38 +28,20 @@ const RawStationSchema = z.object({
   geo_long: z.union([z.number(), z.string().max(64), z.null()]).optional(),
 });
 
-const languageCodes: Record<string, string> = {
-  english: 'en',
-  chinese: 'zh',
-  mandarin: 'zh',
-  german: 'de',
-  french: 'fr',
-  spanish: 'es',
-  portuguese: 'pt',
-  russian: 'ru',
-  italian: 'it',
-  japanese: 'ja',
-  korean: 'ko',
-  arabic: 'ar',
-  hindi: 'hi',
-  dutch: 'nl',
-  greek: 'el',
-  turkish: 'tr',
-  ukrainian: 'uk',
-  polish: 'pl',
-  cantonese: 'yue',
-};
 const genreRules: [Genre, RegExp][] = [
   ['news', /news|talk|speech|新闻|谈话/],
-  ['classical', /classical|opera|古典/],
-  ['jazz', /jazz|blues|爵士|蓝调/],
+  ['classical', /classical|opera|symphon|baroque|chamber|古典/],
+  ['jazz', /jazz|blues|swing|bebop|bossa|爵士|蓝调/],
   ['hiphop', /hip.?hop|rap|嘻哈/],
   ['religious', /religio|christian|gospel|islam|quran|宗教/],
-  ['electronic', /electro|techno|trance|house|dance|ambient|电子/],
-  ['rock', /rock|metal|punk|alternative|摇滚/],
+  [
+    'electronic',
+    /electro|techno|trance|house|dance|ambient|chill|downtempo|lounge|drum.?and.?bass|dubstep|电子/,
+  ],
+  ['rock', /rock|metal|punk|alternative|grunge|摇滚/],
   ['folk', /country|folk|bluegrass|乡村|民谣/],
-  ['world', /world|regional|local|民族|地方/],
-  ['pop', /pop|hits|top.?40|流行/],
+  ['world', /world|regional|local|reggae|salsa|latin|afro|民族|地方/],
+  ['pop', /pop|hits|top.?40|oldies|adult.?contemporary|disco|motown|soul|r.?&.?b|流行/],
 ];
 const clean = (value: string, length: number) =>
   [...value]
@@ -129,9 +112,7 @@ export function normalizeStation(input: unknown): StationDetail | null {
     lon = coordinate(raw.geo_long, -180, 180);
   const hasCoordinates = lat !== null && lon !== null;
   const tags = split(raw.tags, 64);
-  const languages = split(raw.languagecodes || raw.language, 32).map(
-    (language) => languageCodes[language] ?? language,
-  );
+  const languages = normalizeLanguages(split([raw.languagecodes, raw.language].join(','), 32));
   return StationDetailSchema.parse({
     id: raw.stationuuid.toLowerCase(),
     name,

@@ -2,6 +2,7 @@ import { useStore } from 'zustand';
 import { useTranslation } from 'react-i18next';
 import type { CatalogManifest } from '@haen/contracts';
 import type { PlayerController } from '../audio/controller';
+import type { SceneOptions } from '../library/model';
 import type { Library } from '../library/store';
 import { LanguageChoices } from '../library/LanguageChoices';
 import { formatRemaining } from '../platform/sleep';
@@ -132,6 +133,35 @@ export function SettingsPanel({
               onChange={(event) => library.setPreferences({ idleImmersive: event.target.checked })}
             />
             {t('idleImmersive')}
+          </label>
+        </section>
+        <section aria-label={t('scenePreferences')}>
+          <h3>{t('scenePreferences')}</h3>
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={state.scene.powerSave}
+              onChange={(event) => library.setSceneOptions({ powerSave: event.target.checked })}
+            />
+            {t('powerSave')}
+          </label>
+          <p>{t('powerSaveHint')}</p>
+          <label className={styles.settingRow}>
+            {t('immersionEffect')}
+            <select
+              value={state.scene.immersion}
+              onChange={(event) =>
+                library.setSceneOptions({
+                  immersion: event.target.value as SceneOptions['immersion'],
+                })
+              }
+            >
+              {(['auto', 'record', 'orb', 'landscape'] as const).map((effect) => (
+                <option key={effect} value={effect}>
+                  {t('effects.' + effect)}
+                </option>
+              ))}
+            </select>
           </label>
         </section>
         <section aria-label={t('sleepTimer')}>

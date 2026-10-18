@@ -39,6 +39,7 @@ export function Exploration({
   onModeChange,
   visible = true,
   showHints = true,
+  powerSave = false,
   ref,
 }: {
   stations: StationPreview[];
@@ -55,6 +56,7 @@ export function Exploration({
   onModeChange(value: 'globe' | 'genres'): void;
   visible?: boolean;
   showHints?: boolean;
+  powerSave?: boolean;
   ref?: Ref<ExplorationHandle>;
 }) {
   const { t } = useTranslation();
@@ -147,6 +149,8 @@ export function Exploration({
       </div>
       <GlobePanel
         groups={groups}
+        expandedId={selection?.kind === 'place' ? selection.id : null}
+        powerSave={powerSave}
         station={station}
         pinned={pinned}
         selectionVersion={selectionVersion}
@@ -155,7 +159,12 @@ export function Exploration({
         onPick={choosePlace}
       />
       {mode === 'genres' && (
-        <GenreAtlas stations={stations} onChoose={expand} showHints={showHints} />
+        <GenreAtlas
+          stations={stations}
+          onChoose={expand}
+          showHints={showHints}
+          powerSave={powerSave}
+        />
       )}
       <div className={styles.dataState} aria-live="polite">
         {loading ? (
@@ -170,7 +179,14 @@ export function Exploration({
         ) : stale ? (
           t('sceneStale')
         ) : (
-          t('locatedCount', { located, total: stations.length })
+          <>
+            <span>{t('locatedCount', { located, total: stations.length })}</span>
+            {located < stations.length && (
+              <button onClick={() => document.getElementById('station-search')?.focus()}>
+                {t('browseUnlocated', { count: stations.length - located })}
+              </button>
+            )}
+          </>
         )}
       </div>
       {selection && (

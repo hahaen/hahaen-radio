@@ -36,6 +36,8 @@ export interface GlobeController {
   setSelection(station: StationPreview | null): void;
   setPinned(pinned: boolean): void;
   setActive(active: boolean): void;
+  setPowerSave(value: boolean): void;
+  setExpanded(id: string | null): void;
   zoom(factor: number): void;
   reset(): void;
   focus(station: StationPreview): boolean;
@@ -45,6 +47,7 @@ export function createGlobe(
   container: HTMLElement,
   land: LandData,
   callbacks: {
+    label: string;
     pick(group: StationGroup, reason: PickReason): void;
     preview(group: StationGroup | null): void;
     lost(): void;
@@ -54,6 +57,7 @@ export function createGlobe(
   const canvas = document.createElement('canvas');
   canvas.tabIndex = 0;
   canvas.setAttribute('role', 'img');
+  canvas.setAttribute('aria-label', callbacks.label);
   const renderer = new WebGLRenderer({
     canvas,
     alpha: true,
@@ -90,6 +94,9 @@ export function createGlobe(
     dragging = false,
     allowDwell = false;
   let positions = new Float32Array();
+  let sourceGroups: StationGroup[] = [];
+  let expandedId: string | null = null,
+    powerSave = false;
   let groups: StationGroup[] = [],
     selected: StationPreview | null = null,
     previewId: string | null = null;
@@ -97,7 +104,7 @@ export function createGlobe(
   const easingRotation = new Quaternion();
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let reduced = motion.matches;
-  controls.enableDamping = !reduced;
+  controls.enableDamping = !reduced && !powerSave;
   const earth = new Group();
   scene.add(earth);
   scene.add(new AmbientLight(0x83aaa3, 1.3));
@@ -170,12 +177,12 @@ export function createGlobe(
         vertexShader:
           'varying vec3 vNormal; varying vec3 vView; void main(){vec4 p=modelViewMatrix*vec4(position,1.0);vNormal=normalize(normalMatrix*normal);vView=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',
         fragmentShader:
-          'varying vec3 vNormal; varying vec3 vView; void main(){float edge=pow(1.0-abs(dot(normalize(vNormal),normalize(vView))),4.0);gl_FragColor=vec4(0.38,0.56,0.58,edge*0.24);\n#include <colorspace_fragment>\n}',
+          'varying vec3 vNormal; varying vec3 vView; void main(){float edge=pow(1.0-abs(dot(normalize(vNormal),normalize(vView))),4.0);gl_FragColor=vec4(0.38,0.56,0.58,edge*0.3);\n#include <colorspace_fragment>\n}',
       }),
     ),
   );
   earth.add(rim);
-  const markers = new Points(geometry(new BufferGeometry()), pointShader(5, 0.94));
+  const markers = new Points(geometry(new BufferGeometry()), pointShader(3.6, 0.88));
   earth.add(markers);
   const selection = new Mesh(
     geometry(new RingGeometry(0.018, 0.023, 40)),
@@ -292,11 +299,11 @@ export function createGlobe(
     if (!bounds.width || !bounds.height) return;
     width = bounds.width;
     height = bounds.height;
-    const ratio = Math.min(devicePixelRatio || 1, width < 768 ? 1.5 : 1.75);
+    const ratio = powerSave ? 1 : Math.min(devicePixelRatio || 1, width < 768 ? 1.5 : 1.75);
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
     mainland.material.uniforms.pointSize!.value = 1.2 * ratio;
-    markers.material.uniforms.pointSize!.value = 5 * ratio;
+    markers.material.uniforms.pointSize!.value = 3.6 * ratio;
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     invalidate();
@@ -306,8 +313,8 @@ export function createGlobe(
     dwell.cancel();
     controls.enableDamping = false;
     controls.update();
-    controls.enableDamping = !reduced;
-    if (reduced) {
+    controls.enableDamping = !reduced && !powerSave;
+    if (reduced || powerSave) {
       transition = undefined;
       camera.position.copy(position);
       controls.update();
@@ -343,28 +350,79 @@ export function createGlobe(
     }
     invalidate();
   }
+  function rebuildMarkers() {
+    allowDwell = false;
+    dwell.cancel();
+    groups = [];
+    const coordinates: number[] = [];
+    for (const group of sourceGroups) {
+      const center = new Vector3().fromArray(globePosition(group.latitude, group.longitude, 1.012));
+      if (group.id === expandedId && group.stations.length > 1) {
+        const normal = center.clone().normalize();
+        const east = new Vector3().crossVectors(new Vector3(0, 1, 0), normal);
+        if (east.lengthSq() < 0.001) east.set(1, 0, 0);
+        east.normalize();
+        const north = new Vector3().crossVectors(normal, east).normalize();
+        for (const [index, station] of group.stations.slice(0, 48).entries()) {
+          const angle = index * 2.3999632297,
+            radius = 0.012 * Math.sqrt(index + 1);
+          const point = center
+            .clone()
+            .addScaledVector(east, Math.cos(angle) * radius)
+            .addScaledVector(north, Math.sin(angle) * radius)
+            .normalize()
+            .multiplyScalar(1.014);
+          coordinates.push(...point.toArray());
+          groups.push({ ...group, id: group.id + ':' + station.id, stations: [station] });
+        }
+      } else {
+        coordinates.push(...center.toArray());
+        groups.push(group);
+      }
+    }
+    const old = markers.geometry;
+    geometries.delete(old);
+    old.dispose();
+    const buffer = geometry(new BufferGeometry());
+    positions = new Float32Array(coordinates);
+    buffer.setAttribute('position', new BufferAttribute(positions, 3));
+    buffer.setAttribute('color', new BufferAttribute(new Float32Array(groups.length * 3), 3));
+    markers.geometry = buffer;
+    markers.visible = groups.length > 0;
+    updateSelection();
+    showPreview(null);
+  }
   const api: GlobeController = {
     cancelSelection() {
       allowDwell = false;
       dwell.cancel();
     },
     setData(value) {
-      allowDwell = false;
-      dwell.cancel();
-      groups = value;
-      const old = markers.geometry;
-      geometries.delete(old);
-      old.dispose();
-      const buffer = geometry(new BufferGeometry());
-      positions = new Float32Array(
-        groups.flatMap((group) => globePosition(group.latitude, group.longitude, 1.012)),
+      sourceGroups = value;
+      rebuildMarkers();
+    },
+    setExpanded(id) {
+      if (expandedId === id) return;
+      expandedId = id;
+      rebuildMarkers();
+      const group = sourceGroups.find((value) => value.id === id);
+      if (group)
+        moveTo(new Vector3().fromArray(globePosition(group.latitude, group.longitude, 1.65)));
+    },
+    setPowerSave(value) {
+      powerSave = value;
+      controls.enableDamping = !reduced && !powerSave;
+      mainland.geometry.setIndex(
+        powerSave
+          ? Array.from({ length: Math.ceil(land.points.length / 2) }, (_, index) => index * 2)
+          : null,
       );
-      buffer.setAttribute('position', new BufferAttribute(positions, 3));
-      buffer.setAttribute('color', new BufferAttribute(new Float32Array(groups.length * 3), 3));
-      markers.geometry = buffer;
-      markers.visible = groups.length > 0;
-      updateSelection();
-      showPreview(null);
+      if (powerSave && transition) {
+        camera.position.copy(transition.to);
+        transition = undefined;
+        controls.update();
+      }
+      resize();
     },
     setSelection(station) {
       if (selected?.id !== station?.id) {
@@ -438,6 +496,7 @@ export function createGlobe(
       renderer.forceContextLoss();
       canvas.remove();
       groups = [];
+      sourceGroups = [];
       selected = null;
     },
   };
@@ -553,7 +612,7 @@ export function createGlobe(
   });
   listen(motion, 'change', () => {
     reduced = motion.matches;
-    controls.enableDamping = !reduced;
+    controls.enableDamping = !reduced && !powerSave;
     if (reduced && transition) {
       camera.position.copy(transition.to);
       transition = undefined;

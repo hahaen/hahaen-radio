@@ -31,7 +31,7 @@
   position: relative;
   aspect-ratio: 1.15;
   min-height: 260px;
-  max-height: 640px;
+  max-height: 680px;
 }
 .globePanel[hidden] {
   display: none;
@@ -176,6 +176,8 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px 8px;
   padding: 28px 0;
+  position: relative;
+  min-height: 480px;
 }
 .genreCluster {
   min-width: 0;
@@ -291,9 +293,10 @@
 }
 @media (width<768px) {
   .globeStage {
-    min-height: 260px;
-    aspect-ratio: 1;
-    max-height: 400px;
+    min-height: 190px;
+    height: clamp(190px, 28svh, 270px);
+    aspect-ratio: auto;
+    max-height: 270px;
   }
   .mapControls {
     top: 12px;
@@ -339,4 +342,87 @@
 .canvasHost canvas,
 .genreCluster {
   scroll-margin-block: 24px calc(var(--player-height, 140px) + 24px);
+}
+
+.genreAtlas canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+.genreAtlas[data-rendered='true'] {
+  display: block;
+  height: clamp(430px, 45vw, 590px);
+}
+.genreAtlas[data-rendered='true'] .genreCluster {
+  position: absolute;
+  width: 124px;
+  min-height: 60px;
+  transform: translate(-50%, 10px);
+  padding: 6px;
+}
+.genreAtlas[data-rendered='true'] .genreCluster svg {
+  display: none;
+}
+.genreAtlas[data-rendered='true'] .genreCluster:hover {
+  background: var(--color-bg);
+}
+.genreAtlas[data-rendered='true'] .genreNote {
+  position: absolute;
+  bottom: 0;
+  left: 12px;
+  right: 12px;
+  pointer-events: none;
+}
+.dataState button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-left: 12px;
+  padding: 4px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (width < 768px) {
+  .modeTabs {
+    justify-content: center;
+    padding-block: 0;
+  }
+  .globePanel .help {
+    display: none;
+  }
+  .preview {
+    margin-top: 4px;
+    font-size: 12px;
+  }
+  .dataState {
+    min-height: 20px;
+    margin-top: 4px;
+    font-size: 11px;
+  }
+  .dataState button {
+    display: none;
+  }
+  .mapSource {
+    display: none;
+  }
+  .genreAtlas[data-rendered='true'] {
+    height: 400px;
+    min-height: 400px;
+  }
+  .genreAtlas[data-rendered='true'] .genreCluster {
+    width: 84px;
+    min-height: 44px;
+    font-size: 13px;
+  }
+  .genreAtlas[data-rendered='true'] .genreCluster span {
+    font-size: 13px;
+  }
+  .genreAtlas[data-rendered='true'] .genreNote {
+    font-size: 11px;
+  }
 }
