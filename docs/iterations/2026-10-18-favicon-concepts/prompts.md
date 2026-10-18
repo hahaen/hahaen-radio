@@ -1,0 +1,27 @@
+# 图标候选生成提示词
+
+生成方式：内置 image_gen，每款独立生成一张 PNG；本轮仅用于方案选择。
+
+## A · 声波岛屿
+
+```text
+Use case: logo-brand. Create ONE professional favicon concept for the Chinese global internet radio brand 声屿 HAEN, whose feeling is quiet listening and exploring the world at night. Deliver a single centered crisp flat graphic, square canvas, solid deep sea ink background #0B151B reaching every edge. Symbol fills about 78% of the width, generous even padding. Palette limited to warm ivory #E8E9E1, muted seafoam #83AAA3, and a small warm amber #D8AD6B accent. High contrast, thick confident geometric forms, carefully balanced negative space. Must remain recognizable reduced to 16x16 and 32x32. No words, no tagline, no labels, no border frame, no mockup, no drop shadow, no gradient, no glow, no texture, no hairlines, no tiny detail, no photorealism, no 3D. This is a new original visual identity; only output the single icon. Design direction A: SOUND ISLAND. An original compact emblem with three chunky softly rounded vertical pillars of differing heights (middle tallest), whose bases merge into a single broad curved muted seafoam wave like an island floating at sea. Pillars in warm ivory. A small amber sun-like dot at upper right, integrated and large enough to survive at small size. Sophisticated minimal abstract symbol conveying audio, island and ocean; asymmetric elegant composition, avoid resembling a standard bar chart.
+```
+
+## B · 环游地球
+
+```text
+Use case: logo-brand. Create ONE professional favicon concept for the Chinese global internet radio brand 声屿 HAEN, whose feeling is quiet listening and exploring the world at night. Deliver a single centered crisp flat graphic, square canvas, solid deep sea ink background #0B151B reaching every edge. Symbol fills about 78% of the width, generous even padding. Palette limited to warm ivory #E8E9E1, muted seafoam #83AAA3, and a small warm amber #D8AD6B accent. High contrast, thick confident geometric forms, carefully balanced negative space. Must remain recognizable reduced to 16x16 and 32x32. No words, no tagline, no labels, no border frame, no mockup, no drop shadow, no gradient, no glow, no texture, no hairlines, no tiny detail, no photorealism, no 3D. This is a new original visual identity; only output the single icon. Design direction B: WORLD RADIO. A bold warm-ivory circular planet ring with only one thick curved muted seafoam meridian inside and one broad crossing amber orbital swoosh. The orbit implies a radio signal traveling around the globe. Extremely simplified globe abstraction, no continents, no grid, no satellite, no stars, no extra details. Distinctive continuous silhouette; orbit crosses near lower right. Keep every stroke substantial at favicon scale.
+```
+
+## C · 耳机海湾
+
+```text
+Use case: logo-brand. Create ONE professional favicon concept for the Chinese global internet radio brand 声屿 HAEN, whose feeling is quiet listening and exploring the world at night. Deliver a single centered crisp flat graphic, square canvas, solid deep sea ink background #0B151B reaching every edge. Symbol fills about 78% of the width, generous even padding. Palette limited to warm ivory #E8E9E1, muted seafoam #83AAA3, and a small warm amber #D8AD6B accent. High contrast, thick confident geometric forms, carefully balanced negative space. Must remain recognizable reduced to 16x16 and 32x32. No words, no tagline, no labels, no border frame, no mockup, no drop shadow, no gradient, no glow, no texture, no hairlines, no tiny detail, no photorealism, no 3D. This is a new original visual identity; only output the single icon. Design direction C: LISTENING BAY. A thick warm-ivory headphone arch with two chunky rounded ear pads; inside the headphones a very simple muted seafoam island/ocean shape formed by a single wide upward-curving wave, with one substantial amber dot above the wave. Compact round silhouette, cozy calm feeling, premium mature brand rather than cartoon face. No eyes or mouth. Broad openings and low element count, all pieces easy to recognize at 16px.
+```
+
+## D · HAEN 字母标
+
+```text
+Use case: logo-brand. Create ONE professional favicon concept for the Chinese global internet radio brand 声屿 HAEN, whose feeling is quiet listening and exploring the world at night. Deliver a single centered crisp flat graphic, square canvas, solid deep sea ink background #0B151B reaching every edge. Symbol fills about 78% of the width, generous even padding. Palette limited to warm ivory #E8E9E1, muted seafoam #83AAA3, and a small warm amber #D8AD6B accent. High contrast, thick confident geometric forms, carefully balanced negative space. Must remain recognizable reduced to 16x16 and 32x32. No words, no tagline, no labels, no border frame, no mockup, no drop shadow, no gradient, no glow, no texture, no hairlines, no tiny detail, no photorealism, no 3D. This is a new original visual identity; only output the single icon. Design direction D: HAEN MONOGRAM. One confident custom capital H monogram as a unified geometric brandmark, made of two broad warm-ivory vertical stems joined by a single broad muted seafoam curved crossbar suggesting an ocean wave or sound traveling. A small but substantial amber circular accent nestled at the top right of the right stem. Only the H-shaped symbol, no other letters. Rounded internal corners but precise silhouette; wide stems, open negative space. Warm restrained modern identity, distinctive at 16px.
+```

@@ -10,6 +10,8 @@
 
 ## 阅读顺序
 
+标签页图标的四款候选和尺寸对照见[图标设计记录](iterations/2026-10-18-favicon-concepts/README.md)，当前等待选择，未接入网站。
+
 1. 阅读[项目协作规范](../AGENTS.md)，明确开发、验证和自动提交顺序。
 2. 阅读[项目总览](overview/README.md)和[技术选型](overview/technology-stack.md)，了解技术基线。
 3. 阅读[系统架构](architecture/system-design.md)和[代码目录规划](architecture/repository-layout.md)，了解模块关系。
@@ -134,6 +136,17 @@ docs/
 │   └── playback-diagnostics.md
 └── iterations/
     ├── README.md
+    ├── 2026-10-18-favicon-concepts/
+    │   ├── README.md
+    │   ├── prompts.md
+    │   ├── preview.html
+    │   └── assets/
+    │       ├── a-sound-island.png
+    │       ├── b-world-radio.png
+    │       ├── c-listening-bay.png
+    │       ├── d-haen-monogram.png
+    │       ├── comparison-desktop.png
+    │       └── comparison-mobile.png
     ├── 2026-10-16-mysql-drizzle-kit/
     │   └── README.md
     ├── 2026-10-16-technical-assessment/
