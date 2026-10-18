@@ -26,9 +26,12 @@ export function componentRelease(value) {
       'compatibleContracts',
       'compatibleSchemas',
       'validationRun',
+      ...(value.buildNumber === undefined ? [] : ['buildNumber']),
     ].sort(),
   );
   assert(revisionPattern.test(value.revision));
+  if (value.buildNumber !== undefined)
+    assert(typeof value.buildNumber === 'string' && /^[1-9][0-9]{0,18}$/.test(value.buildNumber));
   platform(value.platform);
   componentImage(value.image);
   assert(digest.test(value.contractHash));
@@ -114,6 +117,7 @@ export async function componentFlow(options, io) {
             ? state.previous[component]
             : state.components[component],
   );
+  const original = structuredClone(state);
   assert.equal(candidate.component, component);
   if (action === 'rollback') assert(options.compatibilityConfirmed === true);
   await io.prepare(candidate, action === 'apply', recovering);
@@ -197,10 +201,37 @@ export async function componentFlow(options, io) {
     await io.activate(candidate);
     await io.maintenance(false);
     await io.checkMaintenance(false);
+    await phase('public');
     await io.public(candidate);
     await io.finish();
     return { component, revision: candidate.revision, action };
   } catch {
+    // A migration may have changed the schema even when its final check failed.
+    // Only an ordinary apply with no SQL is eligible for automatic restoration.
+    if (
+      action === 'apply' &&
+      !pending &&
+      !recovering &&
+      original.components[component] &&
+      (options.canRestore?.() ?? true)
+    ) {
+      let restored = false;
+      try {
+        await io.maintenance(true);
+        if (affected.length) await io.stop(affected);
+        const previous = original.components[component];
+        await io.publish(previous);
+        await io.verify(previous);
+        await io.maintenance(false);
+        await io.checkMaintenance(false);
+        await io.public(previous);
+        await io.restore(original, stage);
+        restored = true;
+      } catch {
+        // Leave the durable attempt and maintenance state for explicit recovery.
+      }
+      if (restored) throw Error('Component release failed; original version restored');
+    }
     let cleanupConfirmed = false;
     try {
       await io.maintenance(true);

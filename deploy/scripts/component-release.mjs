@@ -12,6 +12,7 @@ import { checkedDeployEnvironment } from './release/handoff.mjs';
 const sha = (value) => createHash('sha256').update(value).digest('hex');
 export async function sourceDescriptor(env) {
   assert(components.includes(env.HAEN_DEPLOY_SCOPE));
+  if (env.BUILD_NUMBER !== undefined) assert(/^[1-9][0-9]{0,18}$/.test(env.BUILD_NUMBER));
   await currentSource(env.HAEN_SOURCE_COMMIT);
   const hash = createHash('sha256');
   async function visit(directory, prefix = '') {
@@ -40,6 +41,7 @@ export async function sourceDescriptor(env) {
     format: 2,
     component: env.HAEN_DEPLOY_SCOPE,
     revision: env.HAEN_SOURCE_COMMIT,
+    ...(env.BUILD_NUMBER === undefined ? {} : { buildNumber: env.BUILD_NUMBER }),
     platform: platform(env.HAEN_RELEASE_PLATFORM),
     contractHash: hash.digest('hex'),
     migrations: await sourceMigrations(),
@@ -79,11 +81,17 @@ export async function componentPipeline(stage, env) {
               : []),
           ];
     for (const [key, target, repository] of targets) {
-      const tag = 'radio-local/' + repository + ':' + descriptor.revision + '-' + nonce;
+      const tag =
+        'radio-local/' +
+        repository +
+        ':' +
+        descriptor.revision +
+        '-' +
+        (descriptor.buildNumber ? descriptor.buildNumber + '-' : '') +
+        nonce;
       await run(
         [
           'build',
-          '--pull',
           '--platform',
           descriptor.platform,
           '--file',
@@ -92,6 +100,8 @@ export async function componentPipeline(stage, env) {
           target,
           '--build-arg',
           'VCS_REF=' + descriptor.revision,
+          '--build-arg',
+          'BUILD_NUMBER=' + (descriptor.buildNumber ?? 'local'),
           '--build-arg',
           'HAEN_WEB_BASE_PATH=/radio/',
           '--label',

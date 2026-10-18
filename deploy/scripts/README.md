@@ -9,9 +9,11 @@
 | `release/handoff.mjs` | 同任务跨节点交接、目标准备及材料验收 |
 | `release/common.mjs`、`release/images.mjs`、`release/smoke.mjs`、`release/seed.mjs` | 公共校验、迁移清单、镜像检查及隔离样例工具 |
 | `target.mjs`、`component-target.mjs`、`component-state.mjs` | 配置校验、组件发布执行器与独立版本状态管理，由后端受控运维入口调用 |
-| `local-images.mjs` | 绑定同一 Docker 引擎与本地镜像 ID，保护当前/上一成功版本和结构工具，清理明确淘汰的成功版本 |
+| `local-images.mjs` | 绑定本地引擎与镜像 ID，成功后仅保留当前版本和结构工具，清理本次明确淘汰的旧产物 |
 | `static-web.mjs` | 验证并提取不可变前端产物、校验保留版本、原子发布静态目录 |
 | `runtime-logs.mjs` | 发布与恢复时的运行日志探测 |
+| `public-check.mjs` | 经公网入口核对当前页面、静态资源、就绪和目录接口 |
+| `workspace-cleanup.mjs` | 只读预检通过后清理同一串行任务更早构建的目标工作区，跳过当前/未来构建、其他任务及符号链接 |
 
 根目录命令继续使用 `pnpm deploy:target`；历史隔离验收工具仍保留，直接镜像入口为 `node deploy/scripts/release/pipeline.mjs build|test-images|publish`。这些入口可能操作实际运行环境，只按已授权目标和发布流程执行。
 

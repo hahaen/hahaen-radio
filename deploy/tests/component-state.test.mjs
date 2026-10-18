@@ -31,6 +31,10 @@ function fixture({ empty = false, pending = 0, fail, state: supplied } = {}) {
     ...(empty ? {} : { schema: { migrations: migrations() } }),
   };
   const events = [];
+  const reject = (name, args) => {
+    if (typeof fail === 'function' ? fail(name, args) : name === fail)
+      throw Error('injected failure');
+  };
   let count = pending,
     isEmpty = empty;
   const io = Object.fromEntries(
@@ -49,7 +53,7 @@ function fixture({ empty = false, pending = 0, fail, state: supplied } = {}) {
       name,
       async (...args) => {
         events.push([name, ...args]);
-        if (name === fail) throw Error('injected failure');
+        reject(name, args);
       },
     ]),
   );
@@ -80,6 +84,12 @@ function fixture({ empty = false, pending = 0, fail, state: supplied } = {}) {
     },
     finish: async () => {
       delete state.attempt;
+      reject('finish', []);
+    },
+    restore: async (original, failedStage) => {
+      events.push(['restore', failedStage]);
+      for (const key of Object.keys(state)) delete state[key];
+      Object.assign(state, structuredClone(original));
     },
     fail: async (stage, cleanupConfirmed) => {
       state.attempt = { ...state.attempt, phase: 'failed', failedStage: stage, cleanupConfirmed };
@@ -220,6 +230,61 @@ it('persists failed SQL, leaves maintenance and writers stopped, and refuses a n
   await expect(componentFlow(options, f.io)).rejects.toThrow();
   expect(f.events.filter(([name]) => name === 'migrate')).toHaveLength(1);
 });
+it.each(['publish', 'verify', 'public'])(
+  'restores the original version and fails the build after a no-SQL %s failure',
+  async (failedStage) => {
+    const f = fixture({
+      fail: (name, args) => name === failedStage && args[0]?.revision === 'b'.repeat(40),
+    });
+    const original = structuredClone(f.state);
+    await expect(
+      componentFlow({ component: 'api', release: release('api', 'b') }, f.io),
+    ).rejects.toThrow('original version restored');
+    expect(f.state).toEqual(original);
+    expect(f.events.filter(([name]) => name === 'publish').at(-1)[1]).toEqual(
+      original.components.api,
+    );
+    expect(f.events).toContainEqual(['restore', failedStage]);
+    expect(f.events.filter(([name]) => name === 'maintenance').at(-1)).toEqual([
+      'maintenance',
+      false,
+    ]);
+  },
+);
+it('does not automatically restore after SQL or when the release lock was lost', async () => {
+  for (const pending of [0, 1]) {
+    const f = fixture({ fail: 'publish', pending });
+    await expect(
+      componentFlow(
+        {
+          component: 'api',
+          release: release('api', 'b'),
+          otherWritersStopped: true,
+          canRestore: () => pending === 1,
+        },
+        f.io,
+      ),
+    ).rejects.toThrow('never retry SQL');
+    expect(f.events.some(([name]) => name === 'restore')).toBe(false);
+    expect(f.state.attempt.phase).toBe('failed');
+  }
+});
+it('keeps a failed restoration in maintenance for explicit recovery', async () => {
+  const f = fixture({ fail: 'publish' });
+  await expect(
+    componentFlow({ component: 'api', release: release('api', 'b') }, f.io),
+  ).rejects.toThrow('never retry SQL');
+  expect(f.state.attempt).toMatchObject({ phase: 'failed', cleanupConfirmed: true });
+  expect(f.events.filter(([name]) => name === 'maintenance').at(-1)).toEqual(['maintenance', true]);
+});
+it('can restore the original release if completing the persistent record fails', async () => {
+  const f = fixture({ fail: 'finish' });
+  const original = structuredClone(f.state);
+  await expect(
+    componentFlow({ component: 'api', release: release('api', 'b') }, f.io),
+  ).rejects.toThrow('original version restored');
+  expect(f.state).toEqual(original);
+});
 it('rolls back only the selected component with explicit compatibility confirmation', async () => {
   const f = fixture();
   f.state.previous.api = release('api', 'b');
@@ -232,6 +297,8 @@ it('rejects mutable tags, extra fields and frontend migration tools', () => {
     release('api', 'a', { image: 'registry.example/radio/api:latest' }),
     { ...release('api'), secret: 'unexpected' },
     release('frontend', 'a', { migrationImage: release('api').migrationImage }),
+    release('api', 'a', { buildNumber: 42 }),
+    release('api', 'a', { buildNumber: '0' }),
   ])
     expect(() => componentRelease(value)).toThrow();
 });

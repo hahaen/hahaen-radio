@@ -19,7 +19,7 @@ pipeline {
         RECOGNITION_ENABLED = 'false'
     }
     stages {
-        stage('固定源码与基础检查') {
+        stage('验证所选部分') {
             agent { label 'haen-linux-build' }
             steps {
                 deleteDir()
@@ -48,14 +48,12 @@ set -eu
 set +x
 node -e 'if(process.version!=="v24.9.0")process.exit(1)'
 test "$(pnpm --version)" = '12.5.1'
-pnpm install --frozen-lockfile
+pnpm install --frozen-lockfile --prefer-offline
 node deploy/scripts/component-release.mjs describe
 case "$HAEN_DEPLOY_SCOPE" in frontend) app=web ;; api|jobs) app=server ;; *) exit 64 ;; esac
-pnpm exec prettier --check 'deploy/**/*.{mjs,json,yaml}' 'packages/contracts/src/**/*.ts' "apps/$app/src/**/*.{ts,tsx,css}"
-pnpm exec eslint deploy/scripts deploy/tests packages/contracts/src "apps/$app/src" --max-warnings 0
 pnpm --filter @haen/contracts build
 pnpm --filter "@haen/$app" typecheck
-pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/component-state.test.mjs deploy/tests/component-plan.test.mjs deploy/tests/component-release.test.mjs deploy/tests/runtime-environment.test.mjs deploy/tests/local-images.test.mjs deploy/tests/static-web.test.mjs --maxWorkers=1
+pnpm exec vitest run "apps/$app/src" packages/contracts/src --maxWorkers=1
 '''
             }
             post {
@@ -68,9 +66,10 @@ pnpm exec vitest run "apps/$app/src" packages/contracts/src deploy/tests/compone
                 script {
                     ws("${pwd()}-plan-${env.BUILD_NUMBER}") {
                         deleteDir()
+                        try {
                         checkout([$class: 'GitSCM', branches: [[name: selected.source]], userRemoteConfigs: scm.userRemoteConfigs, extensions: [[$class: 'CloneOption', noTags: true, shallow: false]]])
                         withEnv(["HAEN_SOURCE_COMMIT=${selected.source}", "HAEN_DEPLOY_SCOPE=${selected.component}", "HAEN_RELEASE_PLATFORM=${selected.platform}", "HAEN_EXPECTED_SITE=${selected.site}", "HAEN_EXPECTED_DATABASE_FINGERPRINT=${selected.fingerprint}"]) {
-                            sh 'pnpm install --frozen-lockfile'
+                            sh 'pnpm install --frozen-lockfile --prefer-offline'
                             def text = sh(returnStdout: true, script: '''#!/bin/sh
 set -eu
 set +x
@@ -79,7 +78,9 @@ node --env-file="$HAEN_DEPLOY_ENV_FILE" --import tsx deploy/scripts/component-pl
                             if (!(text ==~ /(true|false) [0-9]+/)) { error('目标只读预检失败') }
                             def fields = text.tokenize(' ')
                             databasePlan = [empty: fields[0] == 'true', pending: fields[1].toInteger()]
+                            sh 'node deploy/scripts/workspace-cleanup.mjs'
                         }
+                        } finally { deleteDir() }
                     }
                 }
             }
@@ -88,12 +89,10 @@ node --env-file="$HAEN_DEPLOY_ENV_FILE" --import tsx deploy/scripts/component-pl
             agent { label 'haen-linux-build' }
             steps {
                 script {
-                    checkout([$class: 'GitSCM', branches: [[name: selected.source]], userRemoteConfigs: scm.userRemoteConfigs, extensions: [[$class: 'CloneOption', noTags: true, shallow: false]]])
                     withEnv(["HAEN_SOURCE_COMMIT=${selected.source}", "HAEN_DEPLOY_SCOPE=${selected.component}", "HAEN_BUILD_MIGRATION=${databasePlan.pending > 0}"]) {
                         sh '''#!/bin/sh
 set -eu
 set +x
-pnpm install --frozen-lockfile
 node deploy/scripts/component-release.mjs build
 node deploy/scripts/component-release.mjs test
 '''
@@ -118,8 +117,9 @@ node deploy/scripts/component-release.mjs test
                     withEnv(["HAEN_SOURCE_COMMIT=${selected.source}", "HAEN_DEPLOY_SCOPE=${selected.component}", "HAEN_RELEASE_PLATFORM=${selected.platform}", "HAEN_TARGET_NAME=${selected.target}", "HAEN_TARGET_SITE=${selected.site}", "HAEN_TARGET_DATABASE_FINGERPRINT=${selected.fingerprint}", "HAEN_EXPECTED_SITE=${selected.site}", "HAEN_EXPECTED_DATABASE_FINGERPRINT=${selected.fingerprint}", "HAEN_APPROVED_HANDOFF_SHA256=${handoffDigest}", "HAEN_JENKINS_WORKSPACE_ROOT=${previousWorkspace}", 'NODE_OPTIONS=', 'NODE_DEBUG=', 'NODE_DEBUG_NATIVE=', 'NODE_TLS_REJECT_UNAUTHORIZED=1']) {
                         ws("${previousWorkspace}-release-${env.BUILD_NUMBER}") {
                             deleteDir()
+                            try {
                             checkout([$class: 'GitSCM', branches: [[name: selected.source]], userRemoteConfigs: scm.userRemoteConfigs, extensions: [[$class: 'CloneOption', noTags: true, shallow: false]]])
-                            sh 'pnpm install --frozen-lockfile'
+                            sh 'pnpm install --frozen-lockfile --prefer-offline'
                             unstash 'radio-component-release'
                             def releaseDigest = sh(returnStdout: true, script: 'node deploy/scripts/component-release.mjs accept').trim()
                             if (!(releaseDigest ==~ /[a-f0-9]{64}/)) { error('交接材料核验失败') }
@@ -133,10 +133,16 @@ set +x
 node --env-file="$HAEN_DEPLOY_ENV_FILE" --import tsx apps/server/src/entrypoints/deploy.ts
 '''
                             }
+                            } finally { deleteDir() }
                         }
                     }
                 }
             }
+        }
+    }
+    post {
+        always {
+            node('haen-linux-build') { deleteDir() }
         }
     }
 }

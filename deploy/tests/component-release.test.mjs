@@ -94,6 +94,16 @@ it('includes nested contract files in compatibility fingerprints', async () => {
     JSON.parse(await readFile(join(f.directory, 'component-source.json'), 'utf8')).contractHash,
   ).not.toBe(previous);
 });
+it('records the Jenkins build number and rejects invalid build identifiers', async () => {
+  const f = await fixture();
+  await rm(join(f.directory, 'component-source.json'));
+  f.run('describe', { BUILD_NUMBER: '42' });
+  expect(
+    JSON.parse(await readFile(join(f.directory, 'component-source.json'), 'utf8')),
+  ).toMatchObject({ revision: f.env.HAEN_SOURCE_COMMIT, buildNumber: '42' });
+  for (const BUILD_NUMBER of ['0', '-1', '42/other', 'not-a-number'])
+    expect(() => f.run('describe', { BUILD_NUMBER })).toThrow();
+});
 it('binds immutable component metadata to the approved digest and target context', async () => {
   const f = await fixture();
   await writeFile(

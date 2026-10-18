@@ -24,6 +24,6 @@ Radio 不新增宿主机端口。共享 Nginx、MySQL 连接 `radio_application`
 
 API/jobs 日志及识曲状态使用项目总目录中的持久卷；日志目录700、文件600，七天和容量上限见[日志说明](../../operations/runtime-logs.md)。前端公开文件为644、目录755，版本摘要为600；共享 Nginx 仅只读挂载前端发布根和独立维护标记目录，不读取状态、配置或备份。
 
-数据库、网关证书、前端保留版本和业务卷不随普通发版删除；不执行 `down --volumes`。前端/服务端分端更新与同结构回退仍须审核兼容关系，数据库恢复另按[恢复文档](../../data/backup/backup-and-restore.md)处理。
+数据库、网关证书、当前前端目录和业务卷不随普通发版删除；不执行 `down --volumes`。成功发布并完成健康检查后只清理本次淘汰的旧产物，各组件只保留当前版本。前端/服务端分端更新及重新构建旧版仍须审核兼容关系，具体步骤见[发布与回退](../releases/release-and-rollback.md)，数据库恢复另按[恢复文档](../../data/backup/backup-and-restore.md)处理。
 
 返回[容器拓扑](topology-and-storage.md)或[部署导航](../README.md)。

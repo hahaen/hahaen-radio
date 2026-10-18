@@ -10,10 +10,11 @@ import {
   compatibleCombination,
   webRelease,
 } from './component-state.mjs';
-import { pruneLocalImages } from './local-images.mjs';
+import { pruneLocalImages, currentOnlyState } from './local-images.mjs';
 import { sourceDescriptor } from './component-release.mjs';
 import { prepareStaticWeb, activateStaticWeb, assertStaticWeb } from './static-web.mjs';
 import { assertRuntimeLogImage, runtimeLogProbe } from './runtime-logs.mjs';
+import { probePublicRelease } from './public-check.mjs';
 
 async function configuration(env, suppliedDatabase) {
   const { readDatabaseConfig, databaseTargetFingerprint } =
@@ -126,7 +127,8 @@ export async function executeComponentTarget(env, signal, database, targetFinger
   const release =
     action === 'apply' ? componentRelease(await load(env.HAEN_RELEASE_FILE)) : undefined;
   let state = await installedState(config),
-    cleanMode = false;
+    cleanMode = false,
+    activeAttempt = state.attempt;
   if (action === 'apply') {
     assert(!state.attempt, 'Resolve failed attempt first');
     await synchronizeRuntimeEnvironment(env);
@@ -313,6 +315,26 @@ export async function executeComponentTarget(env, signal, database, targetFinger
     }
   };
 
+  const recordPrimaryRevision = async (value) => {
+    const primary = value.components.api ?? value.components.jobs;
+    if (primary && (component === 'api' || (component === 'jobs' && !value.components.api))) {
+      const recorded = JSON.parse(
+        await command(
+          '/usr/bin/sudo',
+          [
+            '--non-interactive',
+            '/usr/local/libexec/haen-pre-migration',
+            'record-revision',
+            primary.revision,
+            targetFingerprint,
+          ],
+          { signal, env: { PATH: '/usr/bin:/bin' } },
+        ),
+      );
+      assert.equal(recorded.event, 'backup_revision_recorded');
+    }
+  };
+
   try {
     const io = {
       state: async () => state,
@@ -394,10 +416,12 @@ export async function executeComponentTarget(env, signal, database, targetFinger
           }
         }
         state = { ...state, attempt };
+        activeAttempt = attempt;
         await persist();
       },
       phase: async (phase) => {
         state.attempt = { ...state.attempt, phase };
+        activeAttempt = state.attempt;
         await persist();
       },
       maintenance,
@@ -518,37 +542,17 @@ export async function executeComponentTarget(env, signal, database, targetFinger
           components: { ...state.components, [component]: candidate },
           previous: { ...state.previous, [component]: previous },
         };
-        const primary = state.components.api ?? state.components.jobs;
-        if (primary && (component === 'api' || (component === 'jobs' && !state.components.api))) {
-          const recorded = JSON.parse(
-            await command(
-              '/usr/bin/sudo',
-              [
-                '--non-interactive',
-                '/usr/local/libexec/haen-pre-migration',
-                'record-revision',
-                primary.revision,
-                targetFingerprint,
-              ],
-              { signal, env: { PATH: '/usr/bin:/bin' } },
-            ),
-          );
-          assert.equal(recorded.event, 'backup_revision_recorded');
-        }
         await persist();
       },
       public: async (candidate) => {
-        const path = candidate.component === 'frontend' ? '/' : '/api/v1/health/ready';
         if (candidate.component === 'jobs' && !state.components.api) return;
+        const html = state.components.frontend
+          ? await readFile(join(config.staticDirectory, 'current/index.html'), 'utf8')
+          : null;
         for (let attempt = 0; ; attempt++) {
           signal.throwIfAborted();
           try {
-            const response = await fetch(config.site + path, {
-              redirect: 'error',
-              signal: AbortSignal.any([signal, AbortSignal.timeout(8000)]),
-            });
-            assert(response.ok);
-            await response.body?.cancel();
+            await probePublicRelease(config.site, html, signal);
             break;
           } catch {
             if (attempt >= 14) throw Error('Public readiness failed');
@@ -557,8 +561,11 @@ export async function executeComponentTarget(env, signal, database, targetFinger
         }
       },
       finish: async () => {
+        await recordPrimaryRevision(state);
+        const completed = currentOnlyState(state, component);
+        retired.push(...completed.retired);
         state = {
-          ...state,
+          ...completed.state,
           lastCompleted: {
             ...state.attempt,
             phase: 'completed',
@@ -573,9 +580,36 @@ export async function executeComponentTarget(env, signal, database, targetFinger
           console.error(JSON.stringify({ event: 'local_image_cleanup_incomplete' }));
         }
       },
+      restore: async (original, failedStage) => {
+        await recordPrimaryRevision(original);
+        const failed = state.attempt ?? activeAttempt;
+        state = {
+          ...original,
+          lastFailure: {
+            id: failed.id,
+            component,
+            revision: failed.candidate.revision,
+            failedStage,
+            restored: true,
+            finishedAt: new Date().toISOString(),
+          },
+        };
+        await persist();
+        try {
+          await pruneLocalImages(invoke, state, config, [failed.candidate]);
+        } catch {
+          console.error(JSON.stringify({ event: 'local_image_cleanup_incomplete' }));
+        }
+        console.info(JSON.stringify({ event: 'component_release_restored', component }));
+      },
       fail: async (failedStage, cleanupConfirmed) => {
         cleanMode = true;
-        state.attempt = { ...state.attempt, phase: 'failed', failedStage, cleanupConfirmed };
+        state.attempt = {
+          ...(state.attempt ?? activeAttempt),
+          phase: 'failed',
+          failedStage,
+          cleanupConfirmed,
+        };
         await persist();
       },
     };
@@ -589,6 +623,7 @@ export async function executeComponentTarget(env, signal, database, targetFinger
         compatibilityConfirmed: env.HAEN_CONTRACT_COMPATIBILITY_CONFIRMED === 'true',
         recoveryConfirmed: env.HAEN_RECOVERY_CONFIRMED === 'true',
         recoveryVersion: env.HAEN_RECOVERY_VERSION,
+        canRestore: () => !signal.aborted,
       },
       io,
     );

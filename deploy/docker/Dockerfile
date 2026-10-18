@@ -1,15 +1,20 @@
 FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS dependencies
 WORKDIR /work
-ARG HAEN_WEB_BASE_PATH=/
-ENV HAEN_WEB_BASE_PATH=$HAEN_WEB_BASE_PATH
 RUN npm install --global pnpm@12.5.1
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/server/package.json ./apps/server/
+COPY apps/web/package.json ./apps/web/
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/config/package.json ./packages/config/
+RUN --mount=type=cache,id=haen-pnpm-12,target=/pnpm/store pnpm install --frozen-lockfile --store-dir=/pnpm/store
 COPY --chown=node:node . .
-RUN pnpm install --frozen-lockfile
 
 FROM dependencies AS server-build
 RUN pnpm --filter @haen/contracts build && pnpm --filter @haen/server build
 
 FROM dependencies AS web-build
+ARG HAEN_WEB_BASE_PATH=/
+ENV HAEN_WEB_BASE_PATH=$HAEN_WEB_BASE_PATH
 RUN pnpm --filter @haen/contracts build && pnpm --filter @haen/web build && pnpm --filter @haen/web check:budget
 
 FROM server-build AS portable
@@ -17,6 +22,8 @@ RUN pnpm --filter @haen/server --prod deploy /out/server
 
 FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS server
 ARG VCS_REF=local
+ARG BUILD_NUMBER=local
+LABEL org.opencontainers.image.version="$VCS_REF-$BUILD_NUMBER"
 LABEL org.opencontainers.image.title="HAEN server" org.opencontainers.image.revision=$VCS_REF io.haen.runtime-log="private-jsonl-v1"
 ENV NODE_ENV=production HOST=0.0.0.0 PORT=3001
 ENV HAEN_APPLICATION_REVISION=$VCS_REF
@@ -31,6 +38,8 @@ CMD ["dist/entrypoints/api.js"]
 
 FROM server-build AS migration
 ARG VCS_REF=local
+ARG BUILD_NUMBER=local
+LABEL org.opencontainers.image.version="$VCS_REF-$BUILD_NUMBER"
 LABEL org.opencontainers.image.title="HAEN migration tools" org.opencontainers.image.revision=$VCS_REF
 ENV NODE_ENV=production
 WORKDIR /work/apps/server
@@ -39,6 +48,8 @@ ENTRYPOINT ["node", "dist/entrypoints/migrate.js"]
 
 FROM caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d AS web
 ARG VCS_REF=local
+ARG BUILD_NUMBER=local
+LABEL org.opencontainers.image.version="$VCS_REF-$BUILD_NUMBER"
 ARG HAEN_WEB_BASE_PATH=/
 LABEL io.haen.web-base=$HAEN_WEB_BASE_PATH
 LABEL org.opencontainers.image.title="HAEN web" org.opencontainers.image.revision=$VCS_REF

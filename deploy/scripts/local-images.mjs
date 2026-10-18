@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { lstat, readFile, rm } from 'node:fs/promises';
+import { lstat, readFile, readlink, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { idPattern, localEngine } from './release/common.mjs';
 import { imageIdentity } from './release/images.mjs';
@@ -24,6 +24,19 @@ export function retainedReleases(state) {
     state.attempt?.candidate,
   ].filter(Boolean);
 }
+export function currentOnlyState(state, component) {
+  assert(['frontend', 'api', 'jobs'].includes(component));
+  const previous = { ...state.previous },
+    retired = previous[component];
+  delete previous[component];
+  const previousVersions = { ...state.previousVersions };
+  if (retired)
+    previousVersions[component] = {
+      revision: retired.revision,
+      ...(retired.buildNumber === undefined ? {} : { buildNumber: retired.buildNumber }),
+    };
+  return { state: { ...state, previous, previousVersions }, retired: retired ? [retired] : [] };
+}
 export async function pruneLocalImages(run, state, config, retired) {
   // Only a displaced successful release is eligible. Other jobs may still be building images.
   const kept = retainedReleases(state),
@@ -37,7 +50,8 @@ export async function pruneLocalImages(run, state, config, retired) {
     assert(idPattern.test(rows[0].Id));
     protectedIds.add(rows[0].Id);
   }
-  for (const value of retired) {
+  const unique = new Map(retired.map((value) => [value.component + value.validationRun, value]));
+  for (const value of unique.values()) {
     for (const reference of new Set([value.image, value.migrationImage].filter(Boolean))) {
       const image = await imageIdentity(run, reference, value.revision, value.platform);
       if (protectedIds.has(image.Id)) continue;
@@ -46,7 +60,9 @@ export async function pruneLocalImages(run, state, config, retired) {
       assert(
         tags.every(
           (tag) =>
-            /^radio-local\/(frontend|api|jobs|migration):[a-f0-9]{40}-[a-f0-9]{12}$/.test(tag) ||
+            /^radio-local\/(frontend|api|jobs|migration):[a-f0-9]{40}-(?:[1-9][0-9]{0,18}-)?[a-f0-9]{12}$/.test(
+              tag,
+            ) ||
             new RegExp(
               '^(?:radio-local|localhost:5043/radio)/(frontend|api|jobs|migration)@' +
                 image.Id +
@@ -54,17 +70,22 @@ export async function pruneLocalImages(run, state, config, retired) {
             ).test(tag),
         ),
       );
-      if (tags.length) await run(['image', 'rm', ...tags]);
-      else await run(['image', 'rm', image.Id]);
+      let directory;
       if (value.component === 'frontend' && reference === value.image) {
-        const directory = join(config.staticDirectory, 'releases', image.Id.slice(7));
+        directory = join(config.staticDirectory, 'releases', image.Id.slice(7));
+        assert.notEqual(
+          await readlink(join(config.staticDirectory, 'current')),
+          'releases/' + image.Id.slice(7) + '/site',
+        );
         const stat = await lstat(directory);
         assert(stat.isDirectory() && !stat.isSymbolicLink() && stat.uid === process.getuid());
         const receipt = JSON.parse(await readFile(join(directory, 'receipt.json'), 'utf8'));
         assert.equal(receipt.imageId, image.Id);
         assert.equal(receipt.revision, value.revision);
-        await rm(directory, { recursive: true });
       }
+      if (tags.length) await run(['image', 'rm', ...tags]);
+      else await run(['image', 'rm', image.Id]);
+      if (directory) await rm(directory, { recursive: true });
     }
     if (
       value.component !== 'frontend' &&

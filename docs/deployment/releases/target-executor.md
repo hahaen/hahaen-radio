@@ -24,6 +24,6 @@ Ubuntu 24.04、Node.js 24.9.0、pnpm 12.5.1、本机 Linux Docker socket、Compo
 
 目标配置字段以 [target.example.json](../../../deploy/compose/target.example.json) 为准。target JSON 及角色 env 文件发布身份所有、600，CA 不允许组或其他用户写入；角色 env 使用 raw 格式，不加 export、引号或内联注释。主环境为 Node env-file 格式，由显式加载后派生角色配置，不能混用两种解析方式。
 
-`state.json` 独立保留实际组件、上一组件、结构版本和 attempt。`state/environments/<component>-<validationRun>.env` 保存该次组件配置，权限 600；全部状态不对外归档。失败后检查实际容器、结构与维护标记，再选择 recover。首次失败没有 current 时须明确选择 attempt；恢复要求实际结构无待迁移项。数据库部分失败按[正式恢复手册](../../data/backup/formal-recovery-runbook.md)处理。
+`state.json` 独立保留实际组件、结构版本和 attempt；发布过程中用 previous 临时保护原版本，成功后仅用 previousVersions 记录上一版 SHA/构建编号，不保留旧产物。`state/environments/<component>-<validationRun>.env` 保存当前组件配置，权限 600，旧快照随成功淘汰的产物清理；全部状态不对外归档。普通无迁移发布失败可自动恢复，结果见 lastFailure；其余失败需检查实际容器、结构与维护标记后选择 recover。首次失败没有 current 时须明确选择 attempt；恢复要求实际结构无待迁移项。数据库部分失败按[正式恢复手册](../../data/backup/formal-recovery-runbook.md)处理。
 
 实际服务器布局和验证边界见[服务器项目目录](../containers/server-layout.md)及[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。
