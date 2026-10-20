@@ -12,11 +12,13 @@ export function GenreAtlas({
   onChoose,
   showHints = true,
   powerSave = false,
+  currentGenre,
 }: {
   stations: readonly StationPreview[];
   onChoose(genre: Genre): void;
   showHints?: boolean;
   powerSave?: boolean;
+  currentGenre?: Genre | null;
 }) {
   const { t } = useTranslation();
   const host = useRef<HTMLDivElement>(null);
@@ -58,35 +60,49 @@ export function GenreAtlas({
   }, [groups, powerSave]);
   return (
     <div ref={host} className={styles.genreAtlas} role="group" aria-label={t('genreAtlas')}>
-      {groups.map((group) => (
-        <button
-          key={group.genre}
-          data-genre={group.genre}
-          className={styles.genreCluster}
-          disabled={!group.stations.length}
-          onClick={() => onChoose(group.genre)}
-        >
-          <svg viewBox="0 0 140 110" aria-hidden="true">
-            {group.stations.slice(0, 160).map((station) => {
-              const seed = hash(station.id),
-                angle = ((seed % 10000) / 10000) * Math.PI * 2,
-                radius = 6 + Math.sqrt(((seed >>> 8) % 1000) / 1000) * 40;
-              return (
-                <circle
-                  key={station.id}
-                  cx={70 + Math.cos(angle) * radius}
-                  cy={55 + Math.sin(angle) * radius}
-                  r={seed % 4 === 0 ? 1.7 : 1.1}
-                />
-              );
-            })}
-          </svg>
-          <span>{t('genre.' + group.genre)}</span>
-          <small>{t('genreCount', { count: group.stations.length })}</small>
-        </button>
-      ))}
+      <div className={styles.genreGrid}>
+        {groups.map((group, groupIndex) => (
+          <button
+            key={group.genre}
+            data-genre={group.genre}
+            className={styles.genreCluster}
+            aria-current={currentGenre === group.genre ? 'true' : undefined}
+            disabled={!group.stations.length}
+            onFocus={(event) =>
+              event.currentTarget.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+            }
+            onClick={(event) => {
+              event.currentTarget.focus({ preventScroll: true });
+              onChoose(group.genre);
+            }}
+          >
+            <div className={styles.genreArt} data-genre-art aria-hidden="true">
+              <svg viewBox="0 0 140 90">
+                {group.stations.slice(0, 160).map((station, index) => {
+                  const seed = hash(station.id),
+                    radius = Math.pow((index + 0.5) / Math.min(160, group.stations.length), 0.85),
+                    arms = 2 + (groupIndex % 3),
+                    angle =
+                      ((index % arms) * Math.PI * 2) / arms + radius * 4.5 + Math.sin(seed) * 0.5;
+                  return (
+                    <circle
+                      key={station.id}
+                      cx={70 + Math.cos(angle) * radius * 50}
+                      cy={45 + Math.sin(angle) * radius * 28}
+                      r={seed % 4 === 0 ? 1.6 : 1}
+                      opacity={0.45 + (seed % 100) / 200}
+                    />
+                  );
+                })}
+              </svg>
+            </div>
+            <span>{t('genre.' + group.genre)}</span>
+            <small>{t('genreCount', { count: group.stations.length })}</small>
+          </button>
+        ))}
+      </div>
       <p className={styles.genreNote} hidden={!showHints}>
-        {t('genreAtlasHelp')}
+        {t('genreAtlasScroll')}
       </p>
     </div>
   );

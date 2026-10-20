@@ -155,7 +155,12 @@ export function Exploration({
     </>
   );
   return (
-    <section className={styles.exploration} data-welcome={welcome} aria-label={t('exploration')}>
+    <section
+      className={styles.exploration}
+      data-welcome={welcome}
+      data-mode={mode}
+      aria-label={t('exploration')}
+    >
       <GlobePanel
         attention={loading || error || stale}
         details={dataNote}
@@ -174,6 +179,7 @@ export function Exploration({
         <GenreAtlas
           stations={stations}
           onChoose={expand}
+          currentGenre={station?.genre ?? null}
           showHints={showHints}
           powerSave={powerSave}
         />

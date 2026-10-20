@@ -179,46 +179,84 @@
 }
 .genreAtlas {
   position: absolute;
-  inset: 100px 4% 150px 36%;
-  min-height: 0;
+  inset: 238px var(--edge) calc(var(--dock-bottom) - 20px) min(36vw, 540px);
+  isolation: isolate;
+  z-index: 1;
+  container: genre-atlas / size;
+  overflow: hidden;
+}
+.genreGrid {
+  position: relative;
+  z-index: 1;
+  height: 100%;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-content: center;
-  gap: 20px 8px;
+  grid-auto-rows: minmax(100px, 1fr);
+  gap: 8px 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+  padding: 8px;
 }
 .genreCluster {
+  position: relative;
   min-width: 0;
+  min-height: 88px;
   display: flex;
   align-items: center;
   flex-direction: column;
-  padding: 0 4px 12px;
-  background: transparent;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 6px 10px;
   border: 0;
+  border-radius: 16px;
+  background: transparent;
   color: var(--color-text);
+  transition: background 180ms ease;
+}
+.genreCluster:hover:not(:disabled),
+.genreCluster:focus-visible {
+  background: var(--color-selected-bg);
+}
+.genreArt {
+  width: 100%;
+  height: clamp(46px, 8vh, 90px);
+  flex: 1;
+  min-height: 32px;
+  max-height: 100px;
+  pointer-events: none;
 }
 .genreCluster svg {
+  display: block;
   width: 100%;
-  max-width: 140px;
+  height: 100%;
   fill: var(--genre-color, var(--color-secondary));
 }
 .genreCluster span {
+  position: relative;
   max-width: 100%;
-  font-family: var(--font-body);
-  font-size: 16px;
+  font: 500 15px / 1.4 var(--font-body);
+  text-align: center;
+  text-wrap: balance;
   overflow-wrap: anywhere;
 }
 .genreCluster small {
   color: var(--color-text-muted);
-  line-height: 1.8;
-  margin-top: 4px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  font: 11px / 1.6 var(--font-mono);
 }
-.genreCluster:hover:not(:disabled) {
-  color: var(--color-accent);
+.genreCluster[aria-current='true'] span::before {
+  content: '';
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  left: -10px;
+  top: calc(50% - 2px);
+  background: var(--color-accent);
 }
 .genreCluster:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
 }
 .genreNote {
   display: none;
@@ -228,24 +266,10 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  touch-action: none;
-}
-.genreAtlas[data-rendered='true'] {
-  inset: 80px 4% 150px 12%;
-  display: block;
-}
-.genreAtlas[data-rendered='true'] .genreCluster {
-  position: absolute;
-  width: 144px;
-  min-height: 60px;
-  transform: translate(-50%, -64px);
-  padding: 8px;
-  border-radius: 12px;
-  background: transparent;
-  text-shadow: 0 2px 8px var(--color-bg);
+  pointer-events: none;
 }
 .genreAtlas[data-rendered='true'] .genreCluster svg {
-  display: none;
+  visibility: hidden;
 }
 .groupList {
   max-width: 620px;
@@ -345,22 +369,44 @@
     display: none;
   }
   .genreAtlas {
-    inset: 120px 0 40px;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
+    inset: 68px 10px 72px;
   }
-  .genreAtlas[data-rendered='true'] {
-    inset: 120px 0 40px;
+  .genreGrid {
+    height: calc(100% - 22px);
+    grid-template-columns: none;
+    grid-template-rows: repeat(3, minmax(78px, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - 32px) / 3);
+    grid-auto-rows: auto;
+    gap: 8px 4px;
+    padding: 6px;
   }
-  .genreAtlas[data-rendered='true'] .genreCluster {
-    width: 92px;
-    min-height: 44px;
+  .genreCluster {
+    min-height: 70px;
+    padding: 2px 4px 6px;
+  }
+  .genreNote {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: 8px;
+    right: 8px;
+    margin: 0;
+    color: var(--color-text-muted);
+    font: 10px / 20px var(--font-body);
+    text-align: center;
+  }
+  .genreNote[hidden] {
+    display: none;
+  }
+  .genreArt {
+    max-height: 58px;
   }
   .genreCluster span {
-    font-size: 14px;
+    font-size: 13px;
   }
-  .genreCluster svg {
-    max-width: 72px;
+  .genreCluster small {
+    font-size: 10px;
   }
 }
 @media (height < 820px) and (width >= 768px) {
@@ -403,4 +449,59 @@
 .mapDetailBody .dataState button {
   display: inline-flex;
   margin-left: 0;
+}
+
+@media (768px <= width < 1100px) and (height >= 600px) {
+  .genreAtlas {
+    inset: 230px var(--edge) calc(var(--player-height, 280px) + var(--dock-bottom) + 20px);
+  }
+}
+@media (height < 600px) and (width >= 600px) {
+  .genreAtlas {
+    inset: 148px 76px 82px 46%;
+  }
+  .genreGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: 106px;
+  }
+  .genreArt {
+    max-height: 52px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .genreCluster {
+    transition: none;
+  }
+}
+
+@container genre-atlas (height < 260px) and (width < 600px) {
+  .genreGrid {
+    height: calc(100% - 22px);
+    grid-template-columns: none;
+    grid-template-rows: repeat(2, minmax(72px, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: max(96px, calc((100% - 32px) / 3));
+    grid-auto-rows: auto;
+  }
+  .genreCluster {
+    min-height: 70px;
+    padding: 2px 4px 6px;
+  }
+  .genreArt {
+    min-height: 22px;
+    max-height: 40px;
+  }
+  .genreCluster span {
+    font-size: 12px;
+  }
+}
+@container genre-atlas (height < 190px) and (width < 600px) {
+  .genreGrid {
+    grid-template-rows: minmax(78px, 1fr);
+  }
+}
+
+.exploration[data-mode='genres'] .mapNotes {
+  left: auto;
+  width: auto;
 }
