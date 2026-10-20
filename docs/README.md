@@ -307,3 +307,5 @@ docs/
 - [服务器本地构建与镜像仓库退役](iterations/2026-10-18-local-image-deployment/README.md)
 
 2026-10-18：[夜航收听体验与目录整理](iterations/2026-10-18-listening-refresh/README.md)。
+
+画面与信息层级优化见[任务记录](iterations/2026-10-21-visual-refinement/README.md)。

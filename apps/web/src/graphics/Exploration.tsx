@@ -13,6 +13,7 @@ import { GenreAtlas } from './GenreAtlas';
 import styles from './exploration.module.css';
 import { Modal } from '../app/Modal';
 import { countryName } from './location';
+import { MapNotes } from './MapNotes';
 type Selection = { kind: 'place'; id: string } | { kind: 'genre'; genre: Genre } | null;
 export interface ExplorationHandle {
   close(): void;
@@ -31,6 +32,7 @@ export function Exploration({
   onSelect,
   mode,
   visible = true,
+  welcome = false,
   showHints = true,
   powerSave = false,
   ref,
@@ -48,6 +50,7 @@ export function Exploration({
   onSelect(station: StationPreview, reason: ExplorationChoice, expected?: SceneExpectation): void;
   mode: 'globe' | 'genres';
   visible?: boolean;
+  welcome?: boolean;
   showHints?: boolean;
   powerSave?: boolean;
   ref?: Ref<ExplorationHandle>;
@@ -152,8 +155,9 @@ export function Exploration({
     </>
   );
   return (
-    <section className={styles.exploration} aria-label={t('exploration')}>
+    <section className={styles.exploration} data-welcome={welcome} aria-label={t('exploration')}>
       <GlobePanel
+        attention={loading || error || stale}
         details={dataNote}
         groups={groups}
         expandedId={selection?.kind === 'place' ? selection.id : null}
@@ -165,7 +169,7 @@ export function Exploration({
         showHints={showHints}
         onPick={choosePlace}
       />
-      {mode === 'genres' && <div className={styles.mapNotes}>{dataNote}</div>}
+      {mode === 'genres' && <MapNotes attention={loading || error || stale}>{dataNote}</MapNotes>}
       {mode === 'genres' && (
         <GenreAtlas
           stations={stations}

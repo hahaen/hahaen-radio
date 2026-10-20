@@ -177,7 +177,8 @@ export function createGlobe(
             float dotAlpha=ring*(1.0-smoothstep(0.22,0.5,d));
             float halo=exp(-d*d*32.0)*(0.35+0.25*vPulse)*mix(1.0,smoothstep(0.06,0.16,d),vApproximate);
             float core=(1.0-smoothstep(0.03,0.16,d))*ring;
-            gl_FragColor=vec4(vColor,opacity*mix(0.28,1.0,smoothstep(0.0,0.65,vFacing))*mix(dotAlpha,halo+core*0.9,glow));
+            float precisionAlpha=mix(1.0,0.42,vApproximate);
+            gl_FragColor=vec4(vColor,opacity*precisionAlpha*mix(0.28,1.0,smoothstep(0.0,0.65,vFacing))*mix(dotAlpha,halo+core*0.9,glow));
             #include <colorspace_fragment>
           }`,
       }),
@@ -206,14 +207,14 @@ export function createGlobe(
     );
     return new Points(buffer, pointShader(size, opacity));
   }
-  const mainland = makePoints(land.points, 1.6, 0.32, 0xb3c1b7);
+  const mainland = makePoints(land.points, 1.6, 0.2, 0xb3c1b7);
   const oceanCoordinates: number[][] = [];
   for (let latitude = -88; latitude <= 88; latitude += 1.8) {
     const count = Math.max(3, Math.round(200 * Math.cos((latitude * Math.PI) / 180)));
     for (let index = 0; index < count; index++)
       oceanCoordinates.push([(index * 360) / count - 180, latitude]);
   }
-  const oceanDots = makePoints(oceanCoordinates, 2.6, 0.13, 0x8c9d91);
+  const oceanDots = makePoints(oceanCoordinates, 2.2, 0.1, 0x8c9d91);
   earth.add(oceanDots);
   earth.add(mainland);
   const outline: number[] = [];
@@ -247,7 +248,7 @@ export function createGlobe(
     ),
   );
   earth.add(rim);
-  const markers = new Points(geometry(new BufferGeometry()), pointShader(8.0, 0.96, true));
+  const markers = new Points(geometry(new BufferGeometry()), pointShader(6.0, 0.68, true));
   earth.add(markers);
   const selection = new Mesh(
     geometry(new RingGeometry(0.018, 0.023, 40)),
@@ -368,8 +369,8 @@ export function createGlobe(
     if (moving || transition || (!reduced && !powerSave && groups.length > 0)) invalidate();
   }
   function updateMarkerSize() {
-    const size = width < 768 ? 5.5 : 8.0;
-    markers.material.uniforms.pointSize!.value = Math.max(2, size * renderer.getPixelRatio());
+    const size = 6 * Math.min(1, Math.min(width, height) / 600);
+    markers.material.uniforms.pointSize!.value = Math.max(1.8, size) * renderer.getPixelRatio();
   }
   function resize() {
     const bounds = container.getBoundingClientRect();
@@ -380,7 +381,7 @@ export function createGlobe(
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
     mainland.material.uniforms.pointSize!.value = ratio * 1.6;
-    oceanDots.material.uniforms.pointSize!.value = ratio * 2.6;
+    oceanDots.material.uniforms.pointSize!.value = ratio * 2.2;
     updateMarkerSize();
     camera.aspect = width / height;
     camera.fov =

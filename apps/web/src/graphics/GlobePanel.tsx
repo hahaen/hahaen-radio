@@ -7,6 +7,7 @@ import type { StationGroup } from './model';
 import { loadLand } from './land';
 import { mapPosition, countryName } from './location';
 import styles from './exploration.module.css';
+import { MapNotes } from './MapNotes';
 export function GlobePanel({
   groups,
   details,
@@ -18,6 +19,7 @@ export function GlobePanel({
   showHints = true,
   powerSave = false,
   expandedId = null,
+  attention = false,
 }: {
   groups: StationGroup[];
   details: ReactNode;
@@ -29,6 +31,7 @@ export function GlobePanel({
   showHints?: boolean;
   powerSave?: boolean;
   expandedId?: string | null;
+  attention?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const host = useRef<HTMLDivElement>(null),
@@ -177,44 +180,51 @@ export function GlobePanel({
           </div>
         )}
       </div>
-      <div className={styles.mapNotes}>
-        <div className={styles.preview}>
-          {preview ? (
-            <>
-              <span>
-                {preview.precision === 'country'
+      <MapNotes
+        attention={attention}
+        preview={
+          <div className={styles.preview}>
+            {preview ? (
+              <>
+                <span>
+                  {preview.precision === 'country'
+                    ? t('countryPlace', {
+                        country: countryName(
+                          preview.stations[0]?.countryCode ?? null,
+                          i18n.language,
+                        ),
+                      })
+                    : (preview.stations[0]?.city ??
+                      (preview.stations[0]?.nearbyCity
+                        ? t('nearby', { city: preview.stations[0].nearbyCity })
+                        : t('coordinatePlace')))}
+                </span>
+                <span>{preview.stations[0]?.name}</span>
+              </>
+            ) : station && !position ? (
+              t('noCoordinates')
+            ) : position?.precision === 'country' ? (
+              <span>{t('countryMapHint')}</span>
+            ) : (
+              showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
+            )}
+            {selectedGroup && selectedGroup.stations.length > 1 && (
+              <button onClick={() => onPick(selectedGroup, 'click')}>
+                {selectedGroup.precision === 'country'
                   ? t('countryPlace', {
-                      country: countryName(preview.stations[0]?.countryCode ?? null, i18n.language),
+                      country: countryName(station?.countryCode ?? null, i18n.language),
                     })
-                  : (preview.stations[0]?.city ??
-                    (preview.stations[0]?.nearbyCity
-                      ? t('nearby', { city: preview.stations[0].nearbyCity })
-                      : t('coordinatePlace')))}
-              </span>
-              <span>{preview.stations[0]?.name}</span>
-            </>
-          ) : station && !position ? (
-            t('noCoordinates')
-          ) : position?.precision === 'country' ? (
-            <span>{t('countryMapHint')}</span>
-          ) : (
-            showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
-          )}
-          {selectedGroup && selectedGroup.stations.length > 1 && (
-            <button onClick={() => onPick(selectedGroup, 'click')}>
-              {selectedGroup.precision === 'country'
-                ? t('countryPlace', {
-                    country: countryName(station?.countryCode ?? null, i18n.language),
-                  })
-                : t('placeStationCount', { count: selectedGroup.stations.length })}
-            </button>
-          )}
-        </div>
+                  : t('placeStationCount', { count: selectedGroup.stations.length })}
+              </button>
+            )}
+          </div>
+        }
+      >
         <p id="globe-help" className={styles.help} hidden={!showHints}>
           {t('globeHelp')}
         </p>
         {details}
-      </div>
+      </MapNotes>
     </div>
   );
 }

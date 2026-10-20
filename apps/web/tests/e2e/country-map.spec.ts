@@ -48,8 +48,15 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   };
   await installMap(page, [...country, exact, unknown]);
   await page.goto('/');
+  const mapInformation = page.getByRole('button', { name: '地图信息', exact: true });
+  await expect(mapInformation).toBeEnabled();
+  await mapInformation.click();
   await expect(page.getByText('地图可浏览 16 / 17 台')).toBeVisible();
   await expect(page.getByText('含国家级 15 台')).toBeVisible();
+  await page
+    .getByRole('region', { name: '地图信息', exact: true })
+    .getByRole('button', { name: '关闭面板', exact: true })
+    .click();
   await selectStation(page, first.name);
   await page.locator('summary').click();
   const panel = page.getByTestId('globe-panel');

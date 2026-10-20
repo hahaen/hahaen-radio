@@ -14,3 +14,5 @@
 完整依赖基线见[技术选型](../overview/technology-stack.md)。返回[文档导航](../README.md)。
 
 全系统样式统一与验证见[任务记录](../iterations/2026-10-18-unified-visual-style/README.md)。
+
+画面与信息层级优化见[任务记录](../iterations/2026-10-21-visual-refinement/README.md)。

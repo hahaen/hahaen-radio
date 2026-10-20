@@ -13,7 +13,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   const start = Date.now();
   await page.goto('/');
   await page.getByRole('button', { name: '中文', exact: true }).click();
-  await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeVisible({
+  await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeAttached({
     timeout: 30000,
   });
   const loadMs = Date.now() - start;
@@ -35,10 +35,10 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
   const filterStart = Date.now();
   await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await page.getByRole('checkbox', { name: '流行', exact: true }).check();
-  await expect(page.getByText('地图可浏览 15,000 / 15,000 台', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 15,000 / 15,000 台', { exact: true })).toBeAttached();
   const filterMs = Date.now() - filterStart;
   await page.getByRole('button', { name: '清除全部条件', exact: true }).click();
-  await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeAttached();
   await page.locator('#station-directory').getByText('筛选电台', { exact: true }).click();
   await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
@@ -101,7 +101,7 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
     await page.waitForTimeout(1200);
     expect(counts.media).toBe(pausedMedia);
     await page.reload();
-    await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeVisible({
+    await expect(page.getByText('地图可浏览 30,000 / 30,000 台', { exact: true })).toBeAttached({
       timeout: 30000,
     });
     expect(counts.chunks).toBe(30);

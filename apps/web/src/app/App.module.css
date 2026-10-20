@@ -28,8 +28,8 @@
   inset: 0;
   pointer-events: none;
   background:
-    linear-gradient(0deg, #0c1919aa, transparent 35%),
-    linear-gradient(90deg, #101f1d44, transparent 35%);
+    linear-gradient(0deg, #0c1919eb, transparent 48%),
+    linear-gradient(90deg, #101f1d99, transparent 46%);
 }
 .shell {
   height: 100%;
@@ -77,12 +77,12 @@
 .brandCaption {
   margin: 0;
   color: var(--color-text-muted);
-  font: 10px / 1.8 var(--font-mono);
-  letter-spacing: 0.08em;
+  font: 11px / 1.8 var(--font-body);
+  letter-spacing: 0.02em;
 }
 .headerSearch {
   flex-shrink: 0;
-  width: 38px;
+  width: 44px;
   display: flex;
   align-items: center;
   border: 1px solid var(--color-border);
@@ -111,8 +111,8 @@
 .openLibrary,
 .clearSearch {
   flex-shrink: 0;
-  min-width: 36px;
-  height: 36px;
+  min-width: 42px;
+  height: 42px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -184,7 +184,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 30px;
+  min-height: 36px;
   padding: 4px 13px;
   border: 0;
   border-radius: 999px;
@@ -208,7 +208,7 @@
 }
 .languages button {
   min-width: 32px;
-  height: 36px;
+  height: 44px;
   background: transparent;
   color: var(--color-text-muted);
   border: 0;
@@ -219,7 +219,7 @@
 }
 .listeningTime {
   position: absolute;
-  top: 88px;
+  top: 104px;
   right: var(--edge);
   z-index: 3;
   display: flex;
@@ -239,10 +239,10 @@
   gap: 8px;
 }
 .clockTime {
-  font: 300 116px / 1 var(--font-body);
+  font: 300 clamp(76px, 7vw, 104px) / 1 var(--font-body);
   letter-spacing: -0.065em;
   color: transparent;
-  -webkit-text-stroke: 1px #f5f1e847;
+  -webkit-text-stroke: 1px #f5f1e85c;
   font-variant-numeric: tabular-nums;
 }
 .clockDate {
@@ -271,7 +271,7 @@
   grid-template-rows: minmax(0, 1fr) auto auto;
   align-items: stretch;
   overflow: hidden;
-  gap: 10px 12px;
+  gap: 14px 16px;
   padding: 0;
   border: 0;
   color: var(--color-text);
@@ -285,10 +285,10 @@
   text-shadow: 0 2px 16px #101f1d;
 }
 .current h1 {
-  font: 600 44px / 1.1 var(--font-body);
+  font: 500 44px / 1.22 var(--font-body);
   letter-spacing: -0.04em;
   margin: 12px 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: balance;
 }
 .current h1[data-long='true'] {
@@ -508,8 +508,8 @@
   scroll-padding-block: 64px 16px;
 }
 .directoryPanel {
-  right: calc(var(--edge) + 326px);
-  top: 76px;
+  right: var(--edge);
+  top: 88px;
   width: min(420px, calc(100% - 32px));
   max-height: calc(100dvh - 198px);
   padding: 0 16px 16px;
@@ -521,7 +521,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: 6px;
+  padding-block: 12px;
   border-bottom: 1px solid var(--color-border);
   background: #132622;
 }
@@ -530,8 +530,8 @@
   margin: 0;
 }
 .directoryHeading button {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -562,8 +562,8 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 2px;
-  min-height: 56px;
+  padding: 14px 6px;
+  min-height: 68px;
   border: 0;
   border-radius: 4px;
   text-align: left;
@@ -598,7 +598,8 @@
   min-width: 0;
 }
 .stationName {
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.5;
   overflow-wrap: anywhere;
 }
 .stationLocation,
@@ -648,7 +649,7 @@
   position: absolute;
   inset: auto 0 0;
   z-index: 6;
-  padding: 16px var(--edge) calc(24px + env(safe-area-inset-bottom));
+  padding: 12px var(--edge) calc(24px + env(safe-area-inset-bottom));
   pointer-events: none;
 }
 .genreBar {
@@ -657,7 +658,8 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding: 2px;
-  mask-image: linear-gradient(90deg, #000 97%, transparent);
+  mask-image: linear-gradient(90deg, #000 94%, transparent);
+  scroll-padding-inline: 8px;
   pointer-events: auto;
 }
 .genreBar button {
@@ -669,14 +671,15 @@
   flex-shrink: 0;
   white-space: nowrap;
   padding: 6px 13px;
-  border: 1px solid #f5f1e81a;
+  border: 1px solid transparent;
   border-radius: 999px;
-  background: #1c3430d1;
-  color: var(--color-text);
+  background: transparent;
+  color: var(--color-text-muted);
   font-size: 13px;
 }
 .genreBar button:hover {
-  background: #324b45;
+  background: var(--color-selected-bg);
+  color: var(--color-text);
 }
 .genreBar button[aria-pressed='true'] {
   color: var(--color-on-accent);
@@ -686,9 +689,16 @@
 .genreBar button[aria-expanded='true'] {
   border-color: var(--color-secondary);
 }
+.genreBar button[aria-pressed='true'] small {
+  color: var(--color-on-accent);
+}
+.genreBar button:first-child {
+  border-color: var(--color-border);
+  margin-right: 8px;
+}
 .genreBar small {
   font: 10px var(--font-mono);
-  color: inherit;
+  color: var(--color-text-muted);
 }
 .genreBar i {
   width: 7px;
@@ -848,8 +858,8 @@
   }
   .languages {
     position: fixed;
-    bottom: 3px;
-    left: var(--edge);
+    top: 116px;
+    right: var(--edge);
     z-index: 6;
   }
   .languages button {
@@ -857,32 +867,32 @@
     height: 24px;
   }
   .listeningTime {
-    top: auto;
+    top: 80px;
     left: var(--edge);
-    right: var(--edge);
-    bottom: calc(var(--player-height, 240px) + var(--dock-bottom) + 8px);
+    right: auto;
+    bottom: auto;
     max-width: none;
     align-items: stretch;
   }
   .chinaClock {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 4px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
   .clockTime {
-    font: 20px / 1.2 var(--font-mono);
+    font: 18px / 1.2 var(--font-mono);
     letter-spacing: 0;
     color: var(--color-text-muted);
     -webkit-text-stroke: 0;
   }
   .clockDate {
-    font-size: 12px;
+    padding-top: 8px;
+    align-items: flex-start;
+    font-size: 10px;
     letter-spacing: 0;
   }
   .main {
-    inset: 0 0 180px;
+    inset: 104px 0 calc(var(--player-height, 260px) + var(--dock-bottom) - 64px);
   }
   .player {
     width: calc(100% - 2 * var(--edge));
@@ -892,16 +902,18 @@
   }
   .current h1,
   .current h1[data-long='true'] {
-    font: 400 clamp(32px, 13.3vw, 56px) / 1.2 var(--font-display);
+    font: 400 clamp(30px, 8.2vw, 36px) / 1.3 var(--font-display);
     letter-spacing: -0.04em;
     margin: 8px 0;
-    text-wrap: pretty;
+    text-wrap: balance;
   }
   .player[data-has-station='false'] .current h1 {
     font-size: 42px;
   }
   .location {
-    display: none;
+    display: block;
+    font-size: 12px;
+    margin-block: 6px 2px;
   }
   .metadata {
     font-size: 10px;
@@ -924,9 +936,9 @@
     width: 64px;
     height: 64px;
     margin-right: 0;
-    color: var(--color-text);
-    background: transparent;
-    border: 1px solid #f5f1e85c;
+    color: var(--color-accent);
+    background: #f36b4517;
+    border: 1px solid var(--color-accent);
     box-shadow: none;
   }
   .transport button {
@@ -1024,10 +1036,13 @@
   }
   .current h1,
   .current h1[data-long='true'] {
-    font-size: 40px;
+    font-size: 30px;
   }
 }
 @media (height < 600px) and (width >= 600px) {
+  .main {
+    inset: 0;
+  }
   .page {
     --edge: 20px;
     --dock-bottom: 76px;
@@ -1053,6 +1068,7 @@
     font-size: 32px;
   }
   .clockDate {
+    padding-top: 0;
     line-height: 1.5;
   }
   .player {
@@ -1108,7 +1124,7 @@
 .libraryControl small {
   position: absolute;
   right: 12px;
-  top: 14px;
+  top: 17px;
   pointer-events: none;
 }
 @media (width < 1024px) {
@@ -1137,8 +1153,9 @@
   display: none;
 }
 .page[data-intro='true'] .main {
-  opacity: 0;
+  opacity: 0.48;
   pointer-events: none;
+  mask-image: linear-gradient(90deg, transparent 12%, #000 65%);
 }
 .page[data-intro='true'] .headerSearch,
 .page[data-intro='true'] .viewTabs,
@@ -1264,5 +1281,20 @@
   }
   .player[data-intro='true'] {
     bottom: calc(42px + env(safe-area-inset-bottom));
+  }
+}
+
+@media (width < 768px) {
+  .page[data-search-open='true'] .viewTabs,
+  .page[data-search-open='true'] .languages {
+    visibility: hidden;
+  }
+  .page[data-intro='true'] .main {
+    inset: 170px 0 calc(var(--player-height, 300px) + 64px);
+    opacity: 0.5;
+    mask-image: linear-gradient(180deg, #000 60%, transparent);
+  }
+  .current h1[data-long='true'] {
+    font-size: 28px;
   }
 }

@@ -19,10 +19,15 @@ for (const [width, height] of [
     await page.goto('/');
     const browse = page.getByRole('button', { name: '先逛逛星图', exact: true });
     await expect(browse).toBeVisible();
+    await expect(page.locator('header').getByText('嗯，听听世界。', { exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: '开始收听', exact: true })).toBeEnabled();
     await expect(page.getByRole('button', { name: '查找电台', exact: true })).toBeHidden();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
+    );
+    await expect(page.getByTestId('globe-panel')).toHaveAttribute(
+      'data-state',
+      /^(ready|unavailable)$/,
     );
     await page.screenshot({ path: info.outputPath('welcome.png') });
     await browse.click();

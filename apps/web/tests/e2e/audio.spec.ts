@@ -240,11 +240,11 @@ test('reuses the complete scene index from IndexedDB after reload', async ({ pag
     locationPrecision: 'coordinates' as const,
   };
   const requests = await install(page, [station], undefined, undefined, true);
-  await expect(page.getByText('地图可浏览 1 / 1 台', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 1 / 1 台', { exact: true })).toBeAttached();
   const chunks = requests.filter((value) => value === 'scene-chunk').length;
   expect(chunks).toBeGreaterThan(0);
   await page.reload();
-  await expect(page.getByText('地图可浏览 1 / 1 台', { exact: true })).toBeVisible();
+  await expect(page.getByText('地图可浏览 1 / 1 台', { exact: true })).toBeAttached();
   expect(requests.filter((value) => value === 'scene-chunk')).toHaveLength(chunks);
 });
 test('retains list playback when WebGL initialization is unavailable', async ({ page }) => {

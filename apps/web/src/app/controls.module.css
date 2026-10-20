@@ -10,10 +10,11 @@
   min-width: 0;
 }
 .settings h3 {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 400;
-  margin: 0 0 16px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  margin: 0 0 12px;
 }
 .settings p {
   font-size: 13px;
@@ -104,9 +105,9 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding: 3px;
+  padding: 4px;
   border: 1px solid var(--color-border);
-  border-radius: 999px;
+  border-radius: 16px;
 }
 .timerChoices button,
 .favorite,

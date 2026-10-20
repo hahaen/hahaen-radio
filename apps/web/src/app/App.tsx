@@ -487,6 +487,7 @@ export function App() {
       ref={pageRef}
       className={styles.page}
       data-intro={intro}
+      data-search-open={directoryOpen}
       data-power-save={personal.scene.powerSave}
     >
       <div className={styles.shell} hidden={immersive}>
@@ -500,12 +501,14 @@ export function App() {
               {t('brand')} <span>HAEN</span>
             </a>
             <p className={styles.brandCaption} title={t('tagline')}>
-              {sceneManifest
-                ? t('catalogSummary', {
-                    stations: sceneManifest.playableCount.toLocaleString(i18n.language),
-                    countries: sceneManifest.countryCount,
-                  })
-                : t('tagline')}
+              {intro
+                ? t('tagline')
+                : sceneManifest
+                  ? t('catalogSummary', {
+                      stations: sceneManifest.playableCount.toLocaleString(i18n.language),
+                      countries: sceneManifest.countryCount,
+                    })
+                  : t('tagline')}
             </p>
           </div>
           <div className={styles.headerSearch} data-expanded={directoryOpen}>
@@ -664,6 +667,7 @@ export function App() {
               ref={exploration}
               mode={personal.preferences.view}
               visible={!immersive}
+              welcome={intro}
               onSearch={openDirectory}
               showHints={personal.preferences.showHints}
               powerSave={personal.scene.powerSave}
