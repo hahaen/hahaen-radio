@@ -28,6 +28,25 @@ for (const [width, height] of [
     await selectStation(page, first.name);
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(name);
     await page.getByRole('button', { name: '暂停', exact: true }).click();
+    if (width < 768 && height >= 600) {
+      const controls = [
+        '上一站',
+        '播放',
+        '随机下一站',
+        '固定当前电台',
+        '收藏 ' + name,
+        '沉浸收听',
+        '分享',
+        '静音',
+      ];
+      for (const label of controls) {
+        const button = page.getByRole('button', { name: label, exact: true });
+        const box = await button.boundingBox();
+        expect(Math.round(box!.width * 100) / 100).toBeGreaterThanOrEqual(44);
+        expect(Math.round(box!.height * 100) / 100).toBeGreaterThanOrEqual(44);
+        await expect(button).toBeInViewport();
+      }
+    }
     const current = page.getByRole('region', { name: '当前电台', exact: true });
     const heading = await current.getByRole('heading').boundingBox();
     const bounds = await current.boundingBox();

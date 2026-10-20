@@ -1,0 +1,43 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 12px;
+  text-align: center;
+}
+.symbol {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-secondary);
+  background: var(--color-selected-bg);
+}
+.empty h3 {
+  margin: 0;
+  font: 500 16px / 1.5 var(--font-body);
+  color: var(--color-text);
+  text-wrap: balance;
+}
+.empty p {
+  max-width: 30ch;
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 13px / 1.8 var(--font-body);
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+@media (height < 760px) {
+  .empty {
+    gap: 8px;
+    padding-block: 20px;
+  }
+  .symbol {
+    width: 48px;
+    height: 48px;
+  }
+}

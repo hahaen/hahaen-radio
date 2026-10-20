@@ -224,3 +224,7 @@
   font-weight: 400;
   margin-block: 20px 8px;
 }
+
+.copyState:empty {
+  margin: 0;
+}

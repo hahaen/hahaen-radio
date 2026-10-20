@@ -22,6 +22,7 @@ import {
   Disc3,
   Info,
   Radio,
+  SearchX,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationPreview } from '@haen/contracts';
@@ -49,6 +50,7 @@ import { ChinaClock } from './ChinaClock';
 import { StationDial } from './StationDial';
 import { GenreBar } from './GenreBar';
 import { InformationPanel } from '../information/InformationPanel';
+import { EmptyState } from './EmptyState';
 import styles from './App.module.css';
 
 const EMPTY_STATIONS: StationPreview[] = [];
@@ -766,12 +768,17 @@ export function App() {
               !stations.isError &&
               stations.data &&
               stations.data.items.length === 0 && (
-                <div className={styles.empty}>
-                  <p>{t('noResults')}</p>
-                  <button className={styles.textButton} onClick={reset}>
-                    {t('resetSearch')}
-                  </button>
-                </div>
+                <EmptyState
+                  icon={SearchX}
+                  title={t('emptySearchTitle')}
+                  action={
+                    <button className={styles.textButton} onClick={reset}>
+                      {t('resetSearch')}
+                    </button>
+                  }
+                >
+                  {t('noResults')}
+                </EmptyState>
               )}
             <ul
               className={styles.stationList}

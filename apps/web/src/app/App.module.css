@@ -95,6 +95,14 @@
   width: min(420px, 32vw);
   background: #1c3430d1;
 }
+.headerSearch[data-expanded='true']:focus-within {
+  border-color: var(--color-accent);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+.headerSearch input:focus-visible {
+  outline: none;
+}
 .headerSearch input {
   background: transparent;
   color: var(--color-text);
@@ -106,6 +114,9 @@
 }
 .headerSearch input::placeholder {
   color: var(--color-text-muted);
+}
+.headerSearch input::-webkit-search-cancel-button {
+  appearance: none;
 }
 .findStation,
 .openLibrary,
@@ -639,11 +650,6 @@
   font: 10px / 1.8 var(--font-mono);
   color: var(--color-text-muted);
   margin-top: 16px;
-}
-.empty {
-  font-size: 14px;
-  padding: 28px 0;
-  color: var(--color-text-muted);
 }
 .genreDock {
   position: absolute;
@@ -1286,7 +1292,8 @@
 
 @media (width < 768px) {
   .page[data-search-open='true'] .viewTabs,
-  .page[data-search-open='true'] .languages {
+  .page[data-search-open='true'] .languages,
+  .page[data-search-open='true'] .listeningTime {
     visibility: hidden;
   }
   .page[data-intro='true'] .main {
@@ -1296,5 +1303,41 @@
   }
   .current h1[data-long='true'] {
     font-size: 28px;
+  }
+}
+
+@media (width < 768px) and (height >= 600px) {
+  .player[data-has-station='true'] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+  }
+  .player[data-has-station='true'] .transport {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    gap: 16px;
+  }
+  .player[data-has-station='true'] .transport button,
+  .player[data-has-station='true'] .stationActions button,
+  .player[data-has-station='true'] .volume button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .player[data-has-station='true'] .stationActions {
+    grid-column: 1;
+    grid-row: 3;
+    margin: 0;
+  }
+  .player[data-has-station='true'] .volume {
+    grid-column: 2;
+    grid-row: 3;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+  .player[data-has-station='true'] .volume .note {
+    max-width: 92px;
+    overflow-wrap: anywhere;
+  }
+  .directoryPanel {
+    max-height: calc(100dvh - 124px - var(--dock-bottom) - 100px);
   }
 }

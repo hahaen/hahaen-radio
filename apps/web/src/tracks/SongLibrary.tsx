@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Copy } from 'lucide-react';
+import { Trash2, Copy, Music2 } from 'lucide-react';
+import { EmptyState } from '../app/EmptyState';
 import type { Library } from '../library/store';
 import { songKey } from '../library/model';
 import { SongLinks } from './SongLinks';
@@ -22,28 +23,32 @@ export function SongLibrary({ library }: { library: Library }) {
   const offset = Math.min(page * 30, Math.max(0, Math.floor((songs.length - 1) / 30) * 30));
   return (
     <section aria-label={t('savedSongs')} className={styles.songLibrary}>
-      <button
-        className={styles.actionButton}
-        disabled={!songs.length}
-        onClick={() => {
-          const text = songs.map((song) => `${song.artist} — ${song.title}`).join('\n'),
-            current = ++token.current;
-          setCopied(false);
-          setManualCopy('');
-          void (async () => {
-            try {
-              await navigator.clipboard.writeText(text);
-              if (current === token.current) setCopied(true);
-            } catch {
-              if (current === token.current) setManualCopy(text);
-            }
-          })();
-        }}
-      >
-        <Copy size={18} aria-hidden="true" />
-        {t('copySongs')}
-      </button>
-      <p aria-live="polite">{copied ? t('songsCopied') : ''}</p>
+      {songs.length > 0 && (
+        <button
+          className={styles.actionButton}
+          disabled={!songs.length}
+          onClick={() => {
+            const text = songs.map((song) => `${song.artist} — ${song.title}`).join('\n'),
+              current = ++token.current;
+            setCopied(false);
+            setManualCopy('');
+            void (async () => {
+              try {
+                await navigator.clipboard.writeText(text);
+                if (current === token.current) setCopied(true);
+              } catch {
+                if (current === token.current) setManualCopy(text);
+              }
+            })();
+          }}
+        >
+          <Copy size={18} aria-hidden="true" />
+          {t('copySongs')}
+        </button>
+      )}
+      <p className={styles.copyState} aria-live="polite">
+        {copied ? t('songsCopied') : ''}
+      </p>
       {manualCopy && (
         <label className={styles.manualCopy}>
           {t('copySongsManually')}
@@ -51,7 +56,9 @@ export function SongLibrary({ library }: { library: Library }) {
         </label>
       )}
       {!songs.length ? (
-        <p>{t('noSongs')}</p>
+        <EmptyState icon={Music2} title={t('emptySongsTitle')}>
+          {t('noSongs')}
+        </EmptyState>
       ) : (
         <ul className={styles.songList}>
           {songs.slice(offset, offset + 30).map((song) => (

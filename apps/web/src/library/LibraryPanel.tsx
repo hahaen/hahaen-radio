@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { Star, Play, Trash2, Download, Upload } from 'lucide-react';
+import { Star, Play, Trash2, Download, Upload, History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationDetail } from '@haen/contracts';
 import { SongLibrary } from '../tracks/SongLibrary';
 import { Modal } from '../app/Modal';
+import { EmptyState } from '../app/EmptyState';
 import { exportFavorites, readTransfer, LibraryError, type SavedStation } from './model';
 import type { Library } from './store';
 import styles from './library.module.css';
@@ -77,6 +78,7 @@ export function LibraryPanel({
     <Modal title={t('myListening')} onClose={onClose}>
       <div className={styles.libraryTabs} role="group" aria-label={t('listeningLists')}>
         <button
+          aria-label={t('favoriteStations', { count: state.favorites.length })}
           aria-pressed={view === 'favorites'}
           onClick={() => {
             setView('favorites');
@@ -84,9 +86,11 @@ export function LibraryPanel({
             setConfirm(null);
           }}
         >
-          {t('favoriteStations', { count: state.favorites.length })}
+          <span>{t('favoriteStationsTab')}</span>
+          <small>{t('listeningCount', { count: state.favorites.length })}</small>
         </button>
         <button
+          aria-label={t('recentStations', { count: state.history.length })}
           aria-pressed={view === 'history'}
           onClick={() => {
             setView('history');
@@ -94,9 +98,11 @@ export function LibraryPanel({
             setConfirm(null);
           }}
         >
-          {t('recentStations', { count: state.history.length })}
+          <span>{t('recentStationsTab')}</span>
+          <small>{t('listeningCount', { count: state.history.length })}</small>
         </button>
         <button
+          aria-label={t('favoriteSongs', { count: state.songs.length })}
           aria-pressed={view === 'songs'}
           onClick={() => {
             setView('songs');
@@ -104,7 +110,8 @@ export function LibraryPanel({
             setConfirm(null);
           }}
         >
-          {t('favoriteSongs', { count: state.songs.length })}
+          <span>{t('savedSongs')}</span>
+          <small>{t('listeningCount', { count: state.songs.length })}</small>
         </button>
       </div>
       {state.storageProblem && (
@@ -114,27 +121,29 @@ export function LibraryPanel({
         <SongLibrary library={library} />
       ) : (
         <>
-          <div className={styles.actions}>
-            {view === 'favorites' ? (
-              <>
-                <button onClick={onRefresh} disabled={checking || !state.favorites.length}>
-                  {t(checking ? 'checkingFavorites' : 'refreshFavorites')}
-                </button>
-                <button
-                  onClick={() => setConfirm('cleanup')}
-                  disabled={!canClean || !unavailable.length}
-                >
+          {rows.length > 0 && (
+            <div className={styles.actions}>
+              {view === 'favorites' ? (
+                <>
+                  <button onClick={onRefresh} disabled={checking || !state.favorites.length}>
+                    {t(checking ? 'checkingFavorites' : 'refreshFavorites')}
+                  </button>
+                  <button
+                    onClick={() => setConfirm('cleanup')}
+                    disabled={!canClean || !unavailable.length}
+                  >
+                    <Trash2 size={16} aria-hidden="true" />
+                    {t('cleanFavorites', { count: canClean ? unavailable.length : 0 })}
+                  </button>
+                </>
+              ) : (
+                <button onClick={() => setConfirm('history')} disabled={!rows.length}>
                   <Trash2 size={16} aria-hidden="true" />
-                  {t('cleanFavorites', { count: canClean ? unavailable.length : 0 })}
+                  {t('clearHistory')}
                 </button>
-              </>
-            ) : (
-              <button onClick={() => setConfirm('history')} disabled={!rows.length}>
-                <Trash2 size={16} aria-hidden="true" />
-                {t('clearHistory')}
-              </button>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           {lookupError && view === 'favorites' && (
             <p className={styles.hint}>{t('favoriteCheckError')}</p>
           )}
@@ -212,7 +221,12 @@ export function LibraryPanel({
               })}
             </ul>
           ) : (
-            <p className={styles.empty}>{t(view === 'favorites' ? 'noFavorites' : 'noHistory')}</p>
+            <EmptyState
+              icon={view === 'favorites' ? Star : History}
+              title={t(view === 'favorites' ? 'emptyFavoritesTitle' : 'emptyHistoryTitle')}
+            >
+              {t(view === 'favorites' ? 'noFavorites' : 'noHistory')}
+            </EmptyState>
           )}
           {rows.length > 30 && (
             <nav className={styles.pagination} aria-label={t('listeningLists')}>
