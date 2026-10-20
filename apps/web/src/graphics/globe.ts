@@ -1,5 +1,4 @@
 import {
-  AdditiveBlending,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -112,9 +111,9 @@ export function createGlobe(
     material(
       new ShaderMaterial({
         uniforms: {
-          ocean: { value: new Color(0x162925) },
-          shadow: { value: new Color(0x0f1e1b) },
-          atmosphere: { value: new Color(0x82968b) },
+          ocean: { value: new Color(0x0c211b) },
+          shadow: { value: new Color(0x081510) },
+          atmosphere: { value: new Color(0x79b99a) },
         },
         vertexShader: `
         varying vec3 vNormal;
@@ -133,7 +132,7 @@ export function createGlobe(
           float light = smoothstep(-0.55, 0.95, dot(n, normalize(vec3(-0.6, 0.7, 1.0))));
           float edge = pow(1.0 - max(0.0, dot(n, normalize(vView))), 3.5);
           vec3 color = mix(shadow, ocean, light);
-          color += atmosphere * edge * light * 0.10;
+          color += atmosphere * edge * light * 0.045;
           gl_FragColor = vec4(color, 1.0);
           #include <colorspace_fragment>
         }`,
@@ -146,7 +145,6 @@ export function createGlobe(
       new ShaderMaterial({
         transparent: true,
         depthWrite: false,
-        ...(glow ? { blending: AdditiveBlending } : {}),
         vertexColors: true,
         uniforms: {
           pointSize: { value: size },
@@ -165,7 +163,7 @@ export function createGlobe(
             vFacing=max(0.0,dot(viewNormal,normalize(-viewPosition.xyz)));
             float seed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
             vPulse=0.65+0.35*sin(time*(0.65+seed*0.6)+seed*62.8);
-            gl_PointSize=pointSize*(1.0+glow*vPulse*0.18);
+            gl_PointSize=pointSize*mix(1.0,0.8,approximate)*(1.0+glow*vPulse*0.18);
             gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
           }`,
         fragmentShader: `
@@ -174,11 +172,11 @@ export function createGlobe(
           void main() {
             float d=length(gl_PointCoord-0.5); if(d>0.5)discard;
             float ring=vApproximate>0.5?smoothstep(0.08,0.18,d):1.0;
-            float dotAlpha=ring*(1.0-smoothstep(0.22,0.5,d));
-            float halo=exp(-d*d*32.0)*(0.35+0.25*vPulse)*mix(1.0,smoothstep(0.06,0.16,d),vApproximate);
-            float core=(1.0-smoothstep(0.03,0.16,d))*ring;
-            float precisionAlpha=mix(1.0,0.42,vApproximate);
-            gl_FragColor=vec4(vColor,opacity*precisionAlpha*mix(0.28,1.0,smoothstep(0.0,0.65,vFacing))*mix(dotAlpha,halo+core*0.9,glow));
+            float dotAlpha=ring*(1.0-smoothstep(0.32,0.5,d));
+            float halo=exp(-d*d*64.0)*(0.22+0.12*vPulse)*mix(1.0,smoothstep(0.06,0.16,d),vApproximate);
+            float core=(1.0-smoothstep(0.10,0.28,d))*ring;
+            float precisionAlpha=mix(1.0,0.58,vApproximate);
+            gl_FragColor=vec4(vColor,opacity*precisionAlpha*mix(0.28,1.0,smoothstep(0.0,0.65,vFacing))*mix(dotAlpha,min(1.0,halo+core),glow));
             #include <colorspace_fragment>
           }`,
       }),
@@ -207,14 +205,14 @@ export function createGlobe(
     );
     return new Points(buffer, pointShader(size, opacity));
   }
-  const mainland = makePoints(land.points, 1.6, 0.2, 0xb3c1b7);
+  const mainland = makePoints(land.points, 1.6, 0.55, 0xd4ead9);
   const oceanCoordinates: number[][] = [];
   for (let latitude = -88; latitude <= 88; latitude += 1.8) {
     const count = Math.max(3, Math.round(200 * Math.cos((latitude * Math.PI) / 180)));
     for (let index = 0; index < count; index++)
       oceanCoordinates.push([(index * 360) / count - 180, latitude]);
   }
-  const oceanDots = makePoints(oceanCoordinates, 2.2, 0.1, 0x8c9d91);
+  const oceanDots = makePoints(oceanCoordinates, 1.5, 0.045, 0x7cae99);
   earth.add(oceanDots);
   earth.add(mainland);
   const outline: number[] = [];
@@ -231,7 +229,7 @@ export function createGlobe(
       }
   const coast = new LineSegments(
     geometry(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(outline, 3))),
-    material(new LineBasicMaterial({ color: 0xb3c1b7, transparent: true, opacity: 0.045 })),
+    material(new LineBasicMaterial({ color: 0xb3d8c0, transparent: true, opacity: 0.09 })),
   );
   earth.add(coast);
   const rim = new Mesh(
@@ -243,12 +241,12 @@ export function createGlobe(
         vertexShader:
           'varying vec3 vNormal; varying vec3 vView; void main(){vec4 p=modelViewMatrix*vec4(position,1.0);vNormal=normalize(normalMatrix*normal);vView=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',
         fragmentShader:
-          'varying vec3 vNormal; varying vec3 vView; void main(){float edge=pow(1.0-abs(dot(normalize(vNormal),normalize(vView))),4.0);gl_FragColor=vec4(0.55,0.65,0.59,edge*0.055);\n#include <colorspace_fragment>\n}',
+          'varying vec3 vNormal; varying vec3 vView; void main(){float edge=pow(1.0-abs(dot(normalize(vNormal),normalize(vView))),6.0);gl_FragColor=vec4(0.36,0.66,0.49,edge*0.04);\n#include <colorspace_fragment>\n}',
       }),
     ),
   );
   earth.add(rim);
-  const markers = new Points(geometry(new BufferGeometry()), pointShader(6.0, 0.68, true));
+  const markers = new Points(geometry(new BufferGeometry()), pointShader(6.0, 0.96, true));
   earth.add(markers);
   const selection = new Mesh(
     geometry(new RingGeometry(0.018, 0.023, 40)),
@@ -381,7 +379,7 @@ export function createGlobe(
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
     mainland.material.uniforms.pointSize!.value = ratio * 1.6;
-    oceanDots.material.uniforms.pointSize!.value = ratio * 2.2;
+    oceanDots.material.uniforms.pointSize!.value = ratio * 1.5;
     updateMarkerSize();
     camera.aspect = width / height;
     camera.fov =
