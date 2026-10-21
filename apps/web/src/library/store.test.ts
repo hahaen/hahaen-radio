@@ -231,10 +231,10 @@ it('stores scene options independently so older tabs can still parse and save th
   first.setPreferences({ volume: 0.3 });
   first.toggleFavorite(testStation(1));
   first.setSceneOptions({ powerSave: true });
-  second.setSceneOptions({ immersion: 'landscape' });
+  second.setSceneOptions({ immersion: 'dunes' });
   second.setPreferences({ muted: true });
   const restored = createLibrary(env).store.getState();
-  expect(restored.scene).toEqual({ powerSave: true, immersion: 'landscape' });
+  expect(restored.scene).toEqual({ powerSave: true, immersion: 'dunes' });
   expect(restored.preferences).toMatchObject({ volume: 0.3, muted: true });
   expect(restored.favorites).toHaveLength(1);
   expect(restored.storageProblem).toBeNull();
@@ -246,4 +246,18 @@ it('stores scene options independently so older tabs can still parse and save th
     'view',
     'volume',
   ]);
+});
+
+it.each([
+  ['record', 'aurora'],
+  ['orb', 'ocean'],
+  ['landscape', 'dunes'],
+])('reads legacy scene %s as %s without rewriting saved data', (legacy, current) => {
+  const env = environment();
+  const raw = JSON.stringify({ version: 1, value: { powerSave: true, immersion: legacy } });
+  env.values.set(LIBRARY_PREFIX + 'scene', raw);
+  const library = createLibrary(env);
+  expect(library.store.getState().scene).toEqual({ powerSave: true, immersion: current });
+  expect(library.store.getState().storageProblem).toBeNull();
+  expect(env.values.get(LIBRARY_PREFIX + 'scene')).toBe(raw);
 });

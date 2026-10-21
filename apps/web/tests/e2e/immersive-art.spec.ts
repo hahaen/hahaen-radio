@@ -16,7 +16,7 @@ test('keeps every immersive artwork readable, accessible and on the same playbac
   await page.goto('/?station=' + first.id);
   await page.getByRole('button', { name: '播放', exact: true }).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
-  for (const effect of ['record', 'orb', 'landscape']) {
+  for (const effect of ['aurora', 'ocean', 'dunes']) {
     await page.getByRole('button', { name: '收听设置', exact: true }).click();
     await page.getByRole('combobox', { name: '沉浸画面', exact: true }).selectOption(effect);
     await page.getByRole('button', { name: '关闭面板', exact: true }).click();
@@ -42,4 +42,16 @@ test('keeps every immersive artwork readable, accessible and on the same playbac
     await page.getByRole('button', { name: '播放', exact: true }).click();
     await page.getByRole('button', { name: '返回探索', exact: true }).click();
   }
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.getByRole('button', { name: 'EN', exact: true }).click();
+  await page.getByRole('button', { name: 'Immersive listening', exact: true }).click();
+  const translated = page.getByRole('main', { name: 'Immersive listening', exact: true });
+  await expect(
+    translated.getByRole('button', { name: 'Back to exploration', exact: true }),
+  ).toBeInViewport();
+  for (const name of ['Aurora', 'Tides', 'Dunes']) {
+    await expect(translated.getByRole('button', { name, exact: true })).toBeInViewport();
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });

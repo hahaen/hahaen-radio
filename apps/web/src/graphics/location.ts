@@ -7,6 +7,7 @@ export interface MapPosition {
   precision: 'coordinates' | 'country';
 }
 const countryLabels: Readonly<Record<string, readonly number[]>> = countries;
+const regionNames = new Map<string, Intl.DisplayNames>();
 
 /** Presentation positions never replace a station's original geographic evidence. */
 export function mapPosition(station: StationPreview): MapPosition | null {
@@ -21,8 +22,13 @@ export function mapPosition(station: StationPreview): MapPosition | null {
 }
 
 export function countryName(code: string | null, language: string): string {
-  return code
-    ? (new Intl.DisplayNames([language === 'en' ? 'en' : 'zh-CN'], { type: 'region' }).of(code) ??
-        code)
-    : '';
+  if (!code) return '';
+  if (code === 'TW') return language === 'en' ? 'Taiwan, China' : '中国台湾';
+  const locale = language === 'en' ? 'en' : 'zh-CN';
+  let names = regionNames.get(locale);
+  if (!names) {
+    names = new Intl.DisplayNames([locale], { type: 'region' });
+    regionNames.set(locale, names);
+  }
+  return names.of(code) ?? code;
 }

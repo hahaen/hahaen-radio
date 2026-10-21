@@ -389,6 +389,9 @@ export function createGlobe(
     projected = new Vector3();
   const cyan = new Color(0xf5f1e8),
     amber = new Color(0xf36b45);
+  let hoverFrame = 0;
+  let hoverX = 0,
+    hoverY = 0;
   const startPointers = new Map<number, { x: number; y: number; moved: boolean }>();
   let width = 1,
     height = 1;
@@ -776,6 +779,7 @@ export function createGlobe(
       return true;
     },
     destroy() {
+      cancelAnimationFrame(hoverFrame);
       if (disposed) return;
       disposed = true;
       dwell.cancel();
@@ -810,6 +814,20 @@ export function createGlobe(
     const e = event as PointerEvent,
       start = startPointers.get(e.pointerId);
     if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 6) start.moved = true;
+    if (start || dragging || e.pointerType !== 'mouse' || !active || lost || disposed) return;
+    hoverX = e.clientX;
+    hoverY = e.clientY;
+    if (!hoverFrame)
+      hoverFrame = requestAnimationFrame(() => {
+        hoverFrame = 0;
+        if (!disposed && !lost && active && !dragging && !document.hidden)
+          showPreview(pickAt(hoverX, hoverY) ?? null);
+      });
+  });
+  listen(canvas, 'pointerleave', () => {
+    cancelAnimationFrame(hoverFrame);
+    hoverFrame = 0;
+    if (!dragging) showPreview(null);
   });
   listen(canvas, 'pointercancel', () => {
     startPointers.clear();
@@ -824,10 +842,17 @@ export function createGlobe(
     if (!start || start.moved || startPointers.size || disposed || lost) return;
     allowDwell = false;
     dwell.cancel();
+    const group = pickAt(e.clientX, e.clientY);
+    if (group) {
+      showPreview(group);
+      callbacks.pick(sourceGroups.find((source) => source.id === group.groupId) ?? group, 'click');
+    }
+  });
+  function pickAt(clientX: number, clientY: number) {
     const bounds = canvas.getBoundingClientRect();
     mouse.set(
-      ((e.clientX - bounds.left) / width) * 2 - 1,
-      (-(e.clientY - bounds.top) / height) * 2 + 1,
+      ((clientX - bounds.left) / width) * 2 - 1,
+      (-(clientY - bounds.top) / height) * 2 + 1,
     );
     ray.params.Points!.threshold =
       ((2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.length()) / height) * 14;
@@ -843,12 +868,8 @@ export function createGlobe(
           value.index !== undefined &&
           projected.fromArray(positions, value.index * 3).dot(camera.position) > 1.02,
       );
-    const group = hit?.index === undefined ? undefined : groups[hit.index];
-    if (group) {
-      showPreview(group);
-      callbacks.pick(sourceGroups.find((source) => source.id === group.groupId) ?? group, 'click');
-    }
-  });
+    return hit?.index === undefined ? undefined : groups[hit.index];
+  }
   listen(canvas, 'keydown', (event) => {
     const e = event as KeyboardEvent;
     if (e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return;

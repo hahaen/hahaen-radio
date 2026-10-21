@@ -4,7 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
 import type { PlaybackSnapshot } from '../audio/engine';
 import { ListeningArt } from './ListeningArt';
-import type { SceneOptions } from '../library/model';
+import { IMMERSION_EFFECTS, type ImmersionEffect, type SceneOptions } from '../library/model';
+import { immersionMode } from '../graphics/immersion-mode';
 import styles from './controls.module.css';
 export function Immersive({
   station,
@@ -16,6 +17,7 @@ export function Immersive({
   onExit,
   track,
   effect,
+  onEffect,
   powerSave,
 }: {
   station: StationPreview | null;
@@ -27,6 +29,7 @@ export function Immersive({
   onExit(): void;
   track?: ReactNode;
   effect: SceneOptions['immersion'];
+  onEffect(value: ImmersionEffect): void;
   powerSave: boolean;
 }) {
   const { t } = useTranslation(),
@@ -34,6 +37,7 @@ export function Immersive({
   useLayoutEffect(() => {
     exit.current?.focus({ preventScroll: true });
   }, []);
+  const mode = immersionMode(effect, station?.genre);
   return (
     <main className={styles.immersive} aria-label={t('immersiveListening')}>
       <header className={styles.immersiveHeader}>
@@ -41,17 +45,19 @@ export function Immersive({
           <ArrowLeft size={18} aria-hidden="true" />
           {t('exitImmersive')}
         </button>
+        <div className={styles.sceneChoices} role="group" aria-label={t('immersionEffect')}>
+          {IMMERSION_EFFECTS.map((value) => (
+            <button key={value} onClick={() => onEffect(value)} aria-pressed={value === mode}>
+              {t('effects.' + value)}
+            </button>
+          ))}
+        </div>
         <span className={styles.immersiveBrand} aria-hidden="true">
           HAEN
         </span>
       </header>
+      <ListeningArt mode={mode} playing={playbackState === 'playing'} powerSave={powerSave} />
       <div className={styles.listeningStage}>
-        <ListeningArt
-          effect={effect}
-          genre={station?.genre}
-          playing={playbackState === 'playing'}
-          powerSave={powerSave}
-        />
         <div className={styles.listeningCopy}>
           <p className={styles.listeningStatus} role="status" data-state={playbackState}>
             <i aria-hidden="true" />

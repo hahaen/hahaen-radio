@@ -37,6 +37,7 @@ import { Filters } from '../library/Filters';
 import { loadSceneCatalog } from '../catalog/load';
 import { createStationCollection, pickStation } from '../catalog/collection';
 import { Exploration, type ExplorationHandle } from '../graphics/Exploration';
+import { countryName } from '../graphics/location';
 import { createSleepController, formatRemaining } from '../platform/sleep';
 import { connectMediaSession } from '../platform/media-session';
 import { connectShortcuts } from '../platform/shortcuts';
@@ -384,15 +385,11 @@ export function App() {
     candidates &&
     !candidates.some((station) => station.id === state.station!.id)
   );
-  const countryNames = useMemo(
-    () => new Intl.DisplayNames([i18n.language === 'en' ? 'en' : 'zh-CN'], { type: 'region' }),
-    [i18n.language],
-  );
   const location = (station: StationPreview) =>
     [
       station.city ??
         (station.nearbyCity ? t('nearby', { city: station.nearbyCity }) : station.region),
-      station.countryCode ? countryNames.of(station.countryCode) : null,
+      countryName(station.countryCode, i18n.language),
     ]
       .filter(Boolean)
       .join(' / ') || t('unknownLocation');
@@ -688,6 +685,7 @@ export function App() {
           favorite={!!state.station && favoriteIds.has(state.station.id)}
           onFavorite={favoriteCurrent}
           onExit={() => setImmersive(false)}
+          onEffect={(immersion) => library.setSceneOptions({ immersion })}
           effect={personal.scene.immersion}
           powerSave={personal.scene.powerSave}
         />

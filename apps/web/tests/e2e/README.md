@@ -57,3 +57,5 @@ search-surface.spec.ts 验证单一搜索浮层、五种视口下的导航稳定
 globe-playback.spec.ts 验证真实播放状态驱动光点动效、暂停/减少动态效果/省电停绘和完整标记。welcome.spec.ts 增加入场有限完成与减少动态效果验证。
 
 map-dismiss.spec.ts 验证拖动或滚轮缩放地球时关闭搜索、收藏、设置、帮助、筛选和地图信息，并保留当前电台与暂停状态。immersive-art.spec.ts 验证唱片、潮汐和山峦的可读布局、无障碍、真实播放状态与同一音频会话。
+
+immersive-scene.spec.ts 验证全屏环境在真实播放时变化、同一音频会话、切换后偏好、暂停/减少动态效果/省电停绘、上下文丢失/恢复和资源释放、WebGL 缺失时的静态环境；immersive-art.spec.ts 覆盖三种环境及窄屏英文无障碍。country-map.spec.ts 增加台湾电台的国家级/坐标级中英文悬浮名称验证，不自动选择或播放。

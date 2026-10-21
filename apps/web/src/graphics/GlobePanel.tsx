@@ -235,6 +235,9 @@ export function GlobePanel({
                       (preview.stations[0]?.nearbyCity
                         ? t('nearby', { city: preview.stations[0].nearbyCity })
                         : t('coordinatePlace')))}
+                  {preview.precision !== 'country' && preview.stations[0]?.countryCode === 'TW'
+                    ? ` · ${countryName('TW', i18n.language)}`
+                    : ''}
                 </span>
                 <span>{preview.stations[0]?.name}</span>
               </>

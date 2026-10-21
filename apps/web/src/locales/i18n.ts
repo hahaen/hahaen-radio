@@ -11,7 +11,7 @@ const resources = {
       powerSave: '省电模式',
       powerSaveHint: '降低画面精度并停止唱片动画，收听不受影响。',
       immersionEffect: '沉浸画面',
-      effects: { auto: '随流派变化', record: '唱片', orb: '潮汐', landscape: '山峦' },
+      effects: { auto: '随流派变化', aurora: '流光', ocean: '潮汐', dunes: '远山' },
 
       diagnostics: {
         title: '精简播放故障报告',
@@ -449,7 +449,7 @@ const resources = {
       powerSave: 'Power saving',
       powerSaveHint: 'Lower visual detail and pause artwork animations. Audio keeps playing.',
       immersionEffect: 'Immersive artwork',
-      effects: { auto: 'Follow the genre', record: 'Record', orb: 'Tide', landscape: 'Contours' },
+      effects: { auto: 'Follow the genre', aurora: 'Aurora', ocean: 'Tides', dunes: 'Dunes' },
 
       diagnostics: {
         title: 'Minimal playback failure report',

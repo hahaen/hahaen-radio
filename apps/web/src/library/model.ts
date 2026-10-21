@@ -130,9 +130,21 @@ export const AudioOptionsSchema = z.strictObject({ normalize: z.boolean(), tunin
 export type AudioOptions = z.infer<typeof AudioOptionsSchema>;
 export const defaultAudioOptions = (): AudioOptions => ({ normalize: false, tuning: false });
 
+export const IMMERSION_EFFECTS = ['aurora', 'ocean', 'dunes'] as const;
+export type ImmersionEffect = (typeof IMMERSION_EFFECTS)[number];
 export const SceneOptionsSchema = z.strictObject({
   powerSave: z.boolean(),
-  immersion: z.enum(['auto', 'record', 'orb', 'landscape']),
+  immersion: z
+    .enum(['auto', ...IMMERSION_EFFECTS, 'record', 'orb', 'landscape'])
+    .transform((value) =>
+      value === 'record'
+        ? 'aurora'
+        : value === 'orb'
+          ? 'ocean'
+          : value === 'landscape'
+            ? 'dunes'
+            : value,
+    ),
 });
 export type SceneOptions = z.infer<typeof SceneOptionsSchema>;
 export const defaultSceneOptions = (): SceneOptions => ({ powerSave: false, immersion: 'auto' });

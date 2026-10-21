@@ -20,6 +20,55 @@ async function installMap(page: Parameters<typeof install>[0], items: StationDet
   );
 }
 
+for (const precision of ['country', 'coordinates'] as const) {
+  test(`labels Taiwan consistently when hovering a ${precision} station without selecting it`, async ({
+    page,
+  }, info) => {
+    await page.setViewportSize(
+      info.project.name === 'mobile-chromium'
+        ? { width: 390, height: 844 }
+        : { width: 1440, height: 900 },
+    );
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+    const taiwan = {
+      ...first,
+      countryCode: 'TW',
+      city: precision === 'coordinates' ? '台北' : null,
+      locationPrecision: precision,
+      latitude: precision === 'coordinates' ? 25.03 : null,
+      longitude: precision === 'coordinates' ? 121.56 : null,
+    };
+    await installMap(page, [taiwan]);
+    await page.goto('/?station=' + taiwan.id);
+    const panel = page.getByTestId('globe-panel');
+    await expect(panel).toHaveAttribute('data-state', 'ready');
+    const label = page.getByTestId('selected-station-label');
+    await expect(label).toHaveAttribute('data-visible', 'true');
+    const point = await label.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return { x: rect.x, y: rect.y };
+    });
+    await page.mouse.move(point.x, point.y);
+    await expect(
+      panel.getByText(precision === 'country' ? '中国台湾 · 国家级位置' : '台北 · 中国台湾', {
+        exact: true,
+      }),
+    ).toBeVisible();
+    await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(taiwan.name);
+    await page.screenshot({ path: info.outputPath(`taiwan-${precision}.png`) });
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
+    await page.mouse.move(point.x, point.y);
+    await expect(
+      panel.getByText(
+        precision === 'country' ? 'Taiwan, China · Country-level location' : '台北 · Taiwan, China',
+        { exact: true },
+      ),
+    ).toBeVisible();
+  });
+}
+
 test('browses country-only stations, paginates and distinguishes actual coordinates on both layouts', async ({
   page,
 }, info) => {

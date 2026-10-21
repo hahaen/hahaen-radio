@@ -49,16 +49,16 @@ test('preserves older preferences and remembers scene choices without changing p
   await page.getByRole('button', { name: '收听设置', exact: true }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByRole('checkbox', { name: '省电模式', exact: true }).check();
-  await dialog.getByRole('combobox', { name: '沉浸画面', exact: true }).selectOption('landscape');
+  await dialog.getByRole('combobox', { name: '沉浸画面', exact: true }).selectOption('dunes');
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   await page.getByRole('button', { name: '沉浸收听', exact: true }).click();
-  await expect(page.locator('[data-effect="landscape"]')).toHaveAttribute('data-still', 'true');
+  await expect(page.locator('[data-effect="dunes"]')).toHaveAttribute('data-still', 'true');
   await page.reload();
   await page.getByRole('button', { name: '收听设置', exact: true }).click();
   await expect(dialog.getByRole('checkbox', { name: '省电模式', exact: true })).toBeChecked();
   await expect(dialog.getByRole('combobox', { name: '沉浸画面', exact: true })).toHaveValue(
-    'landscape',
+    'dunes',
   );
 });
 test('keeps genre selection usable with and without WebGL', async ({ page }, info) => {

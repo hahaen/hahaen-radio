@@ -151,7 +151,7 @@ export function SettingsPanel({
                 })
               }
             >
-              {(['auto', 'record', 'orb', 'landscape'] as const).map((effect) => (
+              {(['auto', 'aurora', 'ocean', 'dunes'] as const).map((effect) => (
                 <option key={effect} value={effect}>
                   {t('effects.' + effect)}
                 </option>
