@@ -499,8 +499,10 @@ export function App() {
         <header className={styles.header}>
           <div className={styles.identity}>
             <a className={styles.brand} href="#main" aria-label="声屿 HAEN">
-              <Disc3 size={23} aria-hidden="true" />
-              {t('brand')} <span>HAEN</span>
+              <span className={styles.brandEmblem} aria-hidden="true">
+                <Disc3 size={25} />
+              </span>
+              {t('brand')} <span className={styles.brandLatin}>HAEN</span>
             </a>
             <p className={styles.brandCaption} title={t('tagline')}>
               {intro
@@ -679,7 +681,6 @@ export function App() {
               selectionVersion={state.selectionVersion}
               loading={scene.isPending}
               error={scene.isError && !scene.data}
-              stale={scene.data?.stale ?? false}
               progress={progress}
               onRetry={() => {
                 void scene.refetch();
@@ -892,20 +893,14 @@ export function App() {
         onChange={changeFilters}
         hidden={immersive || intro}
       />
-      {intro && (
-        <footer className={styles.introCredits}>
-          {t('directorySource')} ·{' '}
-          <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">
-            Natural Earth
-          </a>
-        </footer>
-      )}
+      {intro && <footer className={styles.introCredits}>{t('directorySource')}</footer>}
       <section
         role={intro ? 'main' : 'contentinfo'}
         id={intro ? 'welcome' : undefined}
         tabIndex={intro ? -1 : undefined}
         data-intro={intro}
         data-has-station={!!state.station}
+        data-playing={state.playback.status === 'playing'}
         data-immersive={immersive}
         ref={footerRef}
         className={styles.player}

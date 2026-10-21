@@ -118,12 +118,6 @@
   color: var(--color-text);
   font-size: 11px;
 }
-.help {
-  margin: 4px 0;
-}
-.help[hidden] {
-  display: none;
-}
 .dataState {
   margin-top: 8px;
 }
@@ -139,9 +133,6 @@
   text-decoration: underline;
   text-underline-offset: 4px;
   font-size: inherit;
-}
-.mapSource {
-  margin: 4px 0 0;
 }
 .fallback {
   position: absolute;
@@ -356,10 +347,6 @@
   .preview button {
     pointer-events: auto;
   }
-  .help,
-  .mapSource {
-    display: none;
-  }
   .dataState {
     width: 100px;
     text-align: right;
@@ -424,21 +411,11 @@
     bottom: calc(var(--dock-bottom) + 64px);
     width: 200px;
   }
-  .help {
-    display: none;
-  }
 }
 
 .exploration[data-welcome='true'] .mapNotes,
 .exploration[data-welcome='true'] .reticle,
 .exploration[data-welcome='true'] .fallback {
-  display: none;
-}
-.mapDetailBody .help,
-.mapDetailBody .mapSource {
-  display: block;
-}
-.mapDetailBody .help[hidden] {
   display: none;
 }
 .mapDetailBody .dataState {

@@ -80,8 +80,6 @@ function Credits() {
               'creditsEarth',
               'https://www.naturalearthdata.com/about/terms-of-use/',
             ],
-            ['LRCLIB', 'creditsLyrics', 'https://lrclib.net/'],
-            ['AudD', 'creditsRecognition', 'https://docs.audd.io/'],
           ] as const
         ).map(([name, description, url]) => (
           <li key={name}>
@@ -203,7 +201,6 @@ export function InformationPanel({
             <h4>{t('information.privacyRequestsTitle')}</h4>
             <p>{t('information.privacyRequests')}</p>
             <p>{t('information.privacySongs')}</p>
-            <p>{t('information.privacyRecognition')}</p>
             <h4>{t('information.privacyOperationsTitle')}</h4>
             <p>{t('information.privacyOperations')}</p>
           </>

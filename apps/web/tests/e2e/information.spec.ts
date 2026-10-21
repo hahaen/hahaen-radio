@@ -23,6 +23,7 @@ test('explains local data and external requests in both languages, exposes real 
   await panel.getByRole('button', { name: '隐私说明', exact: true }).click();
   await expect(panel.getByText(/没有云端收藏或账号同步/)).toBeVisible();
   await expect(panel.getByText(/不使用你的麦克风/)).toHaveCount(1);
+  await expect(panel.getByText(/只有点击查询歌词|点击识曲/)).toHaveCount(0);
   await page.screenshot({
     path: info.outputPath('information-privacy.png'),
     animations: 'disabled',
@@ -32,6 +33,8 @@ test('explains local data and external requests in both languages, exposes real 
     'href',
     'https://creativecommons.org/licenses/by/4.0/',
   );
+  await expect(panel.getByRole('link', { name: /^(LRCLIB|AudD)$/ })).toHaveCount(0);
+  await expect(panel.getByRole('link', { name: 'Natural Earth', exact: true })).toHaveCount(1);
   for (const path of [
     '/fonts/noto-serif-sc-ui-LICENSE.txt',
     '/fonts/noto-sans-sc-ui-LICENSE.txt',
@@ -47,6 +50,7 @@ test('explains local data and external requests in both languages, exposes real 
   await panel.getByRole('button', { name: '使用帮助', exact: true }).click();
   await expect(panel.getByRole('heading', { name: '键盘操作', exact: true })).toHaveCount(1);
   await expect(panel.getByText(/暂停时移动场景只选台/)).toHaveCount(1);
+  await expect(panel.getByText(/歌曲收藏作为历史数据/)).toHaveCount(1);
   await page.keyboard.press('Escape');
   await expect(page.getByRole('button', { name: '关于与帮助', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'EN', exact: true }).click();
@@ -54,6 +58,9 @@ test('explains local data and external requests in both languages, exposes real 
   const english = page.getByRole('dialog', { name: 'About and help' });
   await english.getByRole('button', { name: 'Privacy', exact: true }).click();
   await expect(english.getByText(/There are no cloud favorites or account sync/)).toBeVisible();
+  await expect(english.getByText(/Only when you request lyrics|only a click asks/)).toHaveCount(0);
+  await english.getByRole('button', { name: 'Credits', exact: true }).click();
+  await expect(english.getByRole('link', { name: /^(LRCLIB|AudD)$/ })).toHaveCount(0);
   expect(await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(
     false,
   );

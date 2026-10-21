@@ -99,3 +99,43 @@ test('shows a scene failure and its retry action without opening map information
   await expect(details).toBeVisible();
   await expect(details.getByRole('button', { name: '重试', exact: true })).toBeVisible();
 });
+
+for (const language of ['zh', 'en'] as const) {
+  test(`keeps cached map information quiet without redundant copy in ${language}`, async ({
+    page,
+  }) => {
+    await install(page);
+    await page.addInitScript((value) => localStorage.setItem('haen:language:v1', value), language);
+    await page.goto('/');
+    const canvas = page.getByTestId('globe-panel').locator('canvas');
+    await expect(canvas).toHaveAttribute('data-marker-count', '3');
+    await page.route('**/api/v1/catalog/scene', (route) => route.abort());
+    await page.reload();
+    await expect(canvas).toHaveAttribute('data-marker-count', '3');
+    const name = language === 'zh' ? '地图信息' : 'Map information';
+    const toggle = page.getByRole('button', { name, exact: true });
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await toggle.click();
+    const details = page.getByRole('region', { name, exact: true });
+    await expect(details).toContainText(
+      language === 'zh' ? '地图可浏览 3 / 3 台' : '3 / 3 stations on the map',
+    );
+    await expect(
+      page.getByText('拖动旋转，滚轮或双指缩放；方向键也可移动。', { exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByText('Drag to rotate. Scroll or pinch to zoom. Arrow keys also move the globe.', {
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByText('当前使用缓存目录，电台状态可能已有变化。', { exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByText('Using a cached directory. Station availability may have changed.', {
+        exact: true,
+      }),
+    ).toHaveCount(0);
+    await expect(page.getByRole('link', { name: 'Natural Earth', exact: true })).toHaveCount(0);
+  });
+}

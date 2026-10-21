@@ -25,7 +25,6 @@ export function Exploration({
   selectionVersion,
   loading,
   error,
-  stale,
   progress,
   onRetry,
   onSearch,
@@ -43,7 +42,6 @@ export function Exploration({
   selectionVersion: number;
   loading: boolean;
   error: boolean;
-  stale: boolean;
   progress: { loaded: number; total: number };
   onRetry(): void;
   onSearch(): void;
@@ -131,8 +129,6 @@ export function Exploration({
           <>
             {t('sceneUnavailable')} <button onClick={onRetry}>{t('retry')}</button>
           </>
-        ) : stale ? (
-          t('sceneStale')
         ) : (
           <>
             <span>{t('locatedCount', { located, total: stations.length })}</span>
@@ -147,11 +143,6 @@ export function Exploration({
           </>
         )}
       </div>
-      <p className={styles.mapSource}>
-        <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener noreferrer">
-          Natural Earth
-        </a>
-      </p>
     </>
   );
   return (
@@ -162,7 +153,7 @@ export function Exploration({
       aria-label={t('exploration')}
     >
       <GlobePanel
-        attention={loading || error || stale}
+        attention={loading || error}
         details={dataNote}
         groups={groups}
         expandedId={selection?.kind === 'place' ? selection.id : null}
@@ -174,7 +165,7 @@ export function Exploration({
         showHints={showHints}
         onPick={choosePlace}
       />
-      {mode === 'genres' && <MapNotes attention={loading || error || stale}>{dataNote}</MapNotes>}
+      {mode === 'genres' && <MapNotes attention={loading || error}>{dataNote}</MapNotes>}
       {mode === 'genres' && (
         <GenreAtlas
           stations={stations}

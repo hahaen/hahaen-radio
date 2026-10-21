@@ -135,9 +135,7 @@ export function GlobePanel({
     const canvas = host.current?.querySelector('canvas');
     if (!canvas) return;
     canvas.setAttribute('aria-label', t('globeCanvas'));
-    if (showHints) canvas.setAttribute('aria-describedby', 'globe-help');
-    else canvas.removeAttribute('aria-describedby');
-  }, [state, t, showHints]);
+  }, [state, t]);
   return (
     <div
       className={styles.globePanel}
@@ -220,9 +218,6 @@ export function GlobePanel({
           </div>
         }
       >
-        <p id="globe-help" className={styles.help} hidden={!showHints}>
-          {t('globeHelp')}
-        </p>
         {details}
       </MapNotes>
     </div>

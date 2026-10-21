@@ -20,3 +20,5 @@
 地球亮度与清晰度优化见[任务记录](../iterations/2026-10-21-globe-clarity/README.md)。
 
 地球与流派美化见[任务记录](../iterations/2026-10-21-globe-and-genre-polish/README.md)。
+
+地球、品牌、收听区与浮层整体精修见[任务记录](../iterations/2026-10-21-listening-finish/README.md)。

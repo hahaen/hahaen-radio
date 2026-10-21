@@ -44,17 +44,16 @@ for (const [width, height, english] of [
         exact: true,
       }),
     ).toBeVisible();
-    await panel
-      .getByRole('button', { name: english ? 'Saved songs (0)' : '歌曲收藏（0）', exact: true })
-      .click();
     await expect(
-      panel.getByRole('heading', {
-        name: english ? 'No saved songs yet' : '还没有收藏歌曲',
+      panel
+        .getByRole('group', { name: english ? 'Listening lists' : '收听清单', exact: true })
+        .getByRole('button'),
+    ).toHaveCount(2);
+    await expect(
+      panel.getByRole('button', {
+        name: english ? 'Saved songs (0)' : '歌曲收藏（0）',
         exact: true,
       }),
-    ).toBeVisible();
-    await expect(
-      panel.getByRole('button', { name: english ? 'Copy song list' : '复制歌曲清单', exact: true }),
     ).toHaveCount(0);
     await expect(
       panel.getByRole('button', { name: english ? 'Import favorites' : '导入收藏', exact: true }),

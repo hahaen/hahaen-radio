@@ -2,47 +2,50 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  padding-block: 12px;
+  padding-block: 12px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 .topics button {
   min-height: 44px;
-  padding: 8px 12px;
+  padding: 8px 10px;
+  font-size: var(--panel-control-size);
   border: 1px solid transparent;
-  border-radius: 16px;
+  border-radius: 999px;
   color: var(--color-text-muted);
   background: transparent;
   line-height: 1.5;
 }
 .topics button[aria-pressed='true'] {
   background: var(--color-selected-bg);
-  border-color: var(--color-secondary);
+  border-color: var(--color-border);
   color: var(--color-text);
 }
 .content {
   padding-block: 8px 16px;
+  font-size: var(--panel-body-size);
   line-height: 1.85;
   overflow-wrap: anywhere;
 }
 .content h3 {
-  font: 500 17px / 1.5 var(--font-body);
-  margin-block: 20px;
+  font: 500 14px / 1.5 var(--font-body);
+  color: var(--color-text-muted);
+  margin-block: 20px 16px;
 }
 .content h4 {
   margin-block: 28px 8px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
 }
 .content p {
   margin-block: 12px;
 }
 .content .intro {
-  font: 400 25px / 1.6 var(--font-display);
+  font: 400 23px / 1.6 var(--font-display);
   margin-block: 20px;
 }
 .secondary {
   color: var(--color-text-muted);
-  font-size: 14px;
+  font-size: var(--panel-caption-size);
 }
 .content a {
   display: inline-flex;
@@ -61,7 +64,7 @@
   margin: 0;
 }
 .credits li {
-  padding-bottom: 24px;
+  padding-bottom: 16px;
   border-bottom: 1px solid var(--color-border);
 }
 .links {
@@ -93,13 +96,13 @@
   display: block;
   width: 100%;
   max-width: 100%;
-  min-height: 260px;
+  min-height: 200px;
   resize: vertical;
   padding: 16px;
   margin-top: 12px;
   border: 1px solid var(--color-secondary);
   border-radius: 16px;
-  font: 14px / 1.8 var(--font-mono);
+  font: 12px / 1.8 var(--font-mono);
   color: var(--color-text);
   background: var(--color-bg);
 }
@@ -109,6 +112,7 @@
   gap: 10px;
   min-height: 44px;
   padding: 10px 14px;
+  font-size: var(--panel-control-size);
   border: 1px solid var(--color-secondary);
   border-radius: 16px;
   background: transparent;

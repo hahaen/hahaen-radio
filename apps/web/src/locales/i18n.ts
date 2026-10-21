@@ -48,31 +48,25 @@ const resources = {
           '收藏、最近收听和偏好留在当前浏览器。换设备前，请在“我的收听”中导出收藏，再到新设备导入。',
         privacyLocalTitle: '保存在这台设备上',
         privacyLocal:
-          '电台与歌曲收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。电台目录也会缓存到本机，减少重复下载。没有云端收藏或账号同步。',
+          '电台收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。曾保存或导入的歌曲收藏作为历史数据保留，可随收藏文件导出。电台目录也会缓存到本机。没有云端收藏或账号同步。',
         privacyClear:
           '清除浏览器中的本站数据会删除本地内容。请先导出收藏；导出文件也包含你的收藏，应自行保管。共享设备上的其他使用者可能看到这些内容。',
         privacyRequestsTitle: '何时会发出请求',
         privacyRequests:
           '打开本站会加载站点资源与电台目录。收听时，浏览器直接连接电台或其分发网络；对方可以获得连接所需的 IP 等网络信息，并按其自身规则处理。本站无法控制电台的请求与记录。',
         privacySongs:
-          '播放时，本站服务器按需读取电台曲目信息。只有点击查询歌词后，歌手与曲名才会由本站服务器提交给 LRCLIB；点击外部搜索会打开所选平台，并携带歌手与曲名。',
-        privacyRecognition:
-          '识曲默认关闭。服务启用后，只有点击识曲才由本站服务器采集当前电台短片段并提交给 AudD；不使用你的麦克风，也不保存音频文件。',
+          '播放时，本站服务器按需读取电台曲目信息，用于系统媒体控制和锁屏标题。当前页面不提供歌词查询或片段识曲入口，不使用你的麦克风。',
         privacyOperationsTitle: '运行与排障',
         privacyOperations:
           '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。问题说明只在你选择复制后写入剪贴板，不会自动发送。另有自愿提交的精简播放故障报告，只保存电台与线路标识、固定故障类型、一次性回执号和服务器收到时间；有效期 7 天，后台定期清理并受容量上限约束，不改变电台状态。',
         creditsIntro:
-          '感谢以下数据、服务与资源。电台节目、歌曲和歌词均来自各自提供者；目录与地理信息不保证始终准确或完整。',
+          '感谢以下数据与资源。电台节目由各电台提供；目录与地理信息不保证始终准确或完整。',
         creditsRadio:
           '电台目录由 Radio Browser 提供，经本站归一化、筛选并定期同步；播放内容由电台直接提供。',
         creditsGeo:
           '附近城市与可确认时区使用 GeoNames cities15000 离线数据，已筛选、归一化并用于匹配。附近城市不代表电台精确地址。',
         creditsEarth:
           '地球轮廓使用 Natural Earth 1:110m land 5.1.2 公有领域数据，已简化并生成本地轮廓与点阵。',
-        creditsLyrics:
-          '歌词查询由 LRCLIB 提供。曲目覆盖、匹配与时间戳依赖上游数据；直播位置未知时请手动校时。',
-        creditsRecognition:
-          '可选片段识曲服务为 AudD。服务是否启用取决于站点配置与授权额度，不能保证每次匹配成功。',
         creditsFonts:
           'Noto Serif SC、Noto Sans SC 与 IBM Plex Mono 按 SIL Open Font License 1.1 本地分发，中文已制作界面字形子集。',
         creditsIcons: '界面图标使用 Lucide；完整许可同时保留其所包含的 Feather 图标声明。',
@@ -91,10 +85,10 @@ const resources = {
         helpAudio:
           '先点击播放并检查音量、静音与网络。浏览器可能要求再次点击才允许播放；电台也可能限制地区、编码或连接。可以重试或换台，本站不会把不可用来源伪装成正常播放。',
         helpExtras:
-          '没有曲目信息或歌词不影响收听。音量统一只在可读取分析样本时生效。睡眠定时按截止时间暂停；浏览器后台挂起时可能延后，恢复后会重新核对。',
+          '没有曲目信息不影响收听。音量统一只在可读取分析样本时生效。睡眠定时按截止时间暂停；浏览器后台挂起时可能延后，恢复后会重新核对。',
         helpDataTitle: '收藏与设备迁移',
         helpData:
-          '在“我的收听”管理收藏和最近收听，导出电台与歌曲收藏为 JSON。导入会校验并合并，文件最大 2MiB，不覆盖已有收藏。历史最多保留 100 个成功收听的电台。',
+          '在“我的收听”管理电台收藏和最近收听，并导出收藏为 JSON。旧版保存或导入的歌曲收藏作为历史数据随文件保留。导入会校验并合并，文件最大 2MiB，不覆盖已有收藏。历史最多保留 100 个成功收听的电台。',
         helpKeysTitle: '键盘操作',
         helpKeysHint: '弹层、输入框与中文输入期间不会触发全局快捷键；手机可使用对应触屏按钮。',
         keyPlay: '播放或暂停',
@@ -268,7 +262,7 @@ const resources = {
       transferFavorites: '迁移收藏',
       transferDescription:
         '收藏保存在此浏览器。导出文件可在另一台设备导入合并，既有收藏会保留。每个导入文件不超过 2MiB。',
-      retainedSongs: '已保存 {{count, number}} 首歌曲收藏，导出时一并包含。',
+      retainedSongs: '保留 {{count, number}} 首历史歌曲收藏，导出时一并包含。',
       exportFavorites: '导出收藏',
       importFavorites: '导入收藏',
       importingFavorites: '正在导入…',
@@ -496,31 +490,25 @@ const resources = {
           'Your favorites, recent listening, and preferences stay in this browser. Before changing devices, export favorites from My listening and import the file on the new device.',
         privacyLocalTitle: 'Stored on this device',
         privacyLocal:
-          'Station and song favorites, recent listening, filters, interface language, and listening settings are stored in this browser. A local directory cache reduces repeated downloads. There are no cloud favorites or account sync.',
+          'Station favorites, recent listening, filters, language, and settings stay in this browser. Previously saved or imported song favorites are retained as historical data and included in exports. A local directory cache reduces downloads. There are no cloud favorites or account sync.',
         privacyClear:
           'Clearing this site’s browser data removes local content. Export favorites first and keep the file private. Other people using the same browser may be able to see this content.',
         privacyRequestsTitle: 'When requests are made',
         privacyRequests:
           'Opening HAEN loads site resources and the station directory. During playback, your browser connects directly to the station or its distribution network. They receive network information needed for the connection, including your IP address, and apply their own practices. HAEN cannot control their requests or records.',
         privacySongs:
-          'While you listen, our server reads station track metadata on demand. Only when you request lyrics does it send the artist and title to LRCLIB. External search opens your chosen platform with the artist and title in the search query.',
-        privacyRecognition:
-          'Song identification is off by default. When enabled, only a click asks our server to capture a short station sample and send it to AudD. Your microphone is never used and audio files are not saved.',
+          'While you listen, our server reads station track metadata on demand for system media controls and lock-screen titles. This interface has no lyrics lookup or sample identification entry. Your microphone is not used.',
         privacyOperationsTitle: 'Operation and troubleshooting',
         privacyOperations:
           'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio. Feedback notes are written to your clipboard only when you choose to copy them and are never sent automatically. Separately, voluntary minimal playback reports store station and stream IDs, a fixed failure type, a one-time receipt ID, and the server’s received time. Reports have a 7-day validity period, periodic deletion, and a storage cap. They do not change station availability.',
         creditsIntro:
-          'Thanks to the following data, services, and resources. Programs, songs, and lyrics come from their respective providers. Directory and geographic information may be incomplete or out of date.',
+          'Thanks to the following data and resources. Stations provide their broadcasts. Directory and geographic information may be incomplete or out of date.',
         creditsRadio:
           'The station directory is provided by Radio Browser, normalized, filtered, and periodically synchronized by HAEN. Stations provide the actual broadcasts.',
         creditsGeo:
           'Nearby cities and confirmed time zones use the offline GeoNames cities15000 dataset, filtered and normalized for matching. A nearby city is not an exact station address.',
         creditsEarth:
           'Globe outlines use Natural Earth 1:110m land 5.1.2 public domain data, simplified into local outlines and points.',
-        creditsLyrics:
-          'Lyrics queries are provided by LRCLIB. Coverage, matching, and timestamps depend on upstream data. Calibrate lyrics manually when the live position is unknown.',
-        creditsRecognition:
-          'Optional sample identification is provided by AudD. Availability depends on site configuration and an authorized allowance. A match is not guaranteed.',
         creditsFonts:
           'Noto Serif SC, Noto Sans SC, and IBM Plex Mono are served locally under SIL Open Font License 1.1. Chinese fonts are subsetted for the interface.',
         creditsIcons:
@@ -540,10 +528,10 @@ const resources = {
         helpAudio:
           'Click play and check volume, mute, and your connection. Your browser may require another click to allow playback. Stations can also restrict regions, codecs, or connections. Retry or choose another station; an unavailable stream is never presented as working playback.',
         helpExtras:
-          'Missing track metadata or lyrics does not stop listening. Volume normalization only works when an analysis sample is readable. Sleep uses a deadline; a suspended background browser may pause late and checks again on return.',
+          'Missing track metadata does not stop listening. Volume normalization only works when an analysis sample is readable. Sleep uses a deadline; a suspended background browser may pause late and checks again on return.',
         helpDataTitle: 'Favorites and device changes',
         helpData:
-          'Use My listening to manage favorites and recent listening. Export station and song favorites as JSON. Import validates and merges files up to 2MiB without replacing existing favorites. Recent listening holds at most 100 successfully played stations.',
+          'Use My listening to manage station favorites and recent listening, and export favorites as JSON. Older saved or imported song favorites are retained as historical data in the file. Import validates and merges files up to 2MiB without replacing existing favorites. Recent listening holds at most 100 successfully played stations.',
         helpKeysTitle: 'Keyboard controls',
         helpKeysHint:
           'Global shortcuts are inactive in dialogs, form fields, and input composition. Phones have corresponding touch controls.',
@@ -732,7 +720,8 @@ const resources = {
       transferFavorites: 'Move your favorites',
       transferDescription:
         'Favorites stay in this browser. Export a file to merge on another device while keeping existing favorites. Each import file must be no larger than 2MiB.',
-      retainedSongs: '{{count, number}} song favorites are saved and included in exports.',
+      retainedSongs:
+        '{{count, number}} historical song favorites are retained and included in exports.',
       exportFavorites: 'Export favorites',
       importFavorites: 'Import favorites',
       importingFavorites: 'Importing…',

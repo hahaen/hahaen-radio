@@ -10,8 +10,13 @@
   --color-on-accent: #172d2a;
   --color-border: rgb(245 241 232 / 16%);
   --color-selected-bg: rgb(245 241 232 / 8%);
-  --color-panel: rgb(19 38 34 / 92%);
-  --shadow-panel: 0 16px 48px #0003, inset 0 1px 0 #f5f1e80d;
+  --color-panel: rgb(19 35 31 / 96%);
+  --panel-padding: 24px;
+  --panel-title: 400 23px / 1.4 var(--font-display);
+  --panel-body-size: 14px;
+  --panel-control-size: 13px;
+  --panel-caption-size: 12px;
+  --shadow-panel: 0 24px 80px #0005, inset 0 1px 0 #f5f1e80d;
   --shadow-control: none;
   --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
   --font-body: Inter, 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;
