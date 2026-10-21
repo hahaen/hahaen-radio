@@ -2,6 +2,10 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  DataTexture,
+  LinearFilter,
+  RedFormat,
+  RepeatWrapping,
   Float32BufferAttribute,
   Group,
   LineBasicMaterial,
@@ -29,6 +33,7 @@ import type { LandData } from './land';
 import { DwellSelection, globePosition, type StationGroup } from './model';
 import { stationMarkers, stationPosition, type StationMarker } from './markers';
 import { markerCrowding } from './marker-appearance';
+import { rasterizeLand, LAND_MASK_WIDTH, LAND_MASK_HEIGHT } from './land-mask';
 export type PickReason = 'click' | 'dwell';
 export interface GlobeController {
   cancelSelection(): void;
@@ -108,33 +113,53 @@ export function createGlobe(
   controls.enableDamping = !reduced && !powerSave;
   const earth = new Group();
   scene.add(earth);
+  const landMask = new DataTexture(
+    rasterizeLand(land.polygons),
+    LAND_MASK_WIDTH,
+    LAND_MASK_HEIGHT,
+    RedFormat,
+  );
+  landMask.minFilter = LinearFilter;
+  landMask.magFilter = LinearFilter;
+  landMask.wrapS = RepeatWrapping;
+  landMask.needsUpdate = true;
   const body = new Mesh(
     geometry(new SphereGeometry(1, 80, 48)),
     material(
       new ShaderMaterial({
         uniforms: {
-          ocean: { value: new Color(0x153a2d) },
-          shadow: { value: new Color(0x050f0c) },
-          atmosphere: { value: new Color(0x79b99a) },
+          ocean: { value: new Color(0x091b18) },
+          shadow: { value: new Color(0x020807) },
+          atmosphere: { value: new Color(0x8abfb4) },
+          continental: { value: new Color(0x2b463a) },
+          landMask: { value: landMask },
         },
         vertexShader: `
         varying vec3 vNormal;
         varying vec3 vView;
+        varying vec3 vLocal;
         void main() {
           vec4 p = modelViewMatrix * vec4(position, 1.0);
+          vLocal = normalize(position);
           vNormal = normalize(normalMatrix * normal);
           vView = normalize(-p.xyz);
           gl_Position = projectionMatrix * p;
         }`,
         fragmentShader: `
-        uniform vec3 ocean; uniform vec3 shadow; uniform vec3 atmosphere;
-        varying vec3 vNormal; varying vec3 vView;
+        uniform vec3 ocean; uniform vec3 shadow; uniform vec3 atmosphere; uniform vec3 continental;
+        uniform sampler2D landMask;
+        varying vec3 vNormal; varying vec3 vView; varying vec3 vLocal;
         void main() {
           vec3 n = normalize(vNormal);
-          float light = smoothstep(-0.3, 0.9, dot(n, normalize(vec3(-0.75, 0.65, 0.7))));
-          float edge = pow(1.0 - max(0.0, dot(n, normalize(vView))), 3.5);
-          vec3 color = mix(shadow, ocean, light);
-          color += atmosphere * edge * light * 0.08;
+          float light = smoothstep(-0.12, 0.9, dot(n, normalize(vec3(-0.9, 0.55, 0.55))));
+          vec3 local = normalize(vLocal);
+          vec2 uv = vec2(atan(local.x, local.z) / 6.2831853 + 0.5, 0.5 - asin(clamp(local.y, -1.0, 1.0)) / 3.14159265);
+          float land = texture2D(landMask, uv).r;
+          float edge = pow(1.0 - max(0.0, dot(n, normalize(vView))), 5.0);
+          vec3 sea = mix(shadow, ocean, 0.16 + light * 0.84);
+          vec3 ground = mix(shadow * 1.2, continental, 0.08 + light * 0.92);
+          vec3 color = mix(sea, ground, land);
+          color += atmosphere * edge * light * 0.07;
           gl_FragColor = vec4(color, 1.0);
           #include <colorspace_fragment>
         }`,
@@ -169,7 +194,7 @@ export function createGlobe(
             vSeed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
             vPulse=0.65+0.35*sin(time*(0.65+vSeed*0.6)+vSeed*62.8);
             vDensity=sqrt(clamp(crowding/(zoom*zoom),0.0,1.0))*(1.0-emphasis);
-            gl_PointSize=pointSize*mix(1.0,0.72,approximate)*mix(1.0,0.45,vDensity)
+            gl_PointSize=pointSize*mix(1.0,0.66,approximate)*mix(1.0,0.45,vDensity)
               *(1.0+glow*vPulse*0.10+emphasis*0.35);
             gl_Position=projectionMatrix*viewPosition;
           }`,
@@ -184,7 +209,7 @@ export function createGlobe(
             float halo=exp(-d*d*28.0)*(0.16+0.06*vPulse);
             float hollow=smoothstep(0.10,0.20,d)*(1.0-smoothstep(0.32,0.48,d));
             float stationAlpha=mix(min(1.0,core+halo),hollow,vApproximate);
-            float precisionAlpha=mix(1.0,0.44,vApproximate);
+            float precisionAlpha=mix(1.0,0.30,vApproximate);
             float densityAlpha=mix(1.0,0.18,vDensity);
             float facing=mix(0.20,1.0,smoothstep(0.0,0.65,vFacing));
             float alpha=opacity*facing*mix(dotAlpha,stationAlpha*precisionAlpha*densityAlpha*(0.76+vSeed*0.24),glow);
@@ -221,38 +246,16 @@ export function createGlobe(
     buffer.setAttribute('emphasis', new BufferAttribute(new Float32Array(coordinates.length), 1));
     return new Points(buffer, pointShader(size, opacity));
   }
-  const mainland = makePoints(land.points, 1.5, 0.58, 0xd4ead9);
+  const mainland = makePoints(land.points, 1.2, 0.06, 0xc0d4c8);
   const oceanCoordinates: number[][] = [];
   for (let latitude = -88; latitude <= 88; latitude += 1.8) {
     const count = Math.max(3, Math.round(200 * Math.cos((latitude * Math.PI) / 180)));
     for (let index = 0; index < count; index++)
       oceanCoordinates.push([(index * 360) / count - 180, latitude]);
   }
-  const oceanDots = makePoints(oceanCoordinates, 1.5, 0.025, 0x7cae99);
+  const oceanDots = makePoints(oceanCoordinates, 1.2, 0.006, 0x7cae99);
   earth.add(oceanDots);
   earth.add(mainland);
-  const grid: number[] = [];
-  const segment = (latA: number, lonA: number, latB: number, lonB: number) => {
-    grid.push(...globePosition(latA, lonA, 1.002), ...globePosition(latB, lonB, 1.002));
-  };
-  for (let latitude = -60; latitude <= 60; latitude += 30)
-    for (let longitude = -180; longitude < 180; longitude += 2)
-      segment(latitude, longitude, latitude, longitude + 2);
-  for (let longitude = -180; longitude < 180; longitude += 30)
-    for (let latitude = -90; latitude < 90; latitude += 2)
-      segment(latitude, longitude, latitude + 2, longitude);
-  const graticule = new LineSegments(
-    geometry(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(grid, 3))),
-    material(
-      new LineBasicMaterial({
-        color: 0x92baa5,
-        transparent: true,
-        opacity: 0.065,
-        depthWrite: false,
-      }),
-    ),
-  );
-  earth.add(graticule);
   const outline: number[] = [];
   for (const polygon of land.polygons)
     for (const ring of polygon)
@@ -267,11 +270,11 @@ export function createGlobe(
       }
   const coast = new LineSegments(
     geometry(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(outline, 3))),
-    material(new LineBasicMaterial({ color: 0xb3d8c0, transparent: true, opacity: 0.16 })),
+    material(new LineBasicMaterial({ color: 0xb3d8c0, transparent: true, opacity: 0.085 })),
   );
   earth.add(coast);
   const rim = new Mesh(
-    geometry(new SphereGeometry(1.024, 64, 40)),
+    geometry(new SphereGeometry(1.015, 64, 40)),
     material(
       new ShaderMaterial({
         transparent: true,
@@ -281,9 +284,9 @@ export function createGlobe(
         fragmentShader: `varying vec3 vNormal; varying vec3 vView;
           void main(){
             vec3 n=normalize(vNormal);
-            float edge=pow(1.0-abs(dot(n,normalize(vView))),6.0);
-            float light=smoothstep(-0.35,0.8,dot(n,normalize(vec3(-0.75,0.65,0.7))));
-            gl_FragColor=vec4(0.42,0.68,0.53,edge*(0.035+light*0.18));
+            float edge=pow(1.0-abs(dot(n,normalize(vView))),5.0);
+            float light=smoothstep(-0.35,0.8,dot(n,normalize(vec3(-0.9,0.55,0.55))));
+            gl_FragColor=vec4(0.36,0.57,0.51,edge*(0.012+light*0.14));
             #include <colorspace_fragment>
           }`,
       }),
@@ -442,8 +445,8 @@ export function createGlobe(
     const ratio = powerSave ? 1 : Math.min(devicePixelRatio || 1, width < 768 ? 1.5 : 1.75);
     renderer.setPixelRatio(ratio);
     renderer.setSize(width, height, false);
-    mainland.material.uniforms.pointSize!.value = ratio * 1.5;
-    oceanDots.material.uniforms.pointSize!.value = ratio * 1.5;
+    mainland.material.uniforms.pointSize!.value = ratio * 1.2;
+    oceanDots.material.uniforms.pointSize!.value = ratio * 1.2;
     updateMarkerSize();
     camera.aspect = width / height;
     camera.fov =
@@ -606,7 +609,6 @@ export function createGlobe(
         controls.update();
       }
       oceanDots.visible = !powerSave;
-      graticule.visible = !powerSave;
       resize();
     },
     setSelection(station) {
@@ -684,6 +686,7 @@ export function createGlobe(
       controls.dispose();
       for (const value of geometries) value.dispose();
       for (const value of materials) value.dispose();
+      landMask.dispose();
       scene.clear();
       renderer.dispose();
       renderer.forceContextLoss();

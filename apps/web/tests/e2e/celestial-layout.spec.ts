@@ -13,7 +13,7 @@ for (const [width, height] of [
   [320, 700],
   [844, 390],
 ] as const) {
-  test(`centers the globe and docks listening controls at ${width}x${height}`, async ({
+  test(`composes the globe beside listening controls at ${width}x${height}`, async ({
     page,
   }, info) => {
     await page.setViewportSize({ width, height });
@@ -25,7 +25,8 @@ for (const [width, height] of [
     await expect(page.getByTestId('globe-panel')).toHaveAttribute('data-state', 'ready');
     const canvas = page.getByRole('img', { name: /可旋转的地球/ });
     const bounds = await canvas.boundingBox();
-    expect(Math.abs(bounds!.x + bounds!.width / 2 - width / 2)).toBeLessThan(2);
+    const sceneCenter = width * (width >= 1024 ? 0.59 : 0.5);
+    expect(Math.abs(bounds!.x + bounds!.width / 2 - sceneCenter)).toBeLessThan(2);
     const player = page.getByRole('contentinfo');
     const dock = await player.boundingBox();
     const heading = await player.getByRole('heading', { name: first.name }).boundingBox();

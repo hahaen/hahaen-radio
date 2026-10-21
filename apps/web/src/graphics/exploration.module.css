@@ -482,3 +482,9 @@
   left: auto;
   width: auto;
 }
+
+@media (width >= 1024px) {
+  .globeStage {
+    left: 18%;
+  }
+}

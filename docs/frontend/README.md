@@ -22,3 +22,5 @@
 地球与流派美化见[任务记录](../iterations/2026-10-21-globe-and-genre-polish/README.md)。
 
 地球、品牌、收听区与浮层整体精修见[任务记录](../iterations/2026-10-21-listening-finish/README.md)。
+
+电影感夜航构图、连续陆地与全系统控件调整见[任务记录](../iterations/2026-10-21-cinematic-night/README.md)。
