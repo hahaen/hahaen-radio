@@ -49,10 +49,29 @@ it('labels a country map position without presenting its anchor as station coord
   expect(screen.getByText('Country-level location')).toBeInTheDocument();
   result.rerender(
     <StationFacts
-      station={{ ...station, locationPrecision: 'coordinates', latitude: 47.5, longitude: 7.6 }}
+      station={{
+        ...station,
+        countryCode: 'CH',
+        locationPrecision: 'coordinates',
+        latitude: 47.5,
+        longitude: 7.6,
+      }}
       detail={station}
     />,
   );
   expect(screen.getByText('Coordinates')).toBeInTheDocument();
   expect(screen.queryByText('Country-level location')).toBeNull();
+});
+
+it('does not present a conflicting source coordinate as an exact map location', () => {
+  const station = {
+    ...testStation(1),
+    countryCode: 'US',
+    locationPrecision: 'coordinates' as const,
+    latitude: 39.9,
+    longitude: 116.4,
+  };
+  render(<StationFacts station={station} detail={station} />);
+  expect(screen.queryByText('坐标')).toBeNull();
+  expect(screen.getByText('国家级位置')).toBeInTheDocument();
 });

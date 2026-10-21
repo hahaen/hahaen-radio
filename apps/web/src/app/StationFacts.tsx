@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationDetail, type StationPreview } from '@haen/contracts';
 import styles from './App.module.css';
 import { mapPosition } from '../graphics/location';
+import { regionsVersion, subscribeRegions } from '../graphics/regions';
 function LocalTime({ zone }: { zone: string }) {
   const { t, i18n } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
@@ -54,10 +55,11 @@ export function StationFacts({
     }
   };
   const languages = normalizeLanguages(station.languages);
+  useSyncExternalStore(subscribeRegions, regionsVersion);
   const position = mapPosition(station);
   return (
     <dl className={styles.facts}>
-      {station.locationPrecision === 'coordinates' &&
+      {position?.precision === 'coordinates' &&
         station.latitude !== null &&
         station.longitude !== null && (
           <div className={styles.coordinateFact}>
@@ -73,6 +75,16 @@ export function StationFacts({
         <div className={styles.coordinateFact}>
           <dt>{t('mapLocation')}</dt>
           <dd title={t('countryMapHint')}>{t('countryLocation')}</dd>
+        </div>
+      )}
+      {position?.precision === 'region' && (
+        <div className={styles.coordinateFact}>
+          <dt>{t('mapLocation')}</dt>
+          <dd title={t('regionMapHint')}>
+            {t('regionPlace', {
+              region: i18n.language === 'en' ? position.regionNameEn : position.regionName,
+            })}
+          </dd>
         </div>
       )}
       <div>

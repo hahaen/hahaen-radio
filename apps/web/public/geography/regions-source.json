@@ -1,0 +1,10 @@
+{
+  "name": "Natural Earth",
+  "version": "5.1.2",
+  "license": "Public domain",
+  "url": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_admin_1_states_provinces.geojson",
+  "sha256": "22d0e3ad85eb3e27f17cabf8ba2d50e554fbc27a87796ff891d958185da62fb5",
+  "assetSha256": "3e1e1b1985986c61def442c6f19c8d5e03af06ebd2dc86dbfe5beedade354de4",
+  "count": 4584,
+  "purpose": "Province/state aliases, safe interior triangles and quarter-degree coverage; approximate display only"
+}

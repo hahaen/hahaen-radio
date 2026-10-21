@@ -231,10 +231,15 @@ export function GlobePanel({
                           i18n.language,
                         ),
                       })
-                    : (preview.stations[0]?.city ??
-                      (preview.stations[0]?.nearbyCity
-                        ? t('nearby', { city: preview.stations[0].nearbyCity })
-                        : t('coordinatePlace')))}
+                    : preview.precision === 'region'
+                      ? t('regionPlace', {
+                          region:
+                            i18n.language === 'en' ? preview.regionNameEn : preview.regionName,
+                        })
+                      : (preview.stations[0]?.city ??
+                        (preview.stations[0]?.nearbyCity
+                          ? t('nearby', { city: preview.stations[0].nearbyCity })
+                          : t('coordinatePlace')))}
                   {preview.precision !== 'country' && preview.stations[0]?.countryCode === 'TW'
                     ? ` · ${countryName('TW', i18n.language)}`
                     : ''}
@@ -243,6 +248,8 @@ export function GlobePanel({
               </>
             ) : station && !position ? (
               t('noCoordinates')
+            ) : position?.precision === 'region' ? (
+              <span>{t('regionMapHint')}</span>
             ) : position?.precision === 'country' ? (
               <span>{t('countryMapHint')}</span>
             ) : (
@@ -250,11 +257,18 @@ export function GlobePanel({
             )}
             {selectedGroup && selectedGroup.stations.length > 1 && (
               <button onClick={() => onPick(selectedGroup, 'click')}>
-                {selectedGroup.precision === 'country'
-                  ? t('countryPlace', {
-                      country: countryName(station?.countryCode ?? null, i18n.language),
+                {selectedGroup.precision === 'region'
+                  ? t('regionPlace', {
+                      region:
+                        i18n.language === 'en'
+                          ? selectedGroup.regionNameEn
+                          : selectedGroup.regionName,
                     })
-                  : t('placeStationCount', { count: selectedGroup.stations.length })}
+                  : selectedGroup.precision === 'country'
+                    ? t('countryPlace', {
+                        country: countryName(station?.countryCode ?? null, i18n.language),
+                      })
+                    : t('placeStationCount', { count: selectedGroup.stations.length })}
               </button>
             )}
           </div>

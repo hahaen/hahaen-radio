@@ -23,11 +23,13 @@ export function groupStations(stations: readonly StationPreview[]): StationGroup
     const position = mapPosition(station);
     if (!position) continue;
     const id =
-      position.precision === 'country'
-        ? `country:${station.countryCode}`
-        : station.city && station.countryCode
-          ? `city:${station.countryCode}:${station.region ?? ''}:${station.city}:${Math.floor(position.latitude * 2)}:${Math.floor(position.longitude * 2)}`
-          : `near:${station.countryCode ?? ''}:${Math.floor(position.latitude * 12)}:${Math.floor(((((position.longitude + 180) % 360) + 360) % 360) * 12)}`;
+      position.precision === 'region'
+        ? `region:${station.countryCode}:${position.regionId}`
+        : position.precision === 'country'
+          ? `country:${station.countryCode}`
+          : station.city && station.countryCode
+            ? `city:${station.countryCode}:${station.region ?? ''}:${station.city}:${Math.floor(position.latitude * 2)}:${Math.floor(position.longitude * 2)}`
+            : `near:${station.countryCode ?? ''}:${Math.floor(position.latitude * 12)}:${Math.floor(((((position.longitude + 180) % 360) + 360) % 360) * 12)}`;
     const group = groups.get(id) ?? {
       id,
       ...position,

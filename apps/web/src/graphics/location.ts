@@ -1,22 +1,44 @@
 import type { StationPreview } from '@haen/contracts';
 import countries from './countries.json' with { type: 'json' };
+import { coordinatesMatchCountry } from './country-coverage.js';
+import { coordinatesMatchRegion, stationRegion } from './regions.js';
 
 export interface MapPosition {
   latitude: number;
   longitude: number;
-  precision: 'coordinates' | 'country';
+  precision: 'coordinates' | 'region' | 'country';
+  regionId?: string;
+  regionName?: string;
+  regionNameEn?: string;
 }
 const countryLabels: Readonly<Record<string, readonly number[]>> = countries;
 const regionNames = new Map<string, Intl.DisplayNames>();
 
 /** Presentation positions never replace a station's original geographic evidence. */
 export function mapPosition(station: StationPreview): MapPosition | null {
+  const region = stationRegion(station.countryCode, station.region);
   if (
     station.locationPrecision === 'coordinates' &&
     station.latitude !== null &&
-    station.longitude !== null
+    station.longitude !== null &&
+    Number.isFinite(station.latitude) &&
+    Math.abs(station.latitude) <= 90 &&
+    Number.isFinite(station.longitude) &&
+    Math.abs(station.longitude) <= 180 &&
+    (!station.countryCode ||
+      coordinatesMatchCountry(station.countryCode, station.latitude, station.longitude)) &&
+    (!region || coordinatesMatchRegion(region, station.latitude, station.longitude))
   )
     return { latitude: station.latitude, longitude: station.longitude, precision: 'coordinates' };
+  if (region)
+    return {
+      latitude: (region.triangle[1]! + region.triangle[3]! + region.triangle[5]!) / 3,
+      longitude: (region.triangle[0]! + region.triangle[2]! + region.triangle[4]!) / 3,
+      precision: 'region',
+      regionId: region.id,
+      regionName: region.name,
+      regionNameEn: region.nameEn,
+    };
   const point = station.countryCode ? countryLabels[station.countryCode] : undefined;
   return point ? { latitude: point[0]!, longitude: point[1]!, precision: 'country' } : null;
 }

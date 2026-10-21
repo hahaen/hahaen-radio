@@ -29,6 +29,7 @@ HAEN_SOAK_SECONDS只由测试进程读取，接受60–3600的整数秒数；不
 | 全部CSS gzip | 50KiB |
 | 三种本地字体原始体积 | 512KiB |
 | land.json与静态world.svg合计原始体积 | 1MiB |
+| 省/州资源regions.json原始体积 | 1MiB |
 
 上限基于当前约181KiB入口、491KiB全部JavaScript、290KiB字体与307KiB地理资源设置有限回归余量。脚本保留逐文件字节数、Node gzip默认压缩结果和SHA256；压缩算法/级别与实际服务器传输可能不同，不把它当作Caddy传输量。缺少入口、CSS、地理或任一种字体时拒绝。既有三个JavaScript分包超过Vite的500kB警告仍保留，没有通过改高警告阈值掩盖问题。
 

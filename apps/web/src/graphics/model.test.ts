@@ -36,11 +36,11 @@ describe('geographic scene model', () => {
       countryCode: 'US',
       region: 'Region',
       locationPrecision: 'coordinates' as const,
-      latitude: 20,
-      longitude: 80,
+      latitude: 40,
+      longitude: -75,
     };
-    const nearby = { ...first, id: testStation(2).id, latitude: 20.001 };
-    const distant = { ...first, id: testStation(3).id, longitude: -80 };
+    const nearby = { ...first, id: testStation(2).id, latitude: 40.001 };
+    const distant = { ...first, id: testStation(3).id, longitude: -120 };
     const unknown = {
       ...first,
       id: testStation(4).id,
@@ -62,8 +62,8 @@ describe('geographic scene model', () => {
       ...testStation(3),
       countryCode: 'CH',
       locationPrecision: 'coordinates' as const,
-      latitude: 0,
-      longitude: 0,
+      latitude: 46.95,
+      longitude: 7.45,
     };
     const before = structuredClone([first, second, exact]);
     const groups = groupStations([first, second, exact, { ...testStation(4), countryCode: 'ZZ' }]);
@@ -73,7 +73,7 @@ describe('geographic scene model', () => {
       precision: 'country',
       stations: [first, second],
     });
-    expect(groups[1]).toMatchObject({ precision: 'coordinates', latitude: 0, longitude: 0 });
+    expect(groups[1]).toMatchObject({ precision: 'coordinates', latitude: 46.95, longitude: 7.45 });
     expect(mapPosition(first)).toMatchObject({ precision: 'country' });
     expect([first, second, exact]).toEqual(before);
     expect(groupStations([second])[0]?.id).toBe('country:CH');

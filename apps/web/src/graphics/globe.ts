@@ -30,11 +30,11 @@ import {
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { StationPreview } from '@haen/contracts';
-import type { LandData } from './land';
-import { DwellSelection, globePosition, type StationGroup } from './model';
-import { stationMarkers, stationPosition, type StationMarker } from './markers';
-import { markerCrowding } from './marker-appearance';
-import { rasterizeLand, LAND_MASK_WIDTH, LAND_MASK_HEIGHT } from './land-mask';
+import type { LandData } from './land.js';
+import { DwellSelection, globePosition, type StationGroup } from './model.js';
+import { stationMarkers, stationPosition, type StationMarker } from './markers.js';
+import { markerCrowding } from './marker-appearance.js';
+import { rasterizeLand, LAND_MASK_WIDTH, LAND_MASK_HEIGHT } from './land-mask.js';
 export type PickReason = 'click' | 'dwell';
 export interface GlobeController {
   cancelSelection(): void;
@@ -626,29 +626,7 @@ export function createGlobe(
       const center = new Vector3().fromArray(
         globePosition(marker.latitude, marker.longitude, 1.012),
       );
-      if (
-        marker.precision === 'coordinates' &&
-        marker.groupId === expandedId &&
-        marker.memberCount > 1
-      ) {
-        const normal = center.clone().normalize();
-        const east = new Vector3().crossVectors(new Vector3(0, 1, 0), normal);
-        if (east.lengthSq() < 0.001) east.set(1, 0, 0);
-        east.normalize();
-        const north = new Vector3().crossVectors(normal, east).normalize();
-        const angle = marker.memberIndex * 2.3999632297,
-          radius =
-            0.012 * Math.sqrt((marker.memberIndex + 1) * Math.min(1, 48 / marker.memberCount));
-        const point = center
-          .clone()
-          .addScaledVector(east, Math.cos(angle) * radius)
-          .addScaledVector(north, Math.sin(angle) * radius)
-          .normalize()
-          .multiplyScalar(1.014);
-        coordinates.push(...point.toArray());
-      } else {
-        coordinates.push(...center.toArray());
-      }
+      coordinates.push(...center.toArray());
     }
     const old = markers.geometry;
     geometries.delete(old);
@@ -662,7 +640,7 @@ export function createGlobe(
     buffer.setAttribute(
       'approximate',
       new Float32BufferAttribute(
-        groups.map((group) => (group.precision === 'country' ? 1 : 0)),
+        groups.map((group) => (group.precision === 'coordinates' ? 0 : 1)),
         1,
       ),
     );

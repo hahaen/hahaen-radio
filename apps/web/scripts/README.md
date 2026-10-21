@@ -10,3 +10,5 @@
 | `generate-audio-fixtures.mjs` | 使用 FFmpeg 生成 `tests/fixtures/audio/` 的自制测试音源 |
 
 操作前提见[字体](../../../docs/frontend/design/fonts.md)、[离线地理](../../../docs/data/offline-geography.md)、[测试音源](../tests/fixtures/audio/README.md)和[资源预算](../../../docs/engineering/resource-budgets.md)。跨应用工具保留在根 [scripts](../../../scripts/README.md)。
+
+`prepare-country-coverage.mjs <geojson>` 生成国家坐标合理性索引；`prepare-regions.mjs <geojson>` 生成省/州别名、内陆位置与范围资源。两者共用 `geography-coverage.mjs`，并校验固定来源摘要，普通构建不联网生成。来源、执行顺序与精度边界见[离线地理](../../../docs/data/offline-geography.md)。

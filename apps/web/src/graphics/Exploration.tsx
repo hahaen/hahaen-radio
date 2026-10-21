@@ -1,4 +1,13 @@
-import { useCallback, useImperativeHandle, useMemo, useRef, useState, type Ref } from 'react';
+import {
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type Ref,
+} from 'react';
+import { regionsVersion, subscribeRegions } from './regions';
 import { useTranslation } from 'react-i18next';
 import type { Genre, StationPreview } from '@haen/contracts';
 import {
@@ -80,7 +89,11 @@ export function Exploration({
     }),
     [close, selection],
   );
-  const groups = useMemo(() => groupStations(stations), [stations]);
+  const regionsReady = useSyncExternalStore(subscribeRegions, regionsVersion);
+  const groups = useMemo(() => {
+    void regionsReady;
+    return groupStations(stations);
+  }, [stations, regionsReady]);
   const group =
     selection?.kind === 'place' ? groups.find((value) => value.id === selection.id) : null;
   const members =
@@ -91,6 +104,9 @@ export function Exploration({
   const countryLocated = groups
     .filter((value) => value.precision === 'country')
     .reduce((count, value) => count + value.stations.length, 0);
+  const regionLocated = groups
+    .filter((value) => value.precision === 'region')
+    .reduce((count, value) => count + value.stations.length, 0);
   const title =
     selection?.kind === 'genre'
       ? t('genre.' + selection.genre)
@@ -98,10 +114,14 @@ export function Exploration({
         ? t('countryPlace', {
             country: countryName(group.stations[0]?.countryCode ?? null, i18n.language),
           })
-        : (group?.stations[0]?.city ??
-          (group?.stations[0]?.nearbyCity
-            ? t('nearby', { city: group.stations[0].nearbyCity })
-            : t('coordinatePlace')));
+        : group?.precision === 'region'
+          ? t('regionPlace', {
+              region: i18n.language === 'en' ? group.regionNameEn : group.regionName,
+            })
+          : (group?.stations[0]?.city ??
+            (group?.stations[0]?.nearbyCity
+              ? t('nearby', { city: group.stations[0].nearbyCity })
+              : t('coordinatePlace')));
   const pageOffset = Math.min(offset, Math.max(0, Math.floor((members.length - 1) / 12) * 12));
   const choosePlace = (value: StationGroup, reason: PickReason) => {
     if (reason === 'dwell' && pinned) return;
@@ -140,6 +160,9 @@ export function Exploration({
             <span>{t('locatedCount', { located, total: stations.length })}</span>
             {countryLocated > 0 && (
               <span> · {t('countryLocatedCount', { count: countryLocated })}</span>
+            )}
+            {regionLocated > 0 && (
+              <span> · {t('regionLocatedCount', { count: regionLocated })}</span>
             )}
             {located < stations.length && (
               <button onClick={onSearch}>
@@ -196,6 +219,7 @@ export function Exploration({
           <section className={styles.groupList} aria-label={title}>
             <p>{t('placeStationCount', { count: members.length })}</p>
             {group?.precision === 'country' && <p>{t('countryMapHint')}</p>}
+            {group?.precision === 'region' && <p>{t('regionMapHint')}</p>}
             {members.length === 0 ? (
               <p>{t('placeEmpty')}</p>
             ) : (
@@ -239,11 +263,13 @@ export function Exploration({
                 }}
               >
                 {t(
-                  group.precision === 'country'
-                    ? 'nextCountryStation'
-                    : group.stations[0]?.city
-                      ? 'nextCityStation'
-                      : 'nextNearbyStation',
+                  group.precision === 'region'
+                    ? 'nextRegionStation'
+                    : group.precision === 'country'
+                      ? 'nextCountryStation'
+                      : group.stations[0]?.city
+                        ? 'nextCityStation'
+                        : 'nextNearbyStation',
                 )}
               </button>
             )}

@@ -1,4 +1,4 @@
-import type { LandData } from './land';
+import type { LandData } from './land.js';
 
 export const LAND_MASK_WIDTH = 1024;
 export const LAND_MASK_HEIGHT = 512;

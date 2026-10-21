@@ -51,3 +51,18 @@ node apps/web/scripts/prepare-land.mjs /absolute/path/ne_110m_land.geojson
 脚本核对固定版本的 SHA-256，再校验多边形和坐标，只输出到上述固定目录。点阵通过大陆包含关系生成并排除孔洞，不使用随机地理形状。`land.json` 保留确定的紧凑序列化以核对摘要，因此只针对该生成文件排除格式化；生成脚本继续接受 Lint 与格式检查。
 
 实际执行结果与待验收范围见[地理数据归档](../iterations/2026-10-17-offline-geography/README.md)。返回[数据导航](README.md)。
+
+## 坐标范围与省/州级展示
+
+`country-coverage.json` 从同一固定国家 GeoJSON 生成半度陆地网格；`public/geography/regions.json` 从固定版本的 Natural Earth 10m 一级行政区生成 4,584 个行政区的别名、安全内陆三角形和四分之一度范围索引，摘要与许可见相邻的 `regions-source.json`。网格包含边界与小岛，查询容忍相邻一格，只用来拒绝明显矛盾；近似点直接在原始行政区的内部三角形取样。
+
+在根目录按已核对的来源清单下载原始输入，再运行：
+
+```sh
+node apps/web/scripts/prepare-country-coverage.mjs /absolute/path/ne_10m_admin_0_map_units.geojson
+node apps/web/scripts/prepare-regions.mjs /absolute/path/ne_10m_admin_1_states_provinces.geojson
+```
+
+脚本校验固定 SHA-256；国家资源脚本写入 `countries-source.json` 的校验摘要，应在 `prepare-countries.mjs` 之后运行。行政区生成文件保持紧凑序列化，普通构建与浏览不访问外部数据源。新行政区静态资源单独限制原始体积不超过 1MiB。
+
+来源坐标与国家或已匹配省/州明显矛盾时，地图降为最具体的已知行政区位置；原始 API、坐标、时区与缓存不修改。已知省/州的空心点按 ID 在相应安全三角形取样，并按省/州分组。匹配仅在所属国家内使用确切名称、别名或标准代码；存在歧义或地区字段缺失时保留国家级位置，不从台名或语言猜测。完整范围与边界验证见[地理位置修复](../iterations/2026-10-21-geographic-position/README.md)。

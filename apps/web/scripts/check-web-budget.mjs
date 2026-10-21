@@ -33,6 +33,8 @@ if (entry.length !== 1) throw new Error('Expected one application entry bundle')
 for (const file of [
   'geography/land.json',
   'geography/world.svg',
+  'geography/regions.json',
+  'geography/regions-source.json',
   'fonts/noto-sans-sc-ui.woff2',
   'fonts/noto-serif-sc-ui.woff2',
   'fonts/ibm-plex-mono-ui.woff2',
@@ -49,6 +51,11 @@ const checks = [
   {
     name: 'geographyRaw',
     actual: sum(/^geography\/(land\.json|world\.svg)$/, 'bytes'),
+    limit: 1024 * 1024,
+  },
+  {
+    name: 'regionalGeographyRaw',
+    actual: sum(/^geography\/regions\.json$/, 'bytes'),
     limit: 1024 * 1024,
   },
 ];
