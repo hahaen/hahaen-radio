@@ -28,3 +28,5 @@
 磨砂界面、夜航动效与沉浸收听调整见[任务记录](../iterations/2026-10-21-search-surface/README.md)。
 
 全屏沉浸环境与地图地点说明见[任务记录](../iterations/2026-10-21-immersive-environments/README.md)。
+
+沉浸环境声浪动效见[任务记录](../iterations/2026-10-21-immersive-waves/README.md)。

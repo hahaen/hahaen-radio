@@ -5,6 +5,7 @@ import { glReport, installGLProbe } from '../performance/webgl-probe.js';
 test('runs fullscreen environments on one audio session, settles motion and releases their graphics', async ({
   page,
 }, info) => {
+  test.setTimeout(60000);
   await page.setViewportSize(
     info.project.name === 'mobile-chromium'
       ? { width: 390, height: 844 }
@@ -35,9 +36,9 @@ test('runs fullscreen environments on one audio session, settles motion and rele
   const viewport = page.viewportSize()!;
   const clip = {
     x: viewport.width * 0.2,
-    y: viewport.height * 0.18,
+    y: viewport.height * 0.28,
     width: viewport.width * 0.6,
-    height: viewport.height * 0.2,
+    height: viewport.height * 0.25,
   };
   const before = await page.screenshot({ clip });
   await page.waitForTimeout(500);
@@ -49,6 +50,18 @@ test('runs fullscreen environments on one audio session, settles motion and rele
       'true',
     );
     await expect(page.locator('audio')).toHaveCount(1);
+    await expect(immersive.getByRole('status')).toHaveAttribute('data-state', 'playing');
+    await page.waitForTimeout(750);
+    const activeFrame = await page.screenshot({ clip });
+    await page.waitForTimeout(350);
+    expect(activeFrame.equals(await page.screenshot({ clip }))).toBe(false);
+    await page.getByRole('button', { name: '暂停', exact: true }).click();
+    await expect(immersive.getByRole('status')).toHaveAttribute('data-state', 'paused');
+    await page.waitForTimeout(150);
+    const stillFrame = await page.screenshot({ clip });
+    await page.waitForTimeout(250);
+    expect(stillFrame.equals(await page.screenshot({ clip }))).toBe(true);
+    await page.getByRole('button', { name: '播放', exact: true }).click();
     await expect(immersive.getByRole('status')).toHaveAttribute('data-state', 'playing');
   }
   const simulated = await art.locator('canvas').evaluate((element) => {

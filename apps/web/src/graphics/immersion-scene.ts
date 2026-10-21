@@ -23,6 +23,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
   const uniforms = {
     resolution: { value: new Vector2(1, 1) },
     time: { value: 9 },
+    waveActivity: { value: initial.playing ? 1 : 0 },
     mode: { value: IMMERSION_EFFECTS.indexOf(initial.mode) },
     previousMode: { value: IMMERSION_EFFECTS.indexOf(initial.mode) },
     blend: { value: 1 },
@@ -34,7 +35,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
     depthWrite: false,
     vertexShader: `varying vec2 uvScene; void main(){uvScene=uv;gl_Position=vec4(position.xy,0.0,1.0);}`,
     fragmentShader: `
-      uniform vec2 resolution; uniform float time; uniform int mode; uniform int previousMode; uniform float blend;
+      uniform vec2 resolution; uniform float time; uniform float waveActivity; uniform int mode; uniform int previousMode; uniform float blend;
       varying vec2 uvScene;
       float square(float x){return x*x;}
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -71,8 +72,9 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
       }
       vec3 ocean(vec2 p){
         vec3 col=sky(p)*0.85;
-        float distance=-p.y+0.035;
-        float horizon=exp(-square((p.y-0.035)*14.0))*exp(-p.x*p.x*0.6);
+        float horizonY=resolution.y<500.0?0.30:0.13;
+        float distance=-p.y+horizonY;
+        float horizon=exp(-square((p.y-horizonY)*14.0))*exp(-p.x*p.x*0.6);
         col+=vec3(0.16,0.28,0.23)*horizon*0.75;
         if(distance>0.0){
           vec2 sea=vec2(p.x/(distance+0.14),1.0/(distance+0.14));
@@ -98,10 +100,85 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         return col;
       }
       vec3 environment(int effect,vec2 p){if(effect==1)return ocean(p);if(effect==2)return dunes(p);return aurora(p);}
+      vec3 lightRibbons(vec2 uv){
+        float x=(uv.x-0.5)*2.0;
+        float envelope=exp(-x*x*2.8)*(1.0-smoothstep(0.75,1.0,abs(x)));
+        float baseline=resolution.y<500.0?0.80:0.60;
+        float heightScale=resolution.y<500.0?0.6:1.0;
+        float swell=0.70+0.20*sin(time*1.15)+0.10*sin(time*2.7);
+        vec3 light=vec3(0.0);
+        for(int i=0;i<5;i++){
+          float f=float(i),phase=f*0.48;
+          float carrier=sin(x*13.0-time*2.2+phase)
+            +0.42*sin(x*24.0+time*3.1-phase)
+            +0.18*sin(x*41.0-time*4.0+phase*0.6);
+          float curve=carrier*0.033*swell*envelope*heightScale*waveActivity*(0.72+f*0.12);
+          float distance=uv.y-baseline-curve-(f-2.0)*0.003;
+          float core=exp(-square(distance*resolution.y/1.1));
+          float halo=exp(-abs(distance)*150.0)*0.10;
+          float emphasis=i==2?0.65:0.19;
+          vec3 tint=i==2?vec3(0.65,0.79,0.67):vec3(0.19,0.46,0.33);
+          float glint=pow(max(0.0,cos(x*9.0-time*1.6+phase)),18.0)*waveActivity;
+          light+=tint*(core*(1.0+glint*0.65)+halo)*emphasis*envelope;
+        }
+        return light;
+      }
+      vec3 tidalRings(vec2 uv){
+        float baseline=resolution.y<500.0?0.78:0.56;
+        float horizon=resolution.y<500.0?0.80:0.63;
+        float waterMask=1.0-smoothstep(horizon-0.01,horizon+0.02,uv.y);
+        vec3 light=vec3(0.0);
+        for(int i=0;i<5;i++){
+          float f=float(i),age=fract(time*0.115+f*0.20);
+          vec2 origin=vec2(0.5+0.025*sin(time*0.13+f),baseline);
+          float perspective=max(1.0,resolution.y/resolution.x);
+          float flatten=resolution.y<500.0?16.0:7.5*perspective;
+          vec2 p=(uv-origin)*vec2(2.0,flatten);
+          float r=length(p);
+          float angle=r>0.0001?atan(p.y,p.x):0.0;
+          float wobble=0.006*sin(angle*6.0+time*0.8+f);
+          float radius=0.055+age*0.76+wobble;
+          float feather=max(fwidth(r),0.001);
+          float core=exp(-square((r-radius)/(feather*1.15)));
+          float halo=exp(-abs(r-radius)*90.0)*0.08;
+          float fading=square(1.0-age)*smoothstep(0.0,0.12,age);
+          float reflection=0.55+0.45*noise(p*6.0+vec2(time*0.07,f));
+          vec3 tint=mix(vec3(0.20,0.48,0.36),vec3(0.66,0.77,0.63),1.0-age);
+          light+=tint*(core+halo)*fading*reflection*0.74*waveActivity*waterMask;
+        }
+        return light;
+      }
+      vec3 harmonicRidges(vec2 uv){
+        float x=(uv.x-0.5)*2.0;
+        float baseline=resolution.y<500.0?0.82:0.64;
+        float heightScale=resolution.y<500.0?0.45:1.0;
+        float spacing=resolution.y<500.0?0.006:0.010;
+        float envelope=exp(-x*x*1.7)*(1.0-smoothstep(0.80,1.0,abs(x)));
+        float slope=0.035*sin(x*2.6+0.25*sin(time*0.12))+0.012*sin(x*7.0-time*0.13);
+        vec3 light=vec3(0.0);
+        for(int i=0;i<8;i++){
+          float f=float(i),phase=f*0.45;
+          float resonance=sin(x*8.0-time*0.8+phase)+0.35*sin(x*19.0+time*1.3-phase);
+          float swell=0.75+0.25*sin(time*0.9+x*2.0+phase);
+          float curve=(slope+resonance*(0.007+f*0.0014)*swell*envelope*waveActivity)*heightScale;
+          float distance=uv.y-baseline+f*spacing-curve;
+          float core=exp(-square(distance*resolution.y/0.9));
+          float mistLight=exp(-abs(distance)*100.0)*0.045;
+          float glint=pow(max(0.0,cos(x*6.0+time*0.55-phase)),16.0)*waveActivity;
+          vec3 tint=mix(vec3(0.20,0.43,0.30),vec3(0.66,0.69,0.51),f/7.0);
+          light+=tint*(core*(0.22+glint*0.28)+mistLight)*envelope;
+        }
+        return light;
+      }
+      vec3 soundWaves(int effect,vec2 uv){
+        if(effect==1)return tidalRings(uv);
+        if(effect==2)return harmonicRidges(uv);
+        return lightRibbons(uv);
+      }
       void main(){
         vec2 p=(uvScene-0.5)*vec2(resolution.x/resolution.y,1.0);
-        vec3 col=environment(mode,p);
-        if(blend<1.0)col=mix(environment(previousMode,p),col,smoothstep(0.0,1.0,blend));
+        vec3 col=environment(mode,p)+soundWaves(mode,uvScene);
+        if(blend<1.0)col=mix(environment(previousMode,p)+soundWaves(previousMode,uvScene),col,smoothstep(0.0,1.0,blend));
         float vignette=1.0-smoothstep(0.25,1.0,length((uvScene-0.5)*vec2(0.8,0.9)));
         col*=0.75+0.25*vignette;
         col+=(hash(gl_FragCoord.xy)-0.5)/360.0;
@@ -199,6 +276,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
       }
       const sizing = options.powerSave !== next.powerSave;
       options = next;
+      uniforms.waveActivity.value = next.playing ? 1 : 0;
       lastTime = 0;
       if (sizing) resize();
       invalidate();
