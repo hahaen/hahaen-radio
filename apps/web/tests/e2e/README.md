@@ -51,3 +51,9 @@ genre-atlas-layout.spec.ts 使用 7425 台合成目录验证 11 类流派，在�
 地图说明精简由 visual-refinement.spec.ts 的中英缓存回退用例验证：完整快照仍可浏览，不再自动展开缓存提示，地图中不再出现操作长说明和署名链接；关于面板保留地理署名并移除过时服务指引。empty-states.spec.ts 检查收听清单仅保留电台收藏、最近收听两项；历史歌曲数据的文件兼容由 library.spec.ts 与本地模型测试继续覆盖。双端画面及整体精修见[任务记录](../../../../docs/iterations/2026-10-21-listening-finish/README.md)。
 
 电影感夜航调整由上述布局、浮层、大字模式和 globe-clarity.spec.ts 的完整标记/停绘/省电断言共同覆盖。陆地遮罩的海陆采样、内洞与南极边界由 graphics/land-mask.test.ts 验证，画面见[任务记录](../../../../docs/iterations/2026-10-21-cinematic-night/README.md)。
+
+search-surface.spec.ts 验证单一搜索浮层、五种视口下的导航稳定、输入法组合期间 Escape、清除后保留焦点，以及窄屏错误状态与筛选按钮分离。搜索框位于结果面板内部；visual-polish.spec.ts 继续覆盖清除、关闭与播放器操作。
+
+globe-playback.spec.ts 验证真实播放状态驱动光点动效、暂停/减少动态效果/省电停绘和完整标记。welcome.spec.ts 增加入场有限完成与减少动态效果验证。
+
+map-dismiss.spec.ts 验证拖动或滚轮缩放地球时关闭搜索、收藏、设置、帮助、筛选和地图信息，并保留当前电台与暂停状态。immersive-art.spec.ts 验证唱片、潮汐和山峦的可读布局、无障碍、真实播放状态与同一音频会话。

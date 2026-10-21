@@ -138,10 +138,7 @@ export function App() {
     searchRef.current?.focus();
     const outside = (event: PointerEvent) => {
       const target = event.target as Node;
-      if (
-        !directoryRef.current?.contains(target) &&
-        !searchRef.current?.parentElement?.contains(target)
-      )
+      if (!directoryRef.current?.contains(target) && !searchButtonRef.current?.contains(target))
         setDirectoryOpen(false);
     };
     const escape = (event: KeyboardEvent) => {
@@ -170,6 +167,14 @@ export function App() {
     setInformationOpen(false);
     setSettingsOpen(false);
   }, [player]);
+  const [interactionVersion, setInteractionVersion] = useState(0);
+  const closeForMap = useCallback(() => {
+    setDirectoryOpen(false);
+    setLibraryOpen(false);
+    setInformationOpen(false);
+    setSettingsOpen(false);
+    setInteractionVersion((value) => value + 1);
+  }, []);
   const [languageFailed, setLanguageFailed] = useState(false);
   const exploration = useRef<ExplorationHandle>(null);
   const searchAfterExit = useRef(false);
@@ -515,7 +520,7 @@ export function App() {
                   : t('tagline')}
             </p>
           </div>
-          <div className={styles.headerSearch} data-expanded={directoryOpen}>
+          <div className={styles.headerSearch}>
             <button
               ref={searchButtonRef}
               className={styles.findStation}
@@ -530,39 +535,6 @@ export function App() {
             >
               <Search size={21} aria-hidden="true" />
             </button>
-            {directoryOpen && (
-              <input
-                ref={searchRef}
-                type="search"
-                id="station-search"
-                aria-label={t('search')}
-                placeholder={t('searchPlaceholder')}
-                value={draft}
-                maxLength={200}
-                onChange={(event) => setDraft(event.target.value)}
-                onCompositionStart={() => setComposing(true)}
-                onCompositionEnd={() => setComposing(false)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Escape' && !event.nativeEvent.isComposing) {
-                    event.preventDefault();
-                    setDirectoryOpen(false);
-                    searchButtonRef.current?.focus();
-                  }
-                }}
-              />
-            )}
-            {directoryOpen && draft && (
-              <button
-                className={styles.clearSearch}
-                aria-label={t('clearSearch')}
-                onClick={() => {
-                  setDraft('');
-                  searchRef.current?.focus();
-                }}
-              >
-                <X size={16} aria-hidden="true" />
-              </button>
-            )}
           </div>
           <div className={styles.viewTabs} role="group" aria-label={t('viewMode')}>
             {(['globe', 'genres'] as const).map((view) => (
@@ -669,6 +641,8 @@ export function App() {
           <div className={styles.scene}>
             <Exploration
               ref={exploration}
+              onInteract={closeForMap}
+              interactionVersion={interactionVersion}
               mode={personal.preferences.view}
               visible={!immersive}
               welcome={intro}
@@ -677,6 +651,7 @@ export function App() {
               powerSave={personal.scene.powerSave}
               stations={candidates ?? EMPTY_STATIONS}
               station={state.station}
+              playing={state.playback.status === 'playing'}
               pinned={state.pinned}
               selectionVersion={state.selectionVersion}
               loading={scene.isPending}
@@ -725,14 +700,45 @@ export function App() {
           aria-label={t('explore')}
           onKeyDown={(event) => {
             if (event.key === 'Escape') {
+              event.stopPropagation();
+              if (event.nativeEvent.isComposing || composing) return;
+              event.preventDefault();
               setDirectoryOpen(false);
               searchButtonRef.current?.focus();
             }
           }}
         >
-          <div className={styles.directoryHeading}>
-            <h2>{t('explore')}</h2>
+          <div className={styles.searchHeading}>
+            <h2 className={styles.directoryTitle}>{t('explore')}</h2>
+            <div className={styles.searchField}>
+              <Search size={20} aria-hidden="true" />
+              <input
+                ref={searchRef}
+                type="search"
+                id="station-search"
+                aria-label={t('search')}
+                placeholder={t('searchPlaceholder')}
+                value={draft}
+                maxLength={200}
+                onChange={(event) => setDraft(event.target.value)}
+                onCompositionStart={() => setComposing(true)}
+                onCompositionEnd={() => setComposing(false)}
+              />
+              {draft && (
+                <button
+                  className={styles.clearSearch}
+                  aria-label={t('clearSearch')}
+                  onClick={() => {
+                    setDraft('');
+                    searchRef.current?.focus();
+                  }}
+                >
+                  <X size={16} aria-hidden="true" />
+                </button>
+              )}
+            </div>
             <button
+              className={styles.closeSearch}
               onClick={() => {
                 setDirectoryOpen(false);
                 searchButtonRef.current?.focus();
@@ -743,27 +749,38 @@ export function App() {
             </button>
           </div>
           <section className={styles.directory} aria-label={t('stationList')}>
-            <Filters value={personal.filters} manifest={sceneManifest} onChange={changeFilters} />
-            <div className={styles.directoryState} aria-live="polite" data-testid="directory-state">
-              {stations.isPending ? (
-                t('directoryLoading')
-              ) : stations.isError ? (
-                <>
-                  <p>{t('directoryError')}</p>
-                  <button
-                    className={styles.textButton}
-                    onClick={() => {
-                      void stations.refetch();
-                    }}
-                  >
-                    {t('retry')}
-                  </button>
-                </>
-              ) : stations.data ? (
-                t('directoryCount', { count: stations.data.total })
-              ) : (
-                t('directoryLoading')
-              )}
+            <div className={styles.directoryTools} data-error={stations.isError}>
+              <div
+                className={styles.directoryState}
+                aria-live="polite"
+                data-testid="directory-state"
+              >
+                {stations.isPending ? (
+                  t('directoryLoading')
+                ) : stations.isError ? (
+                  <>
+                    <p>{t('directoryError')}</p>
+                    <button
+                      className={styles.textButton}
+                      onClick={() => {
+                        void stations.refetch();
+                      }}
+                    >
+                      {t('retry')}
+                    </button>
+                  </>
+                ) : stations.data ? (
+                  t('directoryCount', { count: stations.data.total })
+                ) : (
+                  t('directoryLoading')
+                )}
+              </div>
+              <Filters
+                compact
+                value={personal.filters}
+                manifest={sceneManifest}
+                onChange={changeFilters}
+              />
             </div>
             {!stations.isPending &&
               !stations.isError &&
@@ -812,10 +829,14 @@ export function App() {
                     </span>
                     <span className={styles.stationText}>
                       <span className={styles.stationName}>{station.name}</span>{' '}
-                      <span className={styles.stationLocation}>{location(station)}</span>
-                    </span>{' '}
-                    <span className={styles.stationKind}>{t('genre.' + station.genre)}</span>
-                    <Play size={18} aria-hidden="true" />
+                      <span className={styles.stationMeta}>
+                        <span className={styles.stationLocation}>{location(station)}</span>{' '}
+                        <span className={styles.stationKind}>{t('genre.' + station.genre)}</span>
+                      </span>
+                    </span>
+                    <span className={styles.stationPlay} aria-hidden="true">
+                      <Play size={16} />
+                    </span>
                   </button>
                 </li>
               ))}
@@ -887,6 +908,7 @@ export function App() {
         />
       )}
       <GenreBar
+        interactionVersion={interactionVersion}
         value={personal.filters}
         stations={genreStations}
         manifest={sceneManifest}

@@ -7,12 +7,14 @@ import type { ListeningFilters } from '../library/model';
 import styles from './App.module.css';
 
 export function GenreBar({
+  interactionVersion = 0,
   value,
   stations,
   manifest,
   onChange,
   hidden,
 }: {
+  interactionVersion?: number;
   value: ListeningFilters;
   stations: readonly StationPreview[];
   manifest: CatalogManifest | undefined;
@@ -20,16 +22,17 @@ export function GenreBar({
   hidden: boolean;
 }) {
   const { t, i18n } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [openedAt, setOpenedAt] = useState<number | null>(null);
+  const open = openedAt === interactionVersion;
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false);
+      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpenedAt(null);
     };
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && !event.isComposing) {
-        setOpen(false);
+        setOpenedAt(null);
         root.current?.querySelector<HTMLButtonElement>('button[aria-expanded]')?.focus();
       }
     };
@@ -52,7 +55,7 @@ export function GenreBar({
             <button
               aria-label={t('closePanel')}
               onClick={() => {
-                setOpen(false);
+                setOpenedAt(null);
                 root.current
                   ?.querySelector<HTMLButtonElement>('button[aria-expanded]')
                   ?.focus({ preventScroll: true });
@@ -68,7 +71,7 @@ export function GenreBar({
         <button
           onClick={(event) => {
             event.currentTarget.focus({ preventScroll: true });
-            setOpen(!open);
+            setOpenedAt(open ? null : interactionVersion);
           }}
           aria-expanded={open}
         >

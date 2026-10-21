@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import { GenreSchema, type CatalogManifest } from '@haen/contracts';
 import { useTranslation } from 'react-i18next';
 import { LanguageChoices } from './LanguageChoices';
@@ -9,10 +10,12 @@ export function Filters({
   value,
   manifest,
   expanded = false,
+  compact = false,
   onChange,
 }: {
   value: ListeningFilters;
   expanded?: boolean;
+  compact?: boolean;
   manifest: CatalogManifest | undefined;
   onChange(value: ListeningFilters): void;
 }) {
@@ -26,13 +29,18 @@ export function Filters({
     (value.favoritesOnly ? 1 : 0);
   return (
     <details
-      className={styles.filters}
+      className={`${styles.filters} ${compact ? styles.compactFilters : ''}`}
       open={open}
       onToggle={(event) => setOpen(event.currentTarget.open)}
     >
       <summary>
+        {compact && <SlidersHorizontal size={14} aria-hidden="true" />}
         {t('filters')}
-        {active > 0 && <span>{t('activeFilterCount', { count: active })}</span>}
+        {active > 0 && (
+          <span aria-label={t('activeFilterCount', { count: active })}>
+            {compact ? active : t('activeFilterCount', { count: active })}
+          </span>
+        )}
       </summary>
       <fieldset>
         <legend>{t('filterGenres')}</legend>

@@ -4,28 +4,31 @@ import { useTranslation } from 'react-i18next';
 import styles from './exploration.module.css';
 
 export function MapNotes({
+  interactionVersion = 0,
   preview,
   attention = false,
   children,
 }: {
+  interactionVersion?: number;
   preview?: ReactNode;
   attention?: boolean;
   children: ReactNode;
 }) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
+  const [openedAt, setOpenedAt] = useState<number | null>(null);
+  const open = openedAt === interactionVersion;
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const expanded = attention || open;
   const close = () => {
-    setOpen(false);
+    setOpenedAt(null);
     trigger.current?.focus({ preventScroll: true });
   };
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false);
+      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpenedAt(null);
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
@@ -52,7 +55,7 @@ export function MapNotes({
           aria-controls={id}
           aria-expanded={expanded}
           disabled={attention}
-          onClick={() => setOpen(!open)}
+          onClick={() => setOpenedAt(open ? null : interactionVersion)}
         >
           <Info size={18} aria-hidden="true" />
         </button>

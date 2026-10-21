@@ -10,7 +10,12 @@
   --color-on-accent: #172d2a;
   --color-border: rgb(245 241 232 / 12%);
   --color-selected-bg: rgb(245 241 232 / 8%);
-  --color-panel: rgb(10 23 19 / 95%);
+  --color-panel: rgb(11 35 28 / 70%);
+  --panel-sheen: linear-gradient(135deg, rgb(245 241 232 / 4%), transparent 65%);
+  --panel-border: rgb(245 241 232 / 18%);
+  --panel-backdrop: blur(28px) saturate(125%);
+  --color-control-glass: rgb(20 43 35 / 42%);
+  --control-backdrop: blur(14px) saturate(120%);
   --panel-padding: 24px;
   --panel-title: 500 20px / 1.5 var(--font-body);
   --panel-body-size: 14px;
@@ -126,4 +131,11 @@ a {
 }
 [data-genre='folk'] {
   --genre-color: #a6bd91;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  :root {
+    --color-panel: rgb(11 35 28 / 96%);
+    --color-control-glass: rgb(20 43 35 / 94%);
+  }
 }

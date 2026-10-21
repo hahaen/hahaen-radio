@@ -9,9 +9,12 @@ import { mapPosition, countryName } from './location';
 import styles from './exploration.module.css';
 import { MapNotes } from './MapNotes';
 export function GlobePanel({
+  onInteract,
+  interactionVersion = 0,
   groups,
   details,
   station,
+  playing = false,
   pinned,
   selectionVersion,
   active,
@@ -21,9 +24,12 @@ export function GlobePanel({
   expandedId = null,
   attention = false,
 }: {
+  onInteract?(): void;
+  interactionVersion?: number;
   groups: StationGroup[];
   details: ReactNode;
   station: StationPreview | null;
+  playing?: boolean;
   pinned: boolean;
   selectionVersion: number;
   active: boolean;
@@ -36,12 +42,15 @@ export function GlobePanel({
   const { t, i18n } = useTranslation();
   const host = useRef<HTMLDivElement>(null),
     engine = useRef<GlobeController | null>(null);
+  const selectionLabel = useRef<HTMLDivElement>(null);
   const latest = useRef({
     groups,
     station,
+    playing,
     pinned,
     active,
     onPick,
+    onInteract,
     powerSave,
     expandedId,
     label: t('globeCanvas'),
@@ -61,14 +70,16 @@ export function GlobePanel({
     latest.current = {
       groups,
       station,
+      playing,
       pinned,
       active,
       onPick,
+      onInteract,
       powerSave,
       expandedId,
       label: t('globeCanvas'),
     };
-  }, [groups, station, pinned, active, onPick, powerSave, expandedId, t]);
+  }, [groups, station, playing, pinned, active, onPick, onInteract, powerSave, expandedId, t]);
   useEffect(() => {
     const container = host.current;
     if (!container) return;
@@ -78,7 +89,9 @@ export function GlobePanel({
       .then(([module, land]) => {
         if (controller.signal.aborted) return;
         instance = module.createGlobe(container, land, {
+          interact: () => latest.current.onInteract?.(),
           label: latest.current.label,
+          selectionLabel: selectionLabel.current,
           pick: (group, reason) => latest.current.onPick(group, reason),
           preview: setPreview,
           lost: () => setState('lost'),
@@ -93,6 +106,7 @@ export function GlobePanel({
         instance.setData(value.groups);
         instance.setSelection(value.station);
         instance.setPinned(value.pinned);
+        instance.setPlaying(value.playing);
         instance.setActive(value.active);
         instance.setPowerSave(value.powerSave);
         instance.setExpanded(value.expandedId);
@@ -123,6 +137,9 @@ export function GlobePanel({
     engine.current?.setSelection(station);
   }, [station]);
   useEffect(() => {
+    engine.current?.setPlaying(playing);
+  }, [playing]);
+  useEffect(() => {
     engine.current?.setPinned(pinned);
   }, [pinned]);
   useEffect(() => {
@@ -150,6 +167,27 @@ export function GlobePanel({
           aria-hidden={state !== 'ready'}
           inert={state !== 'ready'}
         />
+        <div
+          ref={selectionLabel}
+          className={styles.selectionLabel}
+          aria-hidden="true"
+          data-testid="selected-station-label"
+        >
+          {station && (
+            <div className={styles.selectionCopy}>
+              <span className={styles.selectionCaption}>
+                {pinned ? t('selectionPinned') : t('selectedStation')}
+                <span>
+                  {t('genre.' + station.genre)}
+                  {station.bitrate !== null && station.bitrate > 0
+                    ? ` · ${station.bitrate} kbps`
+                    : ''}
+                </span>
+              </span>
+              <strong>{station.name}</strong>
+            </div>
+          )}
+        </div>
         {state === 'ready' ? (
           <span className={styles.reticle} aria-hidden="true" />
         ) : (
@@ -179,6 +217,7 @@ export function GlobePanel({
         )}
       </div>
       <MapNotes
+        interactionVersion={interactionVersion}
         attention={attention}
         preview={
           <div className={styles.preview}>

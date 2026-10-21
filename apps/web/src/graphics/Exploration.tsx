@@ -19,8 +19,11 @@ export interface ExplorationHandle {
   close(): void;
 }
 export function Exploration({
+  onInteract,
+  interactionVersion = 0,
   stations,
   station,
+  playing = false,
   pinned,
   selectionVersion,
   loading,
@@ -36,8 +39,11 @@ export function Exploration({
   powerSave = false,
   ref,
 }: {
+  onInteract?(): void;
+  interactionVersion?: number;
   stations: StationPreview[];
   station: StationPreview | null;
+  playing?: boolean;
   pinned: boolean;
   selectionVersion: number;
   loading: boolean;
@@ -153,19 +159,29 @@ export function Exploration({
       aria-label={t('exploration')}
     >
       <GlobePanel
+        interactionVersion={interactionVersion}
+        onInteract={() => {
+          setSelection(null);
+          onInteract?.();
+        }}
         attention={loading || error}
         details={dataNote}
         groups={groups}
         expandedId={selection?.kind === 'place' ? selection.id : null}
         powerSave={powerSave}
         station={station}
+        playing={playing}
         pinned={pinned}
         selectionVersion={selectionVersion}
         active={mode === 'globe' && visible}
         showHints={showHints}
         onPick={choosePlace}
       />
-      {mode === 'genres' && <MapNotes attention={loading || error}>{dataNote}</MapNotes>}
+      {mode === 'genres' && (
+        <MapNotes interactionVersion={interactionVersion} attention={loading || error}>
+          {dataNote}
+        </MapNotes>
+      )}
       {mode === 'genres' && (
         <GenreAtlas
           stations={stations}

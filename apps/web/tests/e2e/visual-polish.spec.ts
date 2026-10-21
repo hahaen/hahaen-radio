@@ -25,7 +25,10 @@ for (const [width, height] of [
     await expect(
       page.locator('#station-directory').getByRole('button', { name: /收听 River/ }),
     ).toBeVisible();
-    await page.locator('header').getByRole('button', { name: '清除搜索', exact: true }).click();
+    await page
+      .locator('#station-directory')
+      .getByRole('button', { name: '清除搜索', exact: true })
+      .click();
     await expect(page.getByRole('searchbox')).toBeFocused();
     await expect(page.getByRole('searchbox')).toHaveValue('');
     await page.getByRole('searchbox').press('Escape');

@@ -30,7 +30,9 @@ export function ListeningArt({
     >
       {mode === 'record' ? (
         <div className={styles.record}>
-          <span>HAEN</span>
+          <span>
+            <b>HAEN</b>
+          </span>
         </div>
       ) : mode === 'orb' ? (
         <div className={styles.orb}>

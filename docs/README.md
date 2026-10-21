@@ -314,3 +314,5 @@ docs/
 地球亮度与清晰度优化见[任务记录](iterations/2026-10-21-globe-clarity/README.md)。
 
 地球与流派美化见[任务记录](iterations/2026-10-21-globe-and-genre-polish/README.md)。
+
+磨砂界面、夜航动效与沉浸收听调整见[任务记录](iterations/2026-10-21-search-surface/README.md)。

@@ -2,6 +2,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  CircleGeometry,
   DataTexture,
   LinearFilter,
   RedFormat,
@@ -40,6 +41,7 @@ export interface GlobeController {
   setData(groups: StationGroup[]): void;
   setSelection(station: StationPreview | null): void;
   setPinned(pinned: boolean): void;
+  setPlaying(playing: boolean): void;
   setActive(active: boolean): void;
   setPowerSave(value: boolean): void;
   setExpanded(id: string | null): void;
@@ -52,7 +54,9 @@ export function createGlobe(
   container: HTMLElement,
   land: LandData,
   callbacks: {
+    interact?(): void;
     label: string;
+    selectionLabel?: HTMLElement | null;
     pick(group: StationGroup, reason: PickReason): void;
     preview(group: StationGroup | null): void;
     lost(): void;
@@ -96,6 +100,7 @@ export function createGlobe(
     active = true,
     lost = false,
     pinned = false,
+    playing = false,
     dragging = false,
     allowDwell = false;
   let positions = new Float32Array();
@@ -131,7 +136,7 @@ export function createGlobe(
           ocean: { value: new Color(0x091b18) },
           shadow: { value: new Color(0x020807) },
           atmosphere: { value: new Color(0x8abfb4) },
-          continental: { value: new Color(0x2b463a) },
+          continental: { value: new Color(0x203c31) },
           landMask: { value: landMask },
         },
         vertexShader: `
@@ -177,6 +182,7 @@ export function createGlobe(
           pointSize: { value: size },
           opacity: { value: opacity },
           time: { value: 0 },
+          playing: { value: 0 },
           glow: { value: glow ? 1 : 0 },
           zoom: { value: 1 },
         },
@@ -192,28 +198,30 @@ export function createGlobe(
             vFacing=max(0.0,dot(viewNormal,normalize(-viewPosition.xyz)));
             vLight=smoothstep(-0.3,0.9,dot(viewNormal,normalize(vec3(-0.75,0.65,0.7))));
             vSeed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
-            vPulse=0.65+0.35*sin(time*(0.65+vSeed*0.6)+vSeed*62.8);
+            vPulse=0.5+0.5*sin(time*(0.6+vSeed*0.5)+vSeed*62.8);
             vDensity=sqrt(clamp(crowding/(zoom*zoom),0.0,1.0))*(1.0-emphasis);
-            gl_PointSize=pointSize*mix(1.0,0.66,approximate)*mix(1.0,0.45,vDensity)
+            gl_PointSize=pointSize*mix(1.0,0.66,approximate)*mix(1.0,0.62,vDensity)
+              *mix(1.0,0.80+vSeed*0.40,glow)
               *(1.0+glow*vPulse*0.10+emphasis*0.35);
             gl_Position=projectionMatrix*viewPosition;
           }`,
         fragmentShader: `
-          uniform float opacity; uniform float glow;
+          uniform float opacity; uniform float glow; uniform float playing;
           varying float vApproximate; varying vec3 vColor; varying float vPulse; varying float vFacing;
           varying float vDensity; varying float vEmphasis; varying float vSeed; varying float vLight;
           void main() {
             float d=length(gl_PointCoord-0.5); if(d>0.5)discard;
             float dotAlpha=1.0-smoothstep(0.32,0.5,d);
-            float core=1.0-smoothstep(0.06,0.26,d);
-            float halo=exp(-d*d*28.0)*(0.16+0.06*vPulse);
+            float core=1.0-smoothstep(0.08,0.24,d);
+            float halo=exp(-d*d*36.0)*(0.11+0.04*vPulse);
             float hollow=smoothstep(0.10,0.20,d)*(1.0-smoothstep(0.32,0.48,d));
             float stationAlpha=mix(min(1.0,core+halo),hollow,vApproximate);
             float precisionAlpha=mix(1.0,0.30,vApproximate);
-            float densityAlpha=mix(1.0,0.18,vDensity);
+            float densityAlpha=mix(1.0,0.38,vDensity);
             float facing=mix(0.20,1.0,smoothstep(0.0,0.65,vFacing));
-            float alpha=opacity*facing*mix(dotAlpha,stationAlpha*precisionAlpha*densityAlpha*(0.76+vSeed*0.24),glow);
-            vec3 tint=mix(vColor,vec3(1.0,0.92,0.77),vEmphasis*core*0.68);
+            float alpha=opacity*facing*mix(dotAlpha,stationAlpha*precisionAlpha*densityAlpha*(0.60+vSeed*0.40),glow);
+            alpha*=mix(1.0,0.72+0.28*vPulse,glow*playing);
+            vec3 tint=mix(vColor,vec3(1.0,0.94,0.83),core*(0.38+vEmphasis*0.30));
             tint*=mix(0.58+0.42*vLight,1.0,glow);
             gl_FragColor=vec4(tint,alpha);
             #include <colorspace_fragment>
@@ -246,7 +254,7 @@ export function createGlobe(
     buffer.setAttribute('emphasis', new BufferAttribute(new Float32Array(coordinates.length), 1));
     return new Points(buffer, pointShader(size, opacity));
   }
-  const mainland = makePoints(land.points, 1.2, 0.06, 0xc0d4c8);
+  const mainland = makePoints(land.points, 1.2, 0.018, 0xc0d4c8);
   const oceanCoordinates: number[][] = [];
   for (let latitude = -88; latitude <= 88; latitude += 1.8) {
     const count = Math.max(3, Math.round(200 * Math.cos((latitude * Math.PI) / 180)));
@@ -295,28 +303,85 @@ export function createGlobe(
   earth.add(rim);
   const markers = new Points(geometry(new BufferGeometry()), pointShader(5.2, 0.94, true));
   earth.add(markers);
-  const selection = new Mesh(
-    geometry(new RingGeometry(0.03, 0.034, 64)),
-    material(new MeshBasicMaterial({ color: 0xf36b45, transparent: true, opacity: 0.9 })),
-  );
-  const selectionGlow = new Mesh(
-    geometry(new PlaneGeometry(0.16, 0.16)),
+  const selection = new Group();
+  const selectionRing = new Mesh(
+    geometry(new RingGeometry(0.035, 0.0365, 96)),
     material(
-      new ShaderMaterial({
-        uniforms: { tint: { value: new Color(0xf36b45) } },
+      new MeshBasicMaterial({
+        color: 0xf5f1e8,
         transparent: true,
+        opacity: 0.9,
         depthWrite: false,
-        vertexShader: `varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-        fragmentShader: `uniform vec3 tint; varying vec2 vUv;
-        void main(){float r=length(vUv-0.5)*2.0;
-          float alpha=exp(-r*r*6.0)*0.22*(1.0-smoothstep(0.65,1.0,r));
-          gl_FragColor=vec4(tint,alpha);
-          #include <colorspace_fragment>
-        }`,
+        depthTest: false,
       }),
     ),
   );
-  selection.add(selectionGlow);
+  const tickVertices: number[] = [];
+  for (let index = 0; index < 48; index++) {
+    const angle = (index * Math.PI) / 24;
+    const outer = index % 4 === 0 ? 0.052 : 0.048;
+    tickVertices.push(
+      Math.cos(angle) * 0.043,
+      Math.sin(angle) * 0.043,
+      0,
+      Math.cos(angle) * outer,
+      Math.sin(angle) * outer,
+      0,
+    );
+  }
+  const selectionTicks = new LineSegments(
+    geometry(
+      new BufferGeometry().setAttribute('position', new Float32BufferAttribute(tickVertices, 3)),
+    ),
+    material(
+      new LineBasicMaterial({
+        color: 0xf5f1e8,
+        transparent: true,
+        opacity: 0.35,
+        depthWrite: false,
+        depthTest: false,
+      }),
+    ),
+  );
+  const selectedLight = material(
+    new ShaderMaterial({
+      uniforms: {
+        warm: { value: new Color(0xfff2ce) },
+        amber: { value: new Color(0xf36b45) },
+        intensity: { value: 1 },
+      },
+      transparent: true,
+      depthWrite: false,
+      depthTest: false,
+      vertexShader:
+        'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+      fragmentShader: `uniform vec3 warm; uniform vec3 amber; uniform float intensity; varying vec2 vUv;
+      void main(){float r=length(vUv-0.5)*2.0;
+        float core=exp(-r*r*110.0); float inner=exp(-r*r*25.0); float haze=exp(-r*r*5.0);
+        float alpha=min(1.0,core*0.98+inner*0.45+haze*0.16)*intensity*(1.0-smoothstep(0.7,1.0,r));
+        gl_FragColor=vec4(mix(amber,warm,exp(-r*r*36.0)),alpha);
+        #include <colorspace_fragment>
+      }`,
+    }),
+  );
+  const selectionGlow = new Mesh(geometry(new PlaneGeometry(0.2, 0.2)), selectedLight);
+  const selectionDot = new Mesh(
+    geometry(new CircleGeometry(0.006, 24)),
+    material(
+      new MeshBasicMaterial({
+        color: 0xf36b45,
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+      }),
+    ),
+  );
+  selectionDot.position.set(0.027, 0.027, 0.002);
+  selectionGlow.renderOrder = 10;
+  selectionTicks.renderOrder = 11;
+  selectionRing.renderOrder = 12;
+  selectionDot.renderOrder = 13;
+  selection.add(selectionGlow, selectionTicks, selectionRing, selectionDot);
   selection.visible = false;
   earth.add(selection);
   const ray = new Raycaster(),
@@ -390,6 +455,7 @@ export function createGlobe(
     armDwell();
   }
   const started = () => {
+    callbacks.interact?.();
     dragging = true;
     allowDwell = true;
     transition = undefined;
@@ -425,15 +491,50 @@ export function createGlobe(
       camera.lookAt(0, 0, 0);
       if (t === 1) transition = undefined;
     }
-    markers.material.uniforms.time!.value = reduced || powerSave ? 0 : now / 1000;
+    const animated = playing && !reduced && !powerSave;
+    markers.material.uniforms.time!.value = animated ? now / 1000 : 0;
+    markers.material.uniforms.playing!.value = animated ? 1 : 0;
     const moving = controls.update();
     updateMarkerSize();
+    camera.updateMatrixWorld();
+    updateSelectionAppearance(animated ? now / 1000 : null);
     renderer.render(scene, camera);
-    if (moving || transition || (!reduced && !powerSave && groups.length > 0)) invalidate();
+    if (moving || transition || (playing && !reduced && !powerSave && groups.length > 0))
+      invalidate();
+  }
+  function updateSelectionAppearance(time: number | null) {
+    const label = callbacks.selectionLabel;
+    if (!selection.visible) {
+      if (label) label.dataset.visible = 'false';
+      return;
+    }
+    const front = selection.position.dot(camera.position) > 1.04;
+    for (const child of selection.children) child.visible = front;
+    const pulse = time === null ? 1 : 0.5 + 0.5 * Math.sin(time * 1.8);
+    selectedLight.uniforms.intensity!.value = 0.72 + pulse * 0.28;
+    selectionRing.material.opacity = 0.78 + pulse * 0.2;
+    selectionTicks.material.opacity = 0.24 + pulse * 0.14;
+    const pixel =
+      (2 *
+        camera.position.distanceTo(selection.position) *
+        Math.tan((camera.fov * Math.PI) / 360)) /
+      height;
+    selection.scale.setScalar(((width < 768 ? 28 : 40) * pixel) / 0.052);
+    selection.lookAt(camera.position);
+    if (label) {
+      projected.copy(selection.position).project(camera);
+      const x = ((projected.x + 1) * width) / 2,
+        y = ((1 - projected.y) * height) / 2;
+      const visible =
+        front && projected.z < 1 && x > 20 && x < width - 20 && y > 32 && y < height - 32;
+      label.dataset.visible = String(visible);
+      label.dataset.side = x + (width < 768 ? 168 : 256) > width ? 'left' : 'right';
+      label.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    }
   }
   function updateMarkerSize() {
     const zoom = Math.min(1.7, 3.8 / camera.position.length());
-    const size = 5.2 * Math.min(1, Math.min(width, height) / 600) * zoom;
+    const size = 6.4 * Math.min(1, Math.min(width, height) / 600) * zoom;
     markers.material.uniforms.zoom!.value = zoom;
     markers.material.uniforms.pointSize!.value = Math.max(1.8, size) * renderer.getPixelRatio();
   }
@@ -508,8 +609,6 @@ export function createGlobe(
           .multiplyScalar(1.018);
       else
         selection.position.fromArray(globePosition(position.latitude, position.longitude, 1.018));
-      selection.scale.setScalar(position.precision === 'country' ? 1.4 : 1);
-      selection.lookAt(selection.position.clone().multiplyScalar(2));
     }
     invalidate();
   }
@@ -621,6 +720,10 @@ export function createGlobe(
       selected = station;
       updateSelection();
     },
+    setPlaying(value) {
+      playing = value;
+      invalidate();
+    },
     setPinned(value) {
       pinned = value;
       allowDwell = false;
@@ -695,6 +798,7 @@ export function createGlobe(
       sourceGroups = [];
       markerIndices.clear();
       selected = null;
+      if (callbacks.selectionLabel) callbacks.selectionLabel.dataset.visible = 'false';
     },
   };
   listen(canvas, 'pointerdown', (event) => {
@@ -777,6 +881,7 @@ export function createGlobe(
         handled = false;
     }
     if (!handled) return;
+    callbacks.interact?.();
     e.preventDefault();
     e.stopPropagation();
     if (e.key.startsWith('Arrow')) {

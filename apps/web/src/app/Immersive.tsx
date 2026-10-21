@@ -36,38 +36,54 @@ export function Immersive({
   }, []);
   return (
     <main className={styles.immersive} aria-label={t('immersiveListening')}>
-      <button ref={exit} className={styles.exit} onClick={onExit}>
-        <ArrowLeft size={20} aria-hidden="true" />
-        {t('exitImmersive')}
-      </button>
-      <ListeningArt
-        effect={effect}
-        genre={station?.genre}
-        playing={playbackState === 'playing'}
-        powerSave={powerSave}
-      />
-      <h1>{station?.name ?? t('tagline')}</h1>
-      <p className={styles.location}>{location}</p>
-      <p role="status" data-state={playbackState}>
-        {status}
-      </p>
-      {station && (
-        <button
-          className={styles.favorite}
-          aria-pressed={favorite}
-          aria-label={[
-            favorite ? t('favorited') : '',
-            t(favorite ? 'unfavoriteStation' : 'favoriteStation', { name: station.name }),
-          ]
-            .filter(Boolean)
-            .join(' ')}
-          onClick={onFavorite}
-        >
-          <Star size={20} fill={favorite ? 'currentColor' : 'none'} aria-hidden="true" />
-          {t(favorite ? 'favorited' : 'favorite')}
+      <header className={styles.immersiveHeader}>
+        <button ref={exit} className={styles.exit} onClick={onExit}>
+          <ArrowLeft size={18} aria-hidden="true" />
+          {t('exitImmersive')}
         </button>
-      )}
-      {track && <div className={styles.trackSummary}>{track}</div>}
+        <span className={styles.immersiveBrand} aria-hidden="true">
+          HAEN
+        </span>
+      </header>
+      <div className={styles.listeningStage}>
+        <ListeningArt
+          effect={effect}
+          genre={station?.genre}
+          playing={playbackState === 'playing'}
+          powerSave={powerSave}
+        />
+        <div className={styles.listeningCopy}>
+          <p className={styles.listeningStatus} role="status" data-state={playbackState}>
+            <i aria-hidden="true" />
+            {status}
+          </p>
+          <h1>{station?.name ?? t('tagline')}</h1>
+          <p className={styles.location}>{location}</p>
+          {station && (
+            <p className={styles.listeningMeta}>
+              {t('genre.' + station.genre)}
+              {station.bitrate !== null && station.bitrate > 0 ? ` · ${station.bitrate} kbps` : ''}
+            </p>
+          )}
+          {station && (
+            <button
+              className={styles.favorite}
+              aria-pressed={favorite}
+              aria-label={[
+                favorite ? t('favorited') : '',
+                t(favorite ? 'unfavoriteStation' : 'favoriteStation', { name: station.name }),
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={onFavorite}
+            >
+              <Star size={20} fill={favorite ? 'currentColor' : 'none'} aria-hidden="true" />
+              {t(favorite ? 'favorited' : 'favorite')}
+            </button>
+          )}
+          {track && <div className={styles.trackSummary}>{track}</div>}
+        </div>
+      </div>
     </main>
   );
 }
