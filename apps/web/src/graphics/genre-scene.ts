@@ -9,6 +9,7 @@ import {
   Scene,
   WebGLRenderer,
 } from 'three';
+import { genrePoint } from './genre-shape';
 export interface GenreCloud {
   id: string;
   count: number;
@@ -26,29 +27,14 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
   const scene = new Scene(),
     camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 1000);
   camera.position.z = 500;
-  const largest = Math.max(1, ...clouds.map((cloud) => cloud.count));
   const objects = clouds.map((cloud, index) => {
     const positions: number[] = [],
       strengths: number[] = [];
     const count = Math.min(powerSave ? 280 : 4200, cloud.count);
     for (let i = 0; i < count; i++) {
-      // Stable arms and a sparse halo give each category a distinct silhouette.
-      const seed = ((Math.imul(i + 1, 2654435761) >>> 0) % 65536) / 65536,
-        noise = Math.sin(i * 127.1 + index * 31.7),
-        radius = Math.pow((i + 0.5) / count, 0.85),
-        arms = 2 + (index % 3),
-        halo = i % 7 === 0,
-        angle = halo
-          ? i * 2.3999632297
-          : ((i % arms) * Math.PI * 2) / arms + radius * (3.8 + (index % 4) * 0.5) + noise * 0.65;
-      const spread = halo ? 0 : Math.sin(i * 93.7) * (0.03 + radius * 0.16);
-      positions.push(
-        Math.cos(angle) * radius + spread,
-        (Math.sin(angle) * radius + Math.cos(i * 73.3) * radius * 0.12) *
-          (0.48 + (index % 3) * 0.09),
-        Math.sin(i * 7.13) * radius * 0.1,
-      );
-      strengths.push(0.38 + seed * 0.62);
+      const point = genrePoint(i, count, index);
+      positions.push(point.x, point.y, point.z);
+      strengths.push(point.strength);
     }
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
@@ -72,8 +58,8 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
         void main(){float d=length(gl_PointCoord-0.5);if(d>0.5)discard;
           float core=1.0-smoothstep(0.08,0.32,d);
           float halo=exp(-d*d*18.0)*0.28;
-          vec3 color=mix(tint,vec3(0.94,0.93,0.85),(1.0-smoothstep(0.0,0.5,vRadius))*0.55);
-          gl_FragColor=vec4(color,(core*0.7+halo)*vStrength*(0.52+emphasis*0.22)*densityLight);
+          vec3 color=mix(tint,vec3(0.94,0.93,0.85),(1.0-smoothstep(0.0,0.3,vRadius))*0.2);
+          gl_FragColor=vec4(color,(core*0.7+halo)*vStrength*(0.62+emphasis*0.28)*densityLight);
           #include <colorspace_fragment>
         }`,
       transparent: true,
@@ -89,7 +75,7 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
       label: cloud.label,
       art: cloud.label.querySelector<HTMLElement>('[data-genre-art]')!,
       count,
-      scale: 0.63 + Math.sqrt(cloud.count / largest) * 0.37,
+      scale: 0.9 + (index % 3) * 0.04,
     };
   });
   let frame = 0,
@@ -99,6 +85,16 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
     frame = 0;
     if (disposed || lost || document.hidden) return;
     const bounds = host.getBoundingClientRect();
+    const grid = host.querySelector<HTMLElement>('[data-genre-grid]')!.getBoundingClientRect();
+    renderer.setScissorTest(false);
+    renderer.clear();
+    renderer.setScissor(
+      Math.max(0, grid.left - bounds.left),
+      Math.max(0, bounds.bottom - grid.bottom),
+      grid.width,
+      grid.height,
+    );
+    renderer.setScissorTest(true);
     for (const { points, label, art, scale, count } of objects) {
       const box = art.getBoundingClientRect();
       points.position.set(
@@ -106,12 +102,16 @@ export function createGenreScene(host: HTMLElement, clouds: GenreCloud[], powerS
         bounds.height / 2 - (box.y + box.height / 2 - bounds.y),
         0,
       );
-      const radius = Math.min(box.width * 0.41, box.height * 0.82) * scale;
+      const radius = Math.min(box.width * 0.36, box.height * 0.48) * scale;
       points.scale.setScalar(radius);
       points.material.uniforms.densityLight!.value = Math.sqrt(
         Math.min(1, (radius * radius) / Math.max(150, count * 1.3)),
       );
-      points.visible = box.bottom > bounds.top && box.top < bounds.bottom;
+      points.visible =
+        box.bottom > grid.top &&
+        box.top < grid.bottom &&
+        box.right > grid.left &&
+        box.left < grid.right;
       points.material.uniforms.emphasis!.value =
         label.matches(':hover, :focus-visible') || label.getAttribute('aria-current') === 'true'
           ? 1

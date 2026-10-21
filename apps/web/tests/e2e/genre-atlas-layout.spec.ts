@@ -54,12 +54,22 @@ for (const [width, height] of [
         errors.push(message.text());
     });
     await page.goto('/');
+    // Both engines must exist before checking their independent disposal below.
+    await expect(page.getByTestId('globe-panel')).toHaveAttribute('data-state', 'ready');
     await page.getByRole('button', { name: '流派', exact: true }).click();
     const atlas = page.getByRole('group', { name: '按流派探索' });
     await expect(atlas).toHaveAttribute('data-rendered', 'true');
-    const buttons = atlas.getByRole('button');
+    const buttons = atlas.locator('button[data-genre]');
     await expect(buttons).toHaveCount(11);
     await expect(buttons.last()).toBeEnabled();
+    const nextPage = atlas.getByRole('button', { name: '下一页', exact: true });
+    if (await nextPage.isVisible()) {
+      await nextPage.click();
+      await expect
+        .poll(() => atlas.locator('[data-genre-grid]').evaluate((element) => element.scrollLeft))
+        .toBeGreaterThan(0);
+      await expect(atlas.getByRole('button', { name: '上一页', exact: true })).toBeEnabled();
+    }
     // Focus scrolls the actual grid, ensuring keyboard users can reach offscreen categories.
     for (const button of await buttons.all()) {
       await button.focus();
@@ -163,10 +173,52 @@ test('keeps the current genre and paused playback across language changes and We
   const fallback = page.getByRole('group', { name: 'Explore by genre' });
   await expect(fallback.locator('canvas')).toHaveCount(0);
   await expect(atlas).toHaveAttribute('aria-current', 'true');
-  await expect(atlas.locator('svg')).toBeVisible();
+  await expect(atlas.locator('[data-genre-fallback]')).toBeVisible();
   await atlas.click();
   await expect(page.getByRole('dialog', { name: 'Jazz', exact: true })).toBeVisible();
   await page.getByRole('dialog').press('Escape');
   await expect(atlas).toBeFocused();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
+});
+
+test('keeps enlarged English captions above navigation on a narrow phone', async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'en'));
+  await install(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Genre', exact: true }).click();
+  const atlas = page.getByRole('group', { name: 'Explore by genre' });
+  await expect(atlas).toHaveAttribute('data-rendered', 'true');
+  await page.addStyleTag({
+    content:
+      '[data-genre] > span {font-size:28px!important} [data-genre] > small {font-size:20px!important}',
+  });
+  const captions = await atlas.locator('button[data-genre] > span').evaluateAll((labels) =>
+    labels.map((label) => {
+      const r = label.getBoundingClientRect();
+      return { x: r.x, right: r.right };
+    }),
+  );
+  for (const [index, a] of captions.entries())
+    for (const b of captions.slice(index + 1)) expect(a.right <= b.x || b.right <= a.x).toBe(true);
+  for (const button of await atlas.locator('button[data-genre]:enabled').all()) {
+    await button.focus();
+    await expect
+      .poll(() =>
+        button.evaluate((element) => {
+          const grid = element.closest('[data-genre-grid]')!.getBoundingClientRect();
+          const label = element.querySelector('span')!.getBoundingClientRect();
+          const count = element.querySelector('small')!.getBoundingClientRect();
+          return (
+            label.top >= grid.top - 1 &&
+            count.bottom <= grid.bottom + 1 &&
+            element.contains(
+              document.elementFromPoint(label.x + label.width / 2, label.y + label.height / 2),
+            )
+          );
+        }),
+      )
+      .toBe(true);
+  }
 });

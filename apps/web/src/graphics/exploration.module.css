@@ -19,19 +19,34 @@
   display: block;
   touch-action: none;
 }
+.globeStage::before {
+  content: '';
+  position: absolute;
+  inset: 5% -4% 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 45% 40%, #7eb9a518, transparent 58%);
+}
 .reticle {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   transform: translate(-50%, -50%);
   pointer-events: none;
-  opacity: 0.55;
-  border: 1px solid var(--color-text-muted);
-  outline: 2px dotted #b3c1b733;
-  outline-offset: 5px;
+  opacity: 0.65;
+  border: 1px solid #c1d6c84d;
   border-radius: 50%;
+}
+.reticle::before,
+.reticle::after {
+  content: '';
+  position: absolute;
+  inset: -6px 16px;
+  border-block: 3px solid var(--color-secondary);
+}
+.reticle::after {
+  transform: rotate(90deg);
 }
 .mapNotes {
   position: fixed;
@@ -174,20 +189,37 @@
 }
 .genreAtlas {
   position: absolute;
-  inset: 238px var(--edge) calc(var(--dock-bottom) - 20px) min(36vw, 540px);
+  inset: 192px var(--edge) calc(var(--dock-bottom) - 12px) min(35vw, 520px);
   isolation: isolate;
   z-index: 1;
   container: genre-atlas / size;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+}
+.atlasHeading {
+  flex: none;
+  padding: 0 14px 16px;
+}
+.atlasHeading h2 {
+  margin: 0 0 8px;
+  font: 400 clamp(22px, 2.1vw, 30px) / 1.3 var(--font-display);
+  letter-spacing: -0.04em;
+}
+.atlasHeading p {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 12px / 1.7 var(--font-body);
 }
 .genreGrid {
   position: relative;
   z-index: 1;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-rows: minmax(100px, 1fr);
-  gap: 8px 12px;
+  grid-auto-rows: minmax(min-content, 1fr);
+  gap: 6px 14px;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -197,50 +229,87 @@
 .genreCluster {
   position: relative;
   min-width: 0;
-  min-height: 88px;
+  min-height: 100px;
   display: flex;
   align-items: center;
   flex-direction: column;
   justify-content: center;
   gap: 3px;
-  padding: 4px 6px 10px;
-  border: 0;
+  padding: 2px 8px 12px;
+  border: 1px solid transparent;
   border-radius: 16px;
-  background: transparent;
+  background: radial-gradient(
+    ellipse at 50% 38%,
+    color-mix(in srgb, var(--genre-color, var(--color-secondary)) 5%, transparent),
+    transparent 72%
+  );
   color: var(--color-text);
-  transition: background 180ms ease;
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease;
 }
 .genreCluster:hover:not(:disabled),
 .genreCluster:focus-visible {
-  background: var(--color-selected-bg);
+  background-color: var(--color-selected-bg);
+  border-color: color-mix(in srgb, var(--genre-color, var(--color-secondary)) 28%, transparent);
+}
+.genreCluster[aria-current='true'] {
+  border-color: var(--color-border);
+  background-color: #f5f1e805;
 }
 .genreArt {
+  position: relative;
   width: 100%;
-  height: clamp(46px, 8vh, 90px);
   flex: 1;
-  min-height: 32px;
-  max-height: 100px;
+  min-height: 40px;
+  max-height: 138px;
   pointer-events: none;
 }
 .genreCluster svg {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   fill: var(--genre-color, var(--color-secondary));
 }
-.genreCluster span {
+.genreOrbit {
+  color: var(--genre-color, var(--color-secondary));
+  opacity: 0.35;
+  transform: rotate(-16deg);
+  transition:
+    opacity 220ms ease,
+    transform 600ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.genreOrbit ellipse,
+.genreOrbit path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.5;
+}
+.genreOrbit ellipse:nth-child(2) {
+  stroke-dasharray: 1 6;
+}
+.genreCluster:nth-child(even) .genreOrbit {
+  transform: rotate(18deg);
+}
+.genreCluster:hover .genreOrbit,
+.genreCluster:focus-visible .genreOrbit {
+  opacity: 0.8;
+  transform: rotate(0);
+}
+.genreName {
   position: relative;
-  max-width: 100%;
-  font: 500 15px / 1.4 var(--font-body);
+  font: 400 17px / 1.4 var(--font-display);
   text-align: center;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 .genreCluster small {
   color: var(--color-text-muted);
   font: 11px / 1.6 var(--font-mono);
+  white-space: nowrap;
 }
-.genreCluster[aria-current='true'] span::before {
+.genreCluster[aria-current='true'] .genreName::before {
   content: '';
   position: absolute;
   width: 4px;
@@ -249,12 +318,50 @@
   left: -10px;
   top: calc(50% - 2px);
   background: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
 }
 .genreCluster:disabled {
   opacity: 0.4;
 }
 .genreNote {
+  margin: 0;
+  color: var(--color-text-muted);
+  font: 11px / 1.5 var(--font-body);
+  text-align: center;
+}
+.atlasFooter {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-inline: 8px;
+}
+.atlasFooter[hidden],
+.genreNote[hidden] {
   display: none;
+}
+.atlasFooter button {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+  background: var(--color-control-glass);
+}
+.atlasFooter button:hover:not(:disabled) {
+  background: var(--color-selected-bg);
+}
+.atlasFooter button:disabled {
+  opacity: 0.3;
+}
+@media (width >= 1100px) {
+  .atlasFooter {
+    padding-right: 72px;
+  }
 }
 .genreAtlas canvas {
   position: absolute;
@@ -263,7 +370,7 @@
   height: 100%;
   pointer-events: none;
 }
-.genreAtlas[data-rendered='true'] .genreCluster svg {
+.genreAtlas[data-rendered='true'] .genreFallback {
   visibility: hidden;
 }
 .groupList {
@@ -360,41 +467,40 @@
     display: none;
   }
   .genreAtlas {
-    inset: 68px 10px 72px;
+    inset: 76px 12px 64px;
+  }
+  .atlasHeading {
+    padding: 0 8px 10px;
+  }
+  .atlasHeading h2 {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
+  .atlasHeading p {
+    display: none;
   }
   .genreGrid {
-    height: calc(100% - 22px);
     grid-template-columns: none;
-    grid-template-rows: repeat(3, minmax(78px, 1fr));
+    grid-template-rows: repeat(2, minmax(min-content, 1fr));
     grid-auto-flow: column;
-    grid-auto-columns: calc((100% - 32px) / 3);
+    grid-auto-columns: max-content;
     grid-auto-rows: auto;
-    gap: 8px 4px;
+    gap: 8px;
     padding: 6px;
   }
   .genreCluster {
-    min-height: 70px;
-    padding: 2px 4px 6px;
+    min-width: calc((100cqw - 24px) / 2.55);
+    min-height: 94px;
+    padding: 2px 4px 8px;
   }
   .genreNote {
-    display: block;
-    position: absolute;
-    bottom: 0;
-    left: 8px;
-    right: 8px;
-    margin: 0;
-    color: var(--color-text-muted);
-    font: 10px / 20px var(--font-body);
-    text-align: center;
-  }
-  .genreNote[hidden] {
-    display: none;
+    font-size: 10px;
   }
   .genreArt {
-    max-height: 58px;
+    max-height: 90px;
   }
-  .genreCluster span {
-    font-size: 13px;
+  .genreName {
+    font-size: 14px;
   }
   .genreCluster small {
     font-size: 10px;
@@ -434,57 +540,97 @@
 
 @media (768px <= width < 1100px) and (height >= 600px) {
   .genreAtlas {
-    inset: 230px var(--edge) calc(var(--player-height, 280px) + var(--dock-bottom) + 20px);
+    inset: 208px var(--edge) calc(var(--player-height, 280px) + var(--dock-bottom) + 20px);
   }
 }
 @media (height < 600px) and (width >= 600px) {
   .genreAtlas {
-    inset: 148px 76px 82px 46%;
+    inset: 140px 76px 82px 46%;
   }
   .genreGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-auto-rows: 106px;
+    grid-auto-rows: 116px;
   }
   .genreArt {
     max-height: 52px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .genreCluster {
+  .genreCluster,
+  .genreOrbit {
     transition: none;
   }
 }
 
-@container genre-atlas (height < 260px) and (width < 600px) {
+@container genre-atlas (300px <= height < 500px) and (width >= 600px) {
   .genreGrid {
-    height: calc(100% - 22px);
     grid-template-columns: none;
-    grid-template-rows: repeat(2, minmax(72px, 1fr));
+    grid-template-rows: repeat(2, minmax(min-content, 1fr));
     grid-auto-flow: column;
-    grid-auto-columns: max(96px, calc((100% - 32px) / 3));
+    grid-auto-columns: max-content;
     grid-auto-rows: auto;
   }
   .genreCluster {
-    min-height: 70px;
+    min-width: calc((100cqw - 40px) / 4.25);
+  }
+}
+@container genre-atlas (height < 300px) {
+  .atlasHeading {
+    padding-bottom: 6px;
+  }
+  .atlasHeading h2 {
+    font-size: 20px;
+    margin: 0;
+  }
+  .atlasHeading p {
+    display: none;
+  }
+  .genreGrid {
+    grid-template-columns: none;
+    grid-template-rows: repeat(2, minmax(min-content, 1fr));
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    grid-auto-rows: auto;
+  }
+  .genreCluster {
+    min-width: max(112px, calc((100cqw - 32px) / 3.5));
+    min-height: 84px;
     padding: 2px 4px 6px;
   }
   .genreArt {
-    min-height: 22px;
-    max-height: 40px;
+    min-height: 28px;
+    max-height: 58px;
   }
-  .genreCluster span {
-    font-size: 12px;
+  .genreName {
+    font-size: 14px;
   }
 }
-@container genre-atlas (height < 190px) and (width < 600px) {
+@container genre-atlas (height < 280px) {
   .genreGrid {
-    grid-template-rows: minmax(78px, 1fr);
+    grid-template-rows: minmax(min-content, 1fr);
+  }
+}
+@container genre-atlas (height < 235px) {
+  .atlasHeading {
+    display: none;
   }
 }
 
 .exploration[data-mode='genres'] .mapNotes {
   left: auto;
   width: auto;
+}
+@media (width < 768px) {
+  .exploration[data-mode='genres'] .mapNotes {
+    top: 172px;
+    bottom: auto;
+    width: 44px;
+  }
+  .exploration[data-mode='genres'] .mapDetailBody {
+    top: calc(100% + 8px);
+    bottom: auto;
+    max-height: 35dvh;
+  }
 }
 
 @media (width >= 1024px) {
@@ -516,12 +662,30 @@
   transform: translateY(-50%);
   display: grid;
   gap: 5px;
+  padding: 10px 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #081310b3, #08131000);
   text-shadow: 0 2px 14px #020807;
+}
+.selectionCopy::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  width: 20px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #f5f1e866);
 }
 .selectionLabel[data-side='left'] .selectionCopy {
   left: auto;
   right: 56px;
   text-align: right;
+  background: linear-gradient(270deg, #081310b3, #08131000);
+}
+.selectionLabel[data-side='left'] .selectionCopy::before {
+  right: auto;
+  left: 100%;
+  transform: rotate(180deg);
 }
 .selectionCopy strong {
   font: 600 17px / 1.4 var(--font-body);

@@ -136,7 +136,7 @@ export function createGlobe(
           ocean: { value: new Color(0x091b18) },
           shadow: { value: new Color(0x020807) },
           atmosphere: { value: new Color(0x8abfb4) },
-          continental: { value: new Color(0x203c31) },
+          continental: { value: new Color(0x244337) },
           landMask: { value: landMask },
         },
         vertexShader: `
@@ -156,7 +156,8 @@ export function createGlobe(
         varying vec3 vNormal; varying vec3 vView; varying vec3 vLocal;
         void main() {
           vec3 n = normalize(vNormal);
-          float light = smoothstep(-0.12, 0.9, dot(n, normalize(vec3(-0.9, 0.55, 0.55))));
+          float sun = dot(n, normalize(vec3(-0.9, 0.55, 0.55)));
+          float light = smoothstep(-0.18, 0.95, sun);
           vec3 local = normalize(vLocal);
           vec2 uv = vec2(atan(local.x, local.z) / 6.2831853 + 0.5, 0.5 - asin(clamp(local.y, -1.0, 1.0)) / 3.14159265);
           float land = texture2D(landMask, uv).r;
@@ -164,7 +165,9 @@ export function createGlobe(
           vec3 sea = mix(shadow, ocean, 0.16 + light * 0.84);
           vec3 ground = mix(shadow * 1.2, continental, 0.08 + light * 0.92);
           vec3 color = mix(sea, ground, land);
-          color += atmosphere * edge * light * 0.07;
+          float sheen = pow(max(0.0, dot(reflect(-normalize(vec3(-0.9, 0.55, 0.55)), n), normalize(vView))), 32.0);
+          color += atmosphere * sheen * (1.0 - land) * 0.025;
+          color += atmosphere * edge * light * 0.11;
           gl_FragColor = vec4(color, 1.0);
           #include <colorspace_fragment>
         }`,
@@ -294,7 +297,7 @@ export function createGlobe(
             vec3 n=normalize(vNormal);
             float edge=pow(1.0-abs(dot(n,normalize(vView))),5.0);
             float light=smoothstep(-0.35,0.8,dot(n,normalize(vec3(-0.9,0.55,0.55))));
-            gl_FragColor=vec4(0.36,0.57,0.51,edge*(0.012+light*0.14));
+            gl_FragColor=vec4(0.43,0.67,0.60,edge*(0.012+light*0.18));
             #include <colorspace_fragment>
           }`,
       }),
