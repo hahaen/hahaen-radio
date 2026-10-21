@@ -147,4 +147,4 @@ export const SceneOptionsSchema = z.strictObject({
     ),
 });
 export type SceneOptions = z.infer<typeof SceneOptionsSchema>;
-export const defaultSceneOptions = (): SceneOptions => ({ powerSave: false, immersion: 'auto' });
+export const defaultSceneOptions = (): SceneOptions => ({ powerSave: false, immersion: 'ocean' });

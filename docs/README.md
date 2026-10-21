@@ -321,6 +321,8 @@ docs/
 
 沉浸环境声浪动效见[任务记录](iterations/2026-10-21-immersive-waves/README.md)。
 
+沉浸收听默认潮汐见[任务记录](iterations/2026-10-22-immersive-default/README.md)。
+
 电台地图地理位置修复见[任务记录](iterations/2026-10-21-geographic-position/README.md)。
 
 地球质感与流派星图精修见[任务记录](iterations/2026-10-21-celestial-atlas/README.md)。
