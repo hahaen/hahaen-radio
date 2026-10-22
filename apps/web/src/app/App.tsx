@@ -60,6 +60,7 @@ import { StationDial } from './StationDial';
 import { GenreBar } from './GenreBar';
 import { InformationPanel } from '../information/InformationPanel';
 import { EmptyState } from './EmptyState';
+import { useControlMotion } from './use-control-motion';
 import styles from './App.module.css';
 
 const EMPTY_STATIONS: StationPreview[] = [];
@@ -334,6 +335,7 @@ export function App() {
 
   const pageRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  useControlMotion(footerRef, personal.scene.powerSave);
   useEffect(() => {
     player.setExplorer(async (signal, exclude) =>
       candidatesRef.current
@@ -1012,6 +1014,7 @@ export function App() {
         <div className={styles.transport}>
           <button
             aria-label={t('previousStation')}
+            data-control-motion="previous"
             disabled={!state.canGoBack}
             onClick={() => player.previous()}
           >
@@ -1032,6 +1035,7 @@ export function App() {
           </button>
           <button
             aria-label={t('nextStation')}
+            data-control-motion="next"
             disabled={!stations.data?.total}
             onClick={() => {
               void player.next();
@@ -1042,6 +1046,7 @@ export function App() {
           </button>
           <button
             aria-label={state.pinned ? t('unpin') : t('pin')}
+            data-control-motion="press"
             aria-pressed={state.pinned}
             disabled={!state.station}
             onClick={() => player.setPinned(!state.pinned)}
@@ -1064,6 +1069,7 @@ export function App() {
               ]
                 .filter(Boolean)
                 .join(' ')}
+              data-control-motion="press"
               aria-pressed={favoriteIds.has(state.station.id)}
               onClick={() => {
                 if (!state.station) return;
@@ -1082,6 +1088,7 @@ export function App() {
             </button>
             <button
               aria-label={t('immersiveListening')}
+              data-control-motion="press"
               title={t('immersiveListening')}
               onClick={(event) => {
                 event.currentTarget.focus({ preventScroll: true });
@@ -1092,6 +1099,7 @@ export function App() {
             </button>
             <button
               aria-label={t('share')}
+              data-control-motion="press"
               title={t('share')}
               onClick={() => {
                 if (!state.station) return;
