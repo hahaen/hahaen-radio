@@ -75,6 +75,19 @@
 }
 .brandEmblem svg {
   stroke-width: 1.35;
+  transform-origin: center;
+  animation: recordSpin 8s linear infinite paused;
+}
+.brandEmblem[data-playing='true'] svg {
+  animation-play-state: running;
+}
+.page[data-power-save='true'] .brandEmblem svg {
+  animation-play-state: paused;
+}
+@keyframes recordSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .brandEmblem::after {
   content: '';

@@ -509,7 +509,11 @@ export function App() {
         <header className={styles.header}>
           <div className={styles.identity}>
             <a className={styles.brand} href="#main" aria-label="声屿 HAEN">
-              <span className={styles.brandEmblem} aria-hidden="true">
+              <span
+                className={styles.brandEmblem}
+                data-playing={state.playback.status === 'playing'}
+                aria-hidden="true"
+              >
                 <Disc3 size={25} />
               </span>
               {t('brand')} <span className={styles.brandLatin}>HAEN</span>
