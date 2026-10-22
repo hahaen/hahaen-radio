@@ -48,7 +48,7 @@ const labels = {
     filters: '筛选电台',
     favorite: '收藏 ',
     play: '收听 ',
-    topics: ['隐私说明', '资源署名', '使用帮助', '问题反馈'],
+    topics: ['隐私说明', '使用帮助'],
   },
   en: {
     settings: 'Listening settings',
@@ -58,7 +58,7 @@ const labels = {
     filters: 'Filter stations',
     favorite: 'Favorite ',
     play: 'Listen to ',
-    topics: ['Privacy', 'Credits', 'Help', 'Feedback'],
+    topics: ['Privacy', 'Help'],
   },
 };
 async function enter(page: Page, language: 'zh' | 'en', scene = true) {

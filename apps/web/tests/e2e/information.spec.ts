@@ -10,7 +10,7 @@ async function setup(page: Page) {
   await page.getByRole('button', { name: '关于与帮助', exact: true }).click();
   return page.getByRole('dialog', { name: '关于与帮助' });
 }
-test('explains local data and external requests in both languages, exposes real attribution and preserves playback and focus', async ({
+test('explains local data and external requests in both languages, keeps only the requested topics and preserves playback and focus', async ({
   page,
 }, info) => {
   await page.setViewportSize(
@@ -28,25 +28,11 @@ test('explains local data and external requests in both languages, exposes real 
     path: info.outputPath('information-privacy.png'),
     animations: 'disabled',
   });
-  await panel.getByRole('button', { name: '资源署名', exact: true }).click();
-  await expect(panel.getByRole('link', { name: 'CC BY 4.0', exact: true })).toHaveAttribute(
-    'href',
-    'https://creativecommons.org/licenses/by/4.0/',
-  );
-  await expect(panel.getByRole('link', { name: /^(LRCLIB|AudD)$/ })).toHaveCount(0);
-  await expect(panel.getByRole('link', { name: 'Natural Earth', exact: true })).toHaveCount(1);
-  for (const path of [
-    '/fonts/noto-serif-sc-ui-LICENSE.txt',
-    '/fonts/noto-sans-sc-ui-LICENSE.txt',
-    '/fonts/ibm-plex-mono-ui-LICENSE.txt',
-    '/licenses/lucide.txt',
-  ]) {
-    const link = panel.locator(`a[href="${path}"]`);
-    await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
-    const response = await page.request.get(path);
-    expect(response.ok()).toBe(true);
-    expect(await response.text()).toMatch(/Permission|PERMISSION/);
-  }
+  await expect(panel.getByRole('navigation').getByRole('button')).toHaveText([
+    '关于声屿',
+    '隐私说明',
+    '使用帮助',
+  ]);
   await panel.getByRole('button', { name: '使用帮助', exact: true }).click();
   await expect(panel.getByRole('heading', { name: '键盘操作', exact: true })).toHaveCount(1);
   await expect(panel.getByText(/暂停时移动场景只选台/)).toHaveCount(1);
@@ -59,67 +45,14 @@ test('explains local data and external requests in both languages, exposes real 
   await english.getByRole('button', { name: 'Privacy', exact: true }).click();
   await expect(english.getByText(/There are no cloud favorites or account sync/)).toBeVisible();
   await expect(english.getByText(/Only when you request lyrics|only a click asks/)).toHaveCount(0);
-  await english.getByRole('button', { name: 'Credits', exact: true }).click();
-  await expect(english.getByRole('link', { name: /^(LRCLIB|AudD)$/ })).toHaveCount(0);
+  await expect(english.getByRole('navigation').getByRole('button')).toHaveText([
+    'About HAEN',
+    'Privacy',
+    'Help',
+  ]);
   expect(await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.paused)).toBe(
     false,
   );
-});
-test('previews an explicit local feedback copy without requests, URLs or personal library content and offers manual copy on denial', async ({
-  page,
-}) => {
-  await page.addInitScript(() => {
-    const notes: string[] = [];
-    Reflect.set(window, '__haenNotes', notes);
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async (text: string) => {
-          notes.push(text);
-        },
-      },
-    });
-  });
-  const panel = await setup(page);
-  const requests: string[] = [];
-  page.on('request', (request) => requests.push(request.url()));
-  await panel.getByRole('button', { name: '问题反馈', exact: true }).click();
-  const preview = panel.getByRole('textbox', { name: '问题说明（仅在本机生成）' });
-  const text = await preview.inputValue();
-  expect(text).toContain(first.id);
-  expect(text).toContain('"playback": "playing"');
-  expect(text).not.toContain('https:');
-  expect(text).not.toContain('127.0.0.1');
-  expect(text).not.toContain(first.name);
-  expect(await page.evaluate(() => Reflect.get(window, '__haenNotes'))).toEqual([]);
-  await panel.getByRole('button', { name: '复制问题说明', exact: true }).click();
-  await expect(panel.getByRole('status')).toHaveText('已复制。请补充问题描述后自行转交。');
-  expect(await page.evaluate(() => Reflect.get(window, '__haenNotes'))).toEqual([text]);
-  await page.evaluate(() =>
-    Object.defineProperty(navigator, 'clipboard', {
-      configurable: true,
-      value: {
-        writeText: async () => {
-          throw new Error('denied');
-        },
-      },
-    }),
-  );
-  await panel.getByRole('button', { name: '复制问题说明', exact: true }).click();
-  await expect(panel.getByRole('status')).toHaveText('无法自动复制，请选择下方文本手动复制。');
-  await preview.focus();
-  expect(
-    await preview.evaluate(
-      (element: HTMLTextAreaElement) => element.selectionEnd - element.selectionStart,
-    ),
-  ).toBe(text.length);
-  expect(
-    requests.filter(
-      (url) =>
-        new URL(url).origin === new URL(page.url()).origin &&
-        new URL(url).pathname.startsWith('/api/'),
-    ),
-  ).toEqual([]);
 });
 test('keeps all topics readable at narrow, tablet and landscape sizes with doubled English text and contained focus', async ({
   page,
@@ -139,7 +72,7 @@ test('keeps all topics readable at narrow, tablet and landscape sizes with doubl
     { width: 844, height: 390 },
   ]) {
     await page.setViewportSize(size);
-    for (const name of ['Privacy', 'Credits', 'Help', 'Feedback']) {
+    for (const name of ['Privacy', 'Help']) {
       await panel.getByRole('button', { name, exact: true }).click();
       await expect(panel.getByRole('heading', { name, exact: true })).toHaveCount(1);
       expect(

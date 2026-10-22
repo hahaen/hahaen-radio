@@ -13,32 +13,12 @@ const resources = {
       immersionEffect: '沉浸画面',
       effects: { auto: '随流派变化', aurora: '流光', ocean: '潮汐', dunes: '远山' },
 
-      diagnostics: {
-        title: '精简播放故障报告',
-        disclosure:
-          '仅点击提交后，向本站发送当前故障的电台标识、线路标识、固定故障类型和本次回执号。服务器记录收到时间，报告有效期为 7 天，并由后台定期清理；达到存储上限时可能提前替换旧记录。报告正文不包含上方问题说明、收藏、浏览记录、音源地址或音频；不将 IP 等网络信息写入报告。',
-        station: '电台标识',
-        stream: '线路标识',
-        failure: '故障类型',
-        noFailure: '当前没有带有效线路的播放失败。你仍可复制上方的问题说明。',
-        send: '提交精简故障报告',
-        sending: '正在提交…',
-        receiptUnavailable: '当前环境无法生成回执，请复制上方问题说明。',
-        uncertain:
-          '未确认服务器是否收到。可以稍后手动重试，本面板会沿用同一回执号避免重复记录；也可复制问题说明。',
-        unavailable: '报告服务暂不可用。可以稍后手动重试或复制问题说明，收听操作不受影响。',
-        limited: '提交过于频繁或今日容量已满，请至少等待 {{seconds}} 秒后手动重试。',
-        accepted: '已收到这条故障报告。它是待核实的反馈，不会自动下线电台。',
-        receipt: '回执 {{id}} · 记录有效至 {{date}}。',
-      },
       informationTitle: '关于与帮助',
       informationTopics: '说明主题',
       information: {
         about: '关于声屿',
         privacy: '隐私说明',
-        credits: '资源署名',
         help: '使用帮助',
-        feedback: '问题反馈',
         aboutIntro: '嗯，听听世界。',
         aboutBody:
           '声屿 HAEN 是一个免登录的全球电台收听工具。在地球上探索，听见不同地方此刻的声音。',
@@ -58,22 +38,7 @@ const resources = {
           '播放时，本站服务器按需读取电台曲目信息，用于系统媒体控制和锁屏标题。当前页面不提供歌词查询或片段识曲入口，不使用你的麦克风。',
         privacyOperationsTitle: '运行与排障',
         privacyOperations:
-          '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。问题说明只在你选择复制后写入剪贴板，不会自动发送。另有自愿提交的精简播放故障报告，只保存电台与线路标识、固定故障类型、一次性回执号和服务器收到时间；有效期 7 天，后台定期清理并受容量上限约束，不改变电台状态。',
-        creditsIntro:
-          '感谢以下数据与资源。电台节目由各电台提供；目录与地理信息不保证始终准确或完整。',
-        creditsRadio:
-          '电台目录由 Radio Browser 提供，经本站归一化、筛选并定期同步；播放内容由电台直接提供。',
-        creditsGeo:
-          '附近城市与可确认时区使用 GeoNames cities15000 离线数据，已筛选、归一化并用于匹配。附近城市不代表电台精确地址。',
-        creditsEarth:
-          '地球轮廓使用 Natural Earth 1:110m land 5.1.2 公有领域数据，已简化并生成本地轮廓与点阵。',
-        creditsFonts:
-          'Noto Serif SC、Noto Sans SC 与 IBM Plex Mono 按 SIL Open Font License 1.1 本地分发，中文已制作界面字形子集。',
-        creditsIcons: '界面图标使用 Lucide；完整许可同时保留其所包含的 Feather 图标声明。',
-        creditsNotoSerif: 'Noto Serif SC 许可',
-        creditsNotoSans: 'Noto Sans SC 许可',
-        creditsPlex: 'IBM Plex Mono 许可',
-        creditsLucide: 'Lucide 完整许可',
+          '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。',
         helpStartTitle: '开始探索',
         helpStart:
           '点击开始或电台列表后才播放。拖动地球、滚轮或双指缩放；准星稳定约 650 毫秒后选择电台。暂停时移动场景只选台，不恢复声音。',
@@ -99,19 +64,6 @@ const resources = {
         keyMute: '静音或取消静音',
         keyEnter: '进入沉浸收听',
         keyEscape: '退出沉浸或关闭面板',
-        feedbackIntro:
-          '请记录重现步骤、预期结果、实际结果，以及你使用的浏览器和设备。不要填写密码、令牌、私人音频或带凭据的网址。',
-        feedbackContact:
-          '本站暂未配置在线联系渠道。可以把问题说明复制后转交给提供本站访问地址的人；问题说明不会自动发送；你可在下方单独提交精简播放故障报告。',
-        feedbackPreview: '问题说明（仅在本机生成）',
-        feedbackTemplate:
-          '重现步骤：\n预期结果：\n实际结果：\n浏览器与设备：\n\n以下为打开反馈面板时的收听状态：',
-        feedbackCopy: '复制问题说明',
-        feedbackCopying: '正在复制…',
-        feedbackCopied: '已复制。请补充问题描述后自行转交。',
-        feedbackManual: '无法自动复制，请选择下方文本手动复制。',
-        feedbackNotice:
-          '说明只包含时间、界面语言、电台与线路标识和播放状态，不包含音源地址、完整页面网址、收藏或浏览历史。关闭面板后丢弃。',
       },
       trackDetails: '曲目与歌词',
       trackLoading: '正在读取电台曲目信息…',
@@ -448,37 +400,12 @@ const resources = {
       immersionEffect: 'Immersive artwork',
       effects: { auto: 'Follow the genre', aurora: 'Aurora', ocean: 'Tides', dunes: 'Dunes' },
 
-      diagnostics: {
-        title: 'Minimal playback failure report',
-        disclosure:
-          'Only after you submit, HAEN receives the current failed station ID, stream ID, fixed failure type, and a receipt ID for this report. The server adds the received time. Reports have a 7-day validity period and are periodically deleted; the storage limit may replace older entries sooner. The report body contains no note, favorites, browsing history, stream URL, or audio. Network information such as your IP address is not stored in the report.',
-        station: 'Station ID',
-        stream: 'Stream ID',
-        failure: 'Failure type',
-        noFailure:
-          'There is no current playback failure with a valid stream. You can still copy the note above.',
-        send: 'Submit minimal failure report',
-        sending: 'Submitting…',
-        receiptUnavailable:
-          'Your environment cannot create a report receipt. You can copy the feedback note above.',
-        uncertain:
-          'Receipt could not be confirmed. Retry manually later; this panel reuses the same receipt ID to avoid duplicates. You can also copy the feedback note.',
-        unavailable:
-          'Reporting is unavailable. Retry manually later or copy the feedback note. Listening controls still work.',
-        limited:
-          'Too many attempts or today’s capacity is full. Wait at least {{seconds}} seconds before retrying manually.',
-        accepted:
-          'This failure report was received. It is unverified feedback and will not take a station offline automatically.',
-        receipt: 'Receipt {{id}} · Record valid until {{date}}.',
-      },
       informationTitle: 'About and help',
       informationTopics: 'Information topics',
       information: {
         about: 'About HAEN',
         privacy: 'Privacy',
-        credits: 'Credits',
         help: 'Help',
-        feedback: 'Feedback',
         aboutIntro: 'Listen to the world.',
         aboutBody:
           'HAEN is an account-free way to listen to radio around the world. Explore the globe to hear what is playing elsewhere right now.',
@@ -498,23 +425,7 @@ const resources = {
           'While you listen, our server reads station track metadata on demand for system media controls and lock-screen titles. This interface has no lyrics lookup or sample identification entry. Your microphone is not used.',
         privacyOperationsTitle: 'Operation and troubleshooting',
         privacyOperations:
-          'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio. Feedback notes are written to your clipboard only when you choose to copy them and are never sent automatically. Separately, voluntary minimal playback reports store station and stream IDs, a fixed failure type, a one-time receipt ID, and the server’s received time. Reports have a 7-day validity period, periodic deletion, and a storage cap. They do not change station availability.',
-        creditsIntro:
-          'Thanks to the following data and resources. Stations provide their broadcasts. Directory and geographic information may be incomplete or out of date.',
-        creditsRadio:
-          'The station directory is provided by Radio Browser, normalized, filtered, and periodically synchronized by HAEN. Stations provide the actual broadcasts.',
-        creditsGeo:
-          'Nearby cities and confirmed time zones use the offline GeoNames cities15000 dataset, filtered and normalized for matching. A nearby city is not an exact station address.',
-        creditsEarth:
-          'Globe outlines use Natural Earth 1:110m land 5.1.2 public domain data, simplified into local outlines and points.',
-        creditsFonts:
-          'Noto Serif SC, Noto Sans SC, and IBM Plex Mono are served locally under SIL Open Font License 1.1. Chinese fonts are subsetted for the interface.',
-        creditsIcons:
-          'Interface icons use Lucide. The complete license also preserves the included Feather icon notices.',
-        creditsNotoSerif: 'Noto Serif SC license',
-        creditsNotoSans: 'Noto Sans SC license',
-        creditsPlex: 'IBM Plex Mono license',
-        creditsLucide: 'Complete Lucide license',
+          'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio.',
         helpStartTitle: 'Start exploring',
         helpStart:
           'Click start or a station to begin playback. Drag the globe and zoom with a wheel or pinch. A steady crosshair selects a station after about 650 milliseconds. Exploring while paused selects without resuming audio.',
@@ -541,20 +452,6 @@ const resources = {
         keyMute: 'Mute or unmute',
         keyEnter: 'Enter immersive listening',
         keyEscape: 'Exit immersion or close a panel',
-        feedbackIntro:
-          'Describe the steps, expected result, actual result, and your browser and device. Do not include passwords, tokens, private audio, or credential-bearing URLs.',
-        feedbackContact:
-          'No online contact channel is configured for this site yet. Copy the note and pass it to the person who gave you this site’s address. The note is never sent automatically. You can separately submit a minimal playback failure report below.',
-        feedbackPreview: 'Feedback note (generated on this device only)',
-        feedbackTemplate:
-          'Steps to reproduce:\nExpected result:\nActual result:\nBrowser and device:\n\nListening state when the feedback panel opened:',
-        feedbackCopy: 'Copy feedback note',
-        feedbackCopying: 'Copying…',
-        feedbackCopied: 'Copied. Add your description and share it yourself.',
-        feedbackManual:
-          'Automatic copy is unavailable. Select the text below and copy it manually.',
-        feedbackNotice:
-          'The note contains only the time, interface language, station and stream IDs, and playback state. It includes no stream URL, full page URL, favorites, or browsing history. It is discarded when this panel closes.',
       },
       trackDetails: 'Track and lyrics',
       trackLoading: 'Reading station metadata…',

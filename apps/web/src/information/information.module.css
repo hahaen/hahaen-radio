@@ -47,35 +47,6 @@
   font: 400 23px / 1.6 var(--font-display);
   margin-block: 20px;
 }
-.secondary {
-  color: var(--color-text-muted);
-  font-size: var(--panel-caption-size);
-}
-.content a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  color: var(--color-text);
-  text-decoration-thickness: 1px;
-  text-underline-offset: 4px;
-}
-.content a:hover {
-  color: var(--color-accent);
-}
-.credits {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.credits li {
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--color-border);
-}
-.links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-}
 .shortcuts {
   margin-block: 20px;
 }
@@ -91,56 +62,6 @@
 }
 .shortcuts kbd {
   font: 14px var(--font-mono);
-}
-.preview {
-  display: block;
-  margin-block: 24px 16px;
-}
-.preview textarea {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-height: 200px;
-  resize: vertical;
-  padding: 16px;
-  margin-top: 12px;
-  border: 1px solid var(--color-secondary);
-  border-radius: 16px;
-  font: 12px / 1.8 var(--font-mono);
-  color: var(--color-text);
-  background: var(--color-bg);
-}
-.copy {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  padding: 10px 14px;
-  font-size: var(--panel-control-size);
-  border: 1px solid var(--color-secondary);
-  border-radius: 16px;
-  background: transparent;
-  color: var(--color-text);
-  line-height: 1.5;
-}
-.copy:disabled {
-  opacity: 0.5;
-}
-.report {
-  margin-top: 32px;
-  padding-top: 8px;
-  border-top: 1px solid var(--color-border);
-}
-.reportDetails div {
-  margin-block: 12px;
-}
-.reportDetails dt {
-  color: var(--color-text-muted);
-  font-size: 14px;
-}
-.reportDetails dd {
-  margin: 4px 0 0;
-  overflow-wrap: anywhere;
 }
 @media (width < 480px) {
   .shortcuts div {

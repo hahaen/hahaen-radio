@@ -871,9 +871,7 @@ export function App() {
           onClose={() => setLibraryOpen(false)}
         />
       )}
-      {informationOpen && (
-        <InformationPanel context={state.playback} onClose={() => setInformationOpen(false)} />
-      )}
+      {informationOpen && <InformationPanel onClose={() => setInformationOpen(false)} />}
       {settingsOpen && (
         <SettingsPanel
           library={library}
