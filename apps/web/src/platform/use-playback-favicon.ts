@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { applicationPath } from './paths';
 
-/** Rotate the original tab icon only during active playback. */
+/** A small playback signal, not an audio spectrum. */
 export function usePlaybackFavicon(playing: boolean, powerSave: boolean) {
   useEffect(() => {
     if (!playing || powerSave) return;
@@ -47,7 +47,7 @@ export function usePlaybackFavicon(playing: boolean, powerSave: boolean) {
       if (!frames.length) return;
       draw();
       // Background tabs retain a still frame without a running timer.
-      if (!document.hidden) timer = window.setInterval(draw, 125);
+      if (!document.hidden) timer = window.setInterval(draw, 240);
     };
     const source = new Image();
     source.onload = () => {
@@ -57,13 +57,16 @@ export function usePlaybackFavicon(playing: boolean, powerSave: boolean) {
         canvas.width = canvas.height = 32;
         const context = canvas.getContext('2d');
         if (!context) return;
-        frames = Array.from({ length: 48 }, (_, index) => {
+        frames = Array.from({ length: 12 }, (_, index) => {
           context.clearRect(0, 0, 32, 32);
-          context.save();
-          context.translate(16, 16);
-          context.rotate((index * Math.PI * 2) / 48);
-          context.drawImage(source, -16, -16, 32, 32);
-          context.restore();
+          context.drawImage(source, 0, 0, 32, 32);
+          context.fillStyle = '#E89B82';
+          for (let bar = 0; bar < 3; bar += 1) {
+            const height = 3 + 4 * (0.5 + 0.5 * Math.sin((index * Math.PI) / 6 + bar * 2));
+            context.beginPath();
+            context.roundRect(10 + bar * 5, 30 - height, 3, height, 1.5);
+            context.fill();
+          }
           return canvas.toDataURL('image/png');
         });
         sync();
