@@ -28,7 +28,10 @@ for (const [width, height] of [
     const canvas = page.getByRole('img', { name: /可旋转的地球/ });
     const bounds = await canvas.boundingBox();
     const sceneCenter = width * (width >= 1024 ? 0.59 : 0.5);
-    expect(Math.abs(bounds!.x + bounds!.width / 2 - sceneCenter)).toBeLessThan(2);
+    const reticle = await page.locator('[class*="reticle"]').boundingBox();
+    expect(Math.abs(reticle!.x + reticle!.width / 2 - sceneCenter)).toBeLessThan(2);
+    expect(bounds!.x).toBe(0);
+    expect(bounds!.width).toBe(width);
     const player = page.getByRole('contentinfo');
     const dock = await player.boundingBox();
     const heading = await player.getByRole('heading', { name: first.name }).boundingBox();

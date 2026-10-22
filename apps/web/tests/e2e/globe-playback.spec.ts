@@ -61,7 +61,7 @@ test('animates station lights during playback and settles when paused or motion 
   await expect.poll(async () => (await report()).draws).toBeGreaterThan(start + 3);
   const bounds = (await panel.locator('canvas').boundingBox())!;
   const clip = {
-    x: bounds.x + bounds.width / 2 - 48,
+    x: bounds.x + bounds.width * (page.viewportSize()!.width >= 1024 ? 0.59 : 0.5) - 48,
     y: bounds.y + bounds.height / 2 - 48,
     width: 96,
     height: 96,

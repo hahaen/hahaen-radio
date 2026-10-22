@@ -10,6 +10,9 @@
   position: absolute;
   inset: 0;
 }
+.globeStage {
+  --globe-center: 50%;
+}
 .globePanel[hidden] {
   display: none;
 }
@@ -32,7 +35,7 @@
 }
 .reticle {
   position: absolute;
-  left: 50%;
+  left: var(--globe-center);
   top: 50%;
   width: 24px;
   height: 24px;
@@ -334,6 +337,9 @@
 
 @media (width >= 1024px) {
   .globeStage {
+    --globe-center: 59%;
+  }
+  .fallback {
     left: 18%;
   }
 }

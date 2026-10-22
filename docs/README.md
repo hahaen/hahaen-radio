@@ -346,3 +346,5 @@ docs/
 电台地图地理位置修复见[任务记录](iterations/2026-10-21-geographic-position/README.md)。
 
 地球质感与流派星图精修见[任务记录](iterations/2026-10-21-celestial-atlas/README.md)。
+
+地球放大后的左侧连续绘制见[地球画布去除左侧裁切](iterations/2026-10-22-globe-full-viewport/README.md)。

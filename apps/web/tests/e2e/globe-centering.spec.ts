@@ -56,7 +56,10 @@ for (const mode of ['animated', 'reduced', 'power-save'] as const) {
         const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
         const canvas = element.parentElement!.querySelector('canvas')!;
         const bounds = canvas.getBoundingClientRect();
-        return Math.hypot(matrix.m41 - bounds.width / 2, matrix.m42 - bounds.height / 2);
+        return Math.hypot(
+          matrix.m41 - bounds.width * (innerWidth >= 1024 ? 0.59 : 0.5),
+          matrix.m42 - bounds.height / 2,
+        );
       });
     const centered = async () => {
       await expect(label).toHaveAttribute('data-visible', 'true');
@@ -131,7 +134,10 @@ test('centers an already playing station when the globe finishes loading', async
       label.evaluate((element) => {
         const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
         const bounds = element.parentElement!.querySelector('canvas')!.getBoundingClientRect();
-        return Math.hypot(matrix.m41 - bounds.width / 2, matrix.m42 - bounds.height / 2);
+        return Math.hypot(
+          matrix.m41 - bounds.width * (innerWidth >= 1024 ? 0.59 : 0.5),
+          matrix.m42 - bounds.height / 2,
+        );
       }),
     )
     .toBeLessThan(1);

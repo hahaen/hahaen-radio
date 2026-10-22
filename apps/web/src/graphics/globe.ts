@@ -506,7 +506,8 @@ export function createGlobe(
     hoverY = 0;
   const startPointers = new Map<number, { x: number; y: number; moved: boolean }>();
   let width = 1,
-    height = 1;
+    height = 1,
+    centerX = 0.5;
   function listen(
     target: EventTarget,
     name: string,
@@ -537,7 +538,8 @@ export function createGlobe(
       if (projected.dot(camera.position) <= 1.02) continue;
       projected.project(camera);
       if (projected.z > 1 || projected.z < -1) continue;
-      const d = ((projected.x * width) / 2) ** 2 + ((projected.y * height) / 2) ** 2;
+      const d =
+        (((projected.x + 1) / 2 - centerX) * width) ** 2 + ((projected.y * height) / 2) ** 2;
       if (d < distance) {
         distance = d;
         closest = group;
@@ -676,12 +678,16 @@ export function createGlobe(
     mainland.material.uniforms.pointSize!.value = ratio * 1.2;
     oceanDots.material.uniforms.pointSize!.value = ratio * 1.2;
     updateMarkerSize();
-    camera.aspect = width / height;
+    centerX =
+      (parseFloat(getComputedStyle(container).getPropertyValue('--globe-center')) || 50) / 100;
+    // Keep the original composition and scale while drawing into the formerly cropped left area.
+    const framingWidth = width * (1 - 2 * (centerX - 0.5));
+    camera.aspect = framingWidth / height;
     camera.fov =
       camera.aspect < 1
         ? (Math.atan(Math.tan((19 * Math.PI) / 180) / camera.aspect) * 360) / Math.PI
         : 38;
-    camera.updateProjectionMatrix();
+    camera.setViewOffset(framingWidth, height, framingWidth - width, 0, width, height);
     invalidate();
   }
   function moveTo(position: Vector3) {
