@@ -188,15 +188,11 @@
   margin-top: 1px;
 }
 .libraryButton {
-  padding: 0 32px 0 14px;
+  padding-inline: 14px;
   color: var(--color-text);
 }
 .libraryLabel {
   font-size: 13px;
-}
-.libraryControl small {
-  font: 10px var(--font-mono);
-  color: var(--color-text-muted);
 }
 .findStation,
 .clearSearch {
@@ -209,16 +205,6 @@
 }
 .searchLabel {
   font-size: 13px;
-}
-.findStation kbd {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  margin-left: 20px;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
-  font: 11px var(--font-mono);
 }
 .findStation svg {
   width: 17px;
@@ -1073,8 +1059,7 @@
   .player {
     width: 340px;
   }
-  .searchLabel,
-  .findStation kbd {
+  .searchLabel {
     display: none;
   }
   .findStation {
@@ -1418,27 +1403,6 @@
   flex-shrink: 0;
   position: relative;
 }
-.libraryControl small {
-  position: absolute;
-  right: 12px;
-  top: 17px;
-  pointer-events: none;
-}
-@media (width < 1024px) {
-  .libraryButton {
-    padding: 0 26px 0 10px;
-  }
-}
-@media (width < 768px) {
-  .libraryButton {
-    padding: 0 18px 0 4px;
-  }
-  .libraryControl small {
-    right: 8px;
-    top: 17px;
-  }
-}
-
 .player[data-has-station='false'] .transport button:not(.playButton) {
   display: none;
 }

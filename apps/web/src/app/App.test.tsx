@@ -27,6 +27,12 @@ function withoutScene(fetcher: (input: string | URL | Request) => Promise<Respon
 }
 
 beforeEach(async () => {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
   // jsdom does not implement the dialog lifecycle; browser tests cover focus and modality.
   Object.defineProperties(HTMLDialogElement.prototype, {
     show: {

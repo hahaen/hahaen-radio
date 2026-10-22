@@ -548,7 +548,6 @@ export function App() {
             >
               <Search size={19} aria-hidden="true" />
               <span className={styles.searchLabel}>{t('findStation')}</span>
-              <kbd aria-hidden="true">/</kbd>
             </button>
           </div>
           <div className={styles.libraryControl}>
@@ -569,7 +568,6 @@ export function App() {
               <Bookmark size={17} aria-hidden="true" />
               <span className={styles.libraryLabel}>{t('myListening')}</span>
             </button>
-            <small aria-hidden="true">{personal.favorites.length}</small>
           </div>
           <button
             className={[styles.openLibrary, styles.infoButton].join(' ')}
