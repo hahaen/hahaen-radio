@@ -1,5 +1,7 @@
 # 技术文档导航
 
+所有电台移除宗教分类与候选的范围见[任务记录](iterations/2026-10-22-religious-exclusion/README.md)。
+
 关于与帮助面板精简见[任务记录](iterations/2026-10-22-information-simplification/README.md)。
 
 地球柔光分布、交互定位与地形细节见[任务记录](iterations/2026-10-22-globe-radiance/README.md)，最终验证状态以该记录为准。

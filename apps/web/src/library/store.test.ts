@@ -36,6 +36,20 @@ function environment() {
   return { storage: () => storage, events, values, change };
 }
 describe('local personal library', () => {
+  it('restores legacy genre filters without leaving an invisible religious selection', () => {
+    for (const [genres, expected] of [
+      [['religious'], null],
+      [['religious', 'jazz'], ['jazz']],
+      [[], []],
+    ]) {
+      const env = environment();
+      env.values.set(
+        LIBRARY_PREFIX + 'filters',
+        JSON.stringify({ version: 1, value: { ...defaultFilters(), genres } }),
+      );
+      expect(createLibrary(env).store.getState().filters.genres).toEqual(expected);
+    }
+  });
   it('preserves independent preferences from another tab and restores a timer with its expiry identity', () => {
     const env = environment(),
       first = createLibrary(env),

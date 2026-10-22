@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { GenreSchema, StationIdSchema, type StationPreview } from '@haen/contracts';
+import { normalizeGenreSelection } from '../catalog/genres';
 
 export const MAX_LIBRARY_ITEMS = 5000;
 export const MAX_TRANSFER_BYTES = 2 * 1024 * 1024;
@@ -22,7 +23,7 @@ export const SavedSongSchema = z.strictObject({
 export type SavedSong = z.infer<typeof SavedSongSchema>;
 export const FilterSchema = z.strictObject({
   q: z.string().max(200),
-  genres: z.array(GenreSchema).max(11).nullable(),
+  genres: z.array(GenreSchema).max(11).nullable().transform(normalizeGenreSelection),
   languages: z.array(z.string().min(1).max(64)).max(32).nullable(),
   minBitrate: z.union([z.literal(0), z.literal(128), z.literal(192), z.literal(320)]),
   favoritesOnly: z.boolean(),

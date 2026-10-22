@@ -24,6 +24,7 @@ export function createStationCollection(stations: readonly StationPreview[]) {
         .filter(
           ({ station, text, languages: stationLanguages }) =>
             station.availability === 'available' &&
+            station.genre !== 'religious' &&
             terms.every((term) => text.includes(term)) &&
             (filters.genres === undefined || filters.genres.includes(station.genre)) &&
             (languages === undefined ||

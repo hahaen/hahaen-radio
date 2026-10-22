@@ -7,6 +7,7 @@ import {
   type StationDetail,
 } from '@haen/contracts';
 import { getJson } from './http';
+import { BROWSABLE_GENRES } from '../catalog/genres';
 
 export interface SearchFilters {
   q: string;
@@ -27,7 +28,10 @@ export function searchStations(
     limit: String(limit),
     playableOnly: 'true',
   });
-  if (filters.genres) parameters.set('genres', filters.genres.join(','));
+  parameters.set(
+    'genres',
+    (filters.genres ?? BROWSABLE_GENRES).filter((genre) => genre !== 'religious').join(','),
+  );
   if (filters.languages) parameters.set('languages', filters.languages.join(','));
   if (filters.minBitrate) parameters.set('minBitrate', String(filters.minBitrate));
   if (excludeIds.length) parameters.set('excludeIds', [...new Set(excludeIds)].join(','));

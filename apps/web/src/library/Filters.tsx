@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { SlidersHorizontal } from 'lucide-react';
-import { GenreSchema, type CatalogManifest } from '@haen/contracts';
+import type { CatalogManifest } from '@haen/contracts';
+import { BROWSABLE_GENRES } from '../catalog/genres';
 import { useTranslation } from 'react-i18next';
 import { LanguageChoices } from './LanguageChoices';
 import { defaultFilters, type ListeningFilters } from './model';
@@ -57,7 +58,7 @@ export function Filters({
           </button>
         </div>
         <div className={styles.choices}>
-          {GenreSchema.options.map((genre) => (
+          {BROWSABLE_GENRES.map((genre) => (
             <label key={genre}>
               <input
                 type="checkbox"

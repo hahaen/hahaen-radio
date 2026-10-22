@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { GenreSchema, type CatalogManifest, type StationPreview } from '@haen/contracts';
+import type { CatalogManifest, StationPreview } from '@haen/contracts';
+import { BROWSABLE_GENRES } from '../catalog/genres';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Filters } from '../library/Filters';
@@ -43,7 +44,9 @@ export function GenreBar({
       document.removeEventListener('keydown', escape);
     };
   }, [open]);
-  const counts = new Map(GenreSchema.options.map((genre) => [genre, 0]));
+  const counts = new Map<StationPreview['genre'], number>(
+    BROWSABLE_GENRES.map((genre) => [genre, 0]),
+  );
   for (const station of stations) counts.set(station.genre, (counts.get(station.genre) ?? 0) + 1);
   const count = (n: number) => n.toLocaleString(i18n.language);
   return (
@@ -84,7 +87,7 @@ export function GenreBar({
         >
           {t('allGenres')} <small>{count(stations.length)}</small>
         </button>
-        {GenreSchema.options.map((genre) => (
+        {BROWSABLE_GENRES.map((genre) => (
           <button
             key={genre}
             data-genre={genre}

@@ -285,11 +285,19 @@ export function App() {
   });
   const sceneManifest = useMemo(() => {
     if (!scene.data) return undefined;
+    const stations = scene.data.stations.filter((station) => station.genre !== 'religious');
     const counts = new Map<string, number>();
-    for (const station of scene.data.stations)
+    for (const station of stations)
       for (const language of normalizeLanguages(station.languages))
         counts.set(language, (counts.get(language) ?? 0) + 1);
-    return { ...scene.data.manifest, languages: [...counts].map(([id, count]) => ({ id, count })) };
+    return {
+      ...scene.data.manifest,
+      stationCount: stations.length,
+      playableCount: stations.filter((station) => station.availability === 'available').length,
+      countryCount: new Set(stations.map((station) => station.countryCode).filter(Boolean)).size,
+      genres: scene.data.manifest.genres.filter((genre) => genre.id !== 'religious'),
+      languages: [...counts].map(([id, count]) => ({ id, count })),
+    };
   }, [scene.data]);
   const catalogSource =
     scene.data?.stations ??

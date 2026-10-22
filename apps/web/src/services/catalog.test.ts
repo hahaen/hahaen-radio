@@ -15,6 +15,8 @@ describe('catalogue selection scope', () => {
         const offset = Number(url.searchParams.get('offset'));
         offsets.push(offset);
         expect(url.searchParams.get('playableOnly')).toBe('true');
+        expect(url.searchParams.get('genres')?.split(',')).not.toContain('religious');
+        expect(url.searchParams.get('genres')?.split(',')).toContain('jazz');
         expect(url.searchParams.get('q')).toBe('a&b');
         expect(url.searchParams.get('excludeIds')).toBe(testStation(3).id);
         const candidates = [testStation(1), testStation(2), testStation(4), testStation(5)];

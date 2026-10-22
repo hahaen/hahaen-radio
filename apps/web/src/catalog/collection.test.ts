@@ -2,6 +2,16 @@ import { describe, expect, it, vi } from 'vitest';
 import { testStation } from '../testing/stations';
 import { createStationCollection, pickStation } from './collection';
 describe('shared exploration candidates', () => {
+  it('excludes religious stations from all, search and explicit genre candidates', () => {
+    const music = testStation(1);
+    const collection = createStationCollection([
+      music,
+      { ...testStation(2), name: 'Faith radio', genre: 'religious' },
+    ]);
+    expect(collection.filter({ q: '' })).toEqual([music]);
+    expect(collection.filter({ q: 'Faith' })).toEqual([]);
+    expect(collection.filter({ q: '', genres: ['religious'] })).toEqual([]);
+  });
   it('combines query and dimensions without dropping unlocated stations or treating an empty choice as all', () => {
     const first = {
       ...testStation(1),
