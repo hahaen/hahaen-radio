@@ -93,7 +93,7 @@ const assets = [];
 for (const definition of definitions) {
   const cssUrl =
     'https://fonts.googleapis.com/css2?' +
-    new URLSearchParams({ family: definition.request, display: 'swap', text: definition.text });
+    new URLSearchParams({ family: definition.request, display: 'optional', text: definition.text });
   const css = fetch(cssUrl, 65536).toString('utf8');
   const urls = [...css.matchAll(/url\((https:\/\/[^)]+)\)/g)].map((match) => match[1]);
   const range = css.match(/unicode-range:\s*([^;]+);/)?.[1];
@@ -126,7 +126,7 @@ for (const asset of assets) {
   await writeFile(new URL(asset.file + '.woff2', directory), asset.body);
   await writeFile(new URL(asset.file + '-LICENSE.txt', directory), asset.license);
   const digest = createHash('sha256').update(asset.body).digest('hex');
-  css += `@font-face {\n  font-family: '${asset.name}';\n  font-style: normal;\n  font-weight: ${asset.weight};\n  font-display: swap;\n  src: url('/fonts/${asset.file}.woff2?v=${digest.slice(0, 12)}') format('woff2');\n  unicode-range: ${asset.range};\n}\n`;
+  css += `@font-face {\n  font-family: '${asset.name}';\n  font-style: normal;\n  font-weight: ${asset.weight};\n  font-display: optional;\n  src: url('/fonts/${asset.file}.woff2?v=${digest.slice(0, 12)}') format('woff2');\n  unicode-range: ${asset.range};\n}\n`;
   metadata.push({
     family: asset.name,
     file: asset.file + '.woff2',
@@ -140,6 +140,16 @@ for (const asset of assets) {
   });
 }
 await writeFile(new URL('../src/styles/fonts.css', import.meta.url), css);
+const entryUrl = new URL('../index.html', import.meta.url);
+let entry = await readFile(entryUrl, 'utf8');
+for (const asset of metadata) {
+  const file = asset.file.replaceAll('.', '\\.');
+  entry = entry.replace(
+    new RegExp(`(fonts/${file}\\?v=)[a-f0-9]+`, 'g'),
+    `$1${asset.sha256.slice(0, 12)}`,
+  );
+}
+await writeFile(entryUrl, entry);
 await writeFile(new URL('source.json', directory), JSON.stringify(metadata, null, 2) + '\n');
 console.log(
   JSON.stringify({
