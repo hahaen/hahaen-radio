@@ -8,6 +8,7 @@ const scene = testScene(entries);
 for (const viewport of [
   { width: 1440, height: 900 },
   { width: 768, height: 1024 },
+  { width: 440, height: 956 },
   { width: 390, height: 844 },
   { width: 320, height: 700 },
   { width: 844, height: 390 },
@@ -53,6 +54,12 @@ for (const viewport of [
     await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 91');
     await nav.getByRole('button', { name: '上一页' }).click();
     await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 61');
+    for (const number of [4, 5, 6, 7]) {
+      await nav.getByRole('button', { name: `第 ${number} 页`, exact: true }).click();
+      await expect(
+        nav.getByRole('button', { name: `第 ${number + 1} 页`, exact: true }),
+      ).toBeVisible();
+    }
     if (viewport.width === 1440) {
       await nav.getByRole('button', { name: '第 13 页', exact: true }).click();
       await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 361');

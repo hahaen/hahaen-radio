@@ -7,15 +7,15 @@ type PageItem = number | 'before' | 'after';
 
 function pageItems(current: number, total: number, slots: number): PageItem[] {
   if (total <= slots) return Array.from({ length: total }, (_, index) => index + 1);
-  // The narrowest panels retain three adjacent pages and both navigation controls.
-  if (slots === 3) {
-    const start = Math.max(1, Math.min(current - 1, total - 2));
-    return [start, start + 1, start + 2];
+  // Compact panels prioritize adjacent pages so the next page stays directly reachable.
+  if (slots <= 5) {
+    const start = Math.max(1, Math.min(current - Math.floor(slots / 2), total - slots + 1));
+    return Array.from({ length: slots }, (_, index) => start + index);
   }
-  if (current <= slots - 2) {
+  if (current <= slots - 3) {
     return [...Array.from({ length: slots - 2 }, (_, index) => index + 1), 'after', total];
   }
-  if (current >= total - slots + 3) {
+  if (current >= total - slots + 4) {
     return [
       1,
       'before',
@@ -51,14 +51,16 @@ export function StationPagination({
     if (!element) return;
     const resize = () => {
       const width = element.clientWidth;
-      setSlots(width >= 404 ? 7 : width >= 308 ? 5 : 3);
+      // Seven numeric pages need more room than a range containing an ellipsis.
+      const wideWidth = totalPages === 7 ? 428 : 404;
+      setSlots(width >= wideWidth ? 7 : width >= 332 ? 5 : 3);
     };
     resize();
     if (typeof ResizeObserver === 'undefined') return;
     const observer = new ResizeObserver(resize);
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [totalPages]);
 
   return (
     <nav ref={ref} className={styles.pagination} aria-label={t('stationPagination')}>
