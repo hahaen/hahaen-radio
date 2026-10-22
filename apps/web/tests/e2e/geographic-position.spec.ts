@@ -38,7 +38,7 @@ test('renders geographically aligned station lights and keeps exact points fixed
   await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await install(page);
-  await installPositionProbe(page, 11);
+  await installPositionProbe(page, 10);
   const located = [
     { code: 'CN', lat: 39.9, lon: 116.4, name: 'Beijing' },
     { code: 'US', lat: 40.71, lon: -74.01, name: 'New York' },
@@ -85,9 +85,9 @@ test('renders geographically aligned station lights and keeps exact points fixed
   const canvas = panel.locator('canvas');
   const positions = async () =>
     canvas.evaluate((el) => Reflect.get(el, 'stationPositions') as number[] | undefined);
-  await expect.poll(positions).toHaveLength(33);
+  await expect.poll(positions).toHaveLength(30);
   const points = (values: number[]) =>
-    Array.from({ length: 11 }, (_, i) => {
+    Array.from({ length: 10 }, (_, i) => {
       const [x, y, z] = values.slice(i * 3, i * 3 + 3) as [number, number, number];
       return {
         lat: (Math.asin(y / Math.hypot(x, y, z)) * 180) / Math.PI,
@@ -95,6 +95,8 @@ test('renders geographically aligned station lights and keeps exact points fixed
       };
     });
   const before = (await positions())!;
+  for (let i = 0; i < before.length; i += 3)
+    expect(Math.hypot(...before.slice(i, i + 3))).toBeCloseTo(1.001, 6);
   const drawn = points(before);
   // Renderer ordering follows geographic groups, so compare exact coordinates by position.
   for (const station of located)
@@ -110,7 +112,7 @@ test('renders geographically aligned station lights and keeps exact points fixed
   ).toHaveLength(1);
   for (const [left, bottom, right, top, count] of [
     [73, 18, 135, 54, 2],
-    [-180, 18, -60, 72, 3],
+    [-180, 18, -60, 72, 2],
     [-9, 49, 3, 61, 2],
     [112, -45, 154, -10, 2],
   ])
@@ -140,7 +142,7 @@ test('places approximate province lights in Guangdong, Sichuan, Beijing, Shangha
   );
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await install(page);
-  await installPositionProbe(page, 8);
+  await installPositionProbe(page, 6);
   const entries = [
     '广东省',
     'Guangdong',
@@ -172,16 +174,16 @@ test('places approximate province lights in Guangdong, Sichuan, Beijing, Shangha
   await page.goto('./?station=' + entries[0]!.id);
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await expect(panel.getByText('按已知省/州范围展示；空心点不代表真实台址。')).toBeVisible();
+  await expect(panel.getByText('仅确定省/州；空心圆汇总电台，不表示具体台址。')).toBeVisible();
   const canvas = panel.locator('canvas');
   await expect
     .poll(() =>
       canvas.evaluate((el) => Reflect.get(el, 'stationPositions') as number[] | undefined),
     )
-    .toHaveLength(24);
+    .toHaveLength(18);
   const actual = await canvas.evaluate((el) => {
     const positions = Reflect.get(el, 'stationPositions') as number[];
-    return Array.from({ length: 8 }, (_, i) => {
+    return Array.from({ length: 6 }, (_, i) => {
       const [x, y, z] = positions.slice(i * 3, i * 3 + 3) as [number, number, number];
       return {
         lat: (Math.asin(y / Math.hypot(x, y, z)) * 180) / Math.PI,
@@ -190,7 +192,7 @@ test('places approximate province lights in Guangdong, Sichuan, Beijing, Shangha
     });
   });
   for (const [left, bottom, right, top, count] of [
-    [109, 20, 118, 26, 4],
+    [109, 20, 118, 26, 2],
     [97, 26, 109, 34.5, 1],
     [115, 39, 118, 41.5, 1],
     [120, 30.5, 123, 32, 1],
@@ -246,6 +248,8 @@ test('checks GPU marker coordinates for all countries and provinces', async ({ p
       import(countryUrl) as Promise<{ default: Record<string, number[]> }>,
     ]);
     const land = await landModule.loadLand(new AbortController().signal);
+    // Direct harness imports can have a different Vite module URL after HMR.
+    await regions.loadRegions(new AbortController().signal);
     const data = (await fetch('/geography/regions.json').then((r) => r.json())) as Record<
       string,
       [string, string[], number[], number[]][]

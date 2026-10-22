@@ -112,11 +112,11 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   const groupButton = panel.getByRole('button', { name: '英国 · 国家级位置', exact: true });
   await expect(groupButton).toBeVisible();
   await expect(page.getByText('国家级位置', { exact: true })).toBeVisible();
-  await expect(page.getByText('坐标', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('来源坐标', { exact: true })).toHaveCount(0);
   await groupButton.click();
   const dialog = page.getByRole('dialog', { name: '英国 · 国家级位置' });
   await expect(dialog.getByText('15 个电台', { exact: true })).toBeVisible();
-  await expect(dialog.getByText('仅确定国家；空心点不代表真实台址。')).toHaveCount(0);
+  await expect(dialog.getByText('仅确定国家；空心圆汇总电台，不表示具体台址。')).toHaveCount(0);
   const firstStation = dialog.getByRole('button', { name: '收听 ' + first.name, exact: true });
   await expect(firstStation).toHaveText(first.name);
   await firstStation.click();
@@ -131,7 +131,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(second.name);
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
   if ((await panel.getAttribute('data-state')) === 'ready') {
-    await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '16');
+    await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '2');
     await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toHaveCount(0);
     const canvas = panel.getByRole('img', { name: /^可旋转的地球/ });
     await canvas.press('Home');
@@ -143,7 +143,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await selectStation(page, exact.name);
   if ((await page.getByRole('contentinfo').locator('details').getAttribute('open')) === null)
     await page.getByText('电台详情', { exact: true }).click();
-  await expect(page.getByText('坐标', { exact: true })).toBeVisible();
+  await expect(page.getByText('来源坐标', { exact: true })).toBeVisible();
   await expect(groupButton).toHaveCount(0);
   await selectStation(page, unknown.name);
   await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toHaveCount(0);
@@ -165,7 +165,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   ).toHaveText(first.name);
 });
 
-test('draws one point per station and retains every marker during cluster expansion and power saving', async ({
+test('groups unknown locations and retains every coordinate marker during expansion and power saving', async ({
   page,
 }, info) => {
   await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
@@ -192,15 +192,15 @@ test('draws one point per station and retains every marker during cluster expans
   await page.goto('/');
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '700');
+  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '107');
   await page.screenshot({ path: info.outputPath('individual-stations.png') });
   await selectStation(page, coincident[0]!.name);
   await panel.getByRole('button', { name: '100 个电台', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
-  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '700');
+  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '107');
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
   await page.getByRole('button', { name: '收听设置', exact: true }).click();
   await page.getByRole('checkbox', { name: '省电模式', exact: true }).check();
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
-  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '700');
+  await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '107');
 });

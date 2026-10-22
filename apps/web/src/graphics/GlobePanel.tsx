@@ -178,7 +178,11 @@ export function GlobePanel({
           {station && (
             <div className={styles.selectionCopy}>
               <span className={styles.selectionCaption}>
-                {pinned ? t('selectionPinned') : t('selectedStation')}
+                {position && position.precision !== 'coordinates'
+                  ? t('approximateSelection')
+                  : pinned
+                    ? t('selectionPinned')
+                    : t('selectedStation')}
                 <span>
                   {t('genre.' + station.genre)}
                   {station.bitrate !== null && station.bitrate > 0
@@ -246,7 +250,11 @@ export function GlobePanel({
                     ? ` · ${countryName('TW', i18n.language)}`
                     : ''}
                 </span>
-                <span>{preview.stations[0]?.name}</span>
+                <span>
+                  {preview.precision === 'coordinates'
+                    ? preview.stations[0]?.name
+                    : t('placeStationCount', { count: preview.stations.length })}
+                </span>
               </>
             ) : station && !position ? (
               t('noCoordinates')

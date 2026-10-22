@@ -111,6 +111,7 @@ export function createGlobe(
     selected: StationPreview | null = null,
     previewId: string | null = null;
   const markerIndices = new Map<string, number>();
+  let selectedIsPrecise = false;
   let transition: { from: Vector3; to: Vector3; rotation: Quaternion; start: number } | undefined;
   const easingRotation = new Quaternion();
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -180,6 +181,8 @@ export function createGlobe(
       new ShaderMaterial({
         transparent: true,
         depthWrite: false,
+        // Surface-anchored sprites must not intersect the globe at their screen-space edges.
+        depthTest: !glow,
         vertexColors: true,
         uniforms: {
           pointSize: { value: size },
@@ -203,7 +206,7 @@ export function createGlobe(
             vSeed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
             vPulse=mix(0.5,0.5+0.5*sin(time*(1.8+vSeed*0.9)+vSeed*62.8),playing);
             vDensity=sqrt(clamp(crowding/(zoom*zoom),0.0,1.0))*(1.0-emphasis);
-            gl_PointSize=pointSize*mix(1.0,0.66,approximate)*mix(1.0,0.62,vDensity)
+            gl_PointSize=pointSize*mix(1.0,1.45,approximate)*mix(1.0,0.62,vDensity)
               *mix(1.0,0.80+vSeed*0.40,glow)
               *(1.0+glow*playing*vPulse*0.22+emphasis*0.35);
             gl_Position=projectionMatrix*viewPosition;
@@ -213,13 +216,14 @@ export function createGlobe(
           varying float vApproximate; varying vec3 vColor; varying float vPulse; varying float vFacing;
           varying float vDensity; varying float vEmphasis; varying float vSeed; varying float vLight;
           void main() {
+            if(glow>0.5 && vFacing<=0.0)discard;
             float d=length(gl_PointCoord-0.5); if(d>0.5)discard;
             float dotAlpha=1.0-smoothstep(0.32,0.5,d);
             float core=1.0-smoothstep(0.08,0.24,d);
             float halo=exp(-d*d*36.0)*(0.11+0.16*playing*vPulse);
             float hollow=smoothstep(0.10,0.20,d)*(1.0-smoothstep(0.32,0.48,d));
             float stationAlpha=mix(min(1.0,core+halo),hollow,vApproximate);
-            float precisionAlpha=mix(1.0,0.30,vApproximate);
+            float precisionAlpha=mix(1.0,0.85,vApproximate);
             float densityAlpha=mix(1.0,0.38,vDensity);
             float facing=mix(0.20,1.0,smoothstep(0.0,0.65,vFacing));
             float alpha=opacity*facing*mix(dotAlpha,stationAlpha*precisionAlpha*densityAlpha*(0.60+vSeed*0.40),glow);
@@ -380,7 +384,7 @@ export function createGlobe(
       }),
     ),
   );
-  selectionDot.position.set(0.027, 0.027, 0.002);
+  selectionDot.position.set(0, 0, 0.002);
   selectionGlow.renderOrder = 10;
   selectionTicks.renderOrder = 11;
   selectionRing.renderOrder = 12;
@@ -519,6 +523,8 @@ export function createGlobe(
     }
     const front = selection.position.dot(camera.position) > 1.04;
     for (const child of selection.children) child.visible = front;
+    selectionGlow.visible = front && selectedIsPrecise;
+    selectionDot.visible = front && selectedIsPrecise;
     const pulse = time === null ? 1 : 0.5 + 0.5 * Math.sin(time * 1.8);
     selectedLight.uniforms.intensity!.value = 0.58 + pulse * 0.42;
     selectionRing.material.opacity = 0.46 + pulse * 0.52;
@@ -610,15 +616,16 @@ export function createGlobe(
     }
     const position = selected ? stationPosition(selected) : null;
     selection.visible = position !== null;
+    selectedIsPrecise = position?.precision === 'coordinates';
     if (position) {
       const index = selected ? markerIndices.get(selected.id) : undefined;
       if (index !== undefined)
         selection.position
           .fromArray(positions, index * 3)
           .normalize()
-          .multiplyScalar(1.018);
+          .multiplyScalar(1.001);
       else
-        selection.position.fromArray(globePosition(position.latitude, position.longitude, 1.018));
+        selection.position.fromArray(globePosition(position.latitude, position.longitude, 1.001));
     }
     invalidate();
   }
@@ -634,9 +641,9 @@ export function createGlobe(
     markerIndices.clear();
     const coordinates: number[] = [];
     for (const [index, marker] of groups.entries()) {
-      markerIndices.set(marker.stations[0]!.id, index);
+      for (const station of marker.stations) markerIndices.set(station.id, index);
       const center = new Vector3().fromArray(
-        globePosition(marker.latitude, marker.longitude, 1.012),
+        globePosition(marker.latitude, marker.longitude, 1.001),
       );
       coordinates.push(...center.toArray());
     }

@@ -64,7 +64,7 @@ export function StationFacts({
         station.longitude !== null && (
           <div className={styles.coordinateFact}>
             <dt>{t('coordinates')}</dt>
-            <dd>
+            <dd title={t('coordinateMapHint')}>
               {Math.abs(station.latitude).toFixed(4)}° {station.latitude < 0 ? 'S' : 'N'}
               <br />
               {Math.abs(station.longitude).toFixed(4)}° {station.longitude < 0 ? 'W' : 'E'}

@@ -101,7 +101,7 @@ for (const [code, anchor] of countries) {
       )
         continue;
       triangles.push(...quantized.flat());
-      if (triangles.length === 16 * 6) break;
+      if (triangles.length === 6) break;
     }
     if (triangles.length) {
       values = [scale, ...triangles];
@@ -133,7 +133,7 @@ await writeFile(
       interiorScale:
         'Coordinates are offsets from country labels; the first value is the quantization scale',
       interiorRule:
-        'Up to sixteen largest safe interior triangles per code, inset and checked against the source face; holes excluded',
+        'One largest safe interior triangle per code, inset and checked against the source face; holes excluded',
     },
     null,
     2,

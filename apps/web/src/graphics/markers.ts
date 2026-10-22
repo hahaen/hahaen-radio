@@ -1,100 +1,32 @@
 import type { StationPreview } from '@haen/contracts';
 import { mapPosition, type MapPosition } from './location.js';
 import type { StationGroup } from './model.js';
-import interiors from './country-interiors.json' with { type: 'json' };
-import { stationRegion } from './regions.js';
 
-interface Interior {
-  scale: number;
-  triangles: readonly number[];
-  cumulative: number[];
-  area: number;
-}
-const regions = new Map<string, Interior>();
-for (const [code, [scale, ...triangles]] of Object.entries(interiors)) {
-  const cumulative: number[] = [];
-  let area = 0;
-  for (let i = 0; i < triangles.length; i += 6) {
-    const [ax, ay, bx, by, cx, cy] = triangles.slice(i, i + 6) as [
-      number,
-      number,
-      number,
-      number,
-      number,
-      number,
-    ];
-    area += Math.abs((bx - ax) * (cy - ay) - (by - ay) * (cx - ax));
-    cumulative.push(area);
-  }
-  regions.set(code, { scale: scale!, triangles, cumulative, area });
-}
-
-/** Approximate positions are stable display samples inside country land, not station addresses. */
+/** A regional anchor represents a group, never an inferred station address. */
 export function stationPosition(station: StationPreview): MapPosition | null {
-  const anchor = mapPosition(station);
-  if (!anchor || anchor.precision === 'coordinates') return anchor;
-  if (anchor.precision === 'region') {
-    const region = stationRegion(station.countryCode, station.region)!;
-    let hash = 2166136261;
-    for (const character of station.id) hash = Math.imul(hash ^ character.charCodeAt(0), 16777619);
-    const u = Math.sqrt((hash >>> 0) / 4294967296);
-    const v = ((Math.imul(hash, 16777619) >>> 0) % 65536) / 65536;
-    const weights = [1 - u, u * (1 - v), u * v];
-    return {
-      ...anchor,
-      latitude: weights.reduce((sum, w, i) => sum + w * region.triangle[i * 2 + 1]!, 0),
-      longitude: weights.reduce((sum, w, i) => sum + w * region.triangle[i * 2]!, 0),
-    };
-  }
-  const region = regions.get(station.countryCode!);
-  if (!region) return null;
-  let seed = 2166136261;
-  for (const character of station.id) seed = Math.imul(seed ^ character.charCodeAt(0), 16777619);
-  const random = () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
-    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-  };
-  const target = random() * region.area;
-  const index = region.cumulative.findIndex((value) => value > target) * 6;
-  const triangle = region.triangles;
-  const u = Math.sqrt(random()),
-    v = random();
-  const a = 1 - u,
-    b = u * (1 - v),
-    c = u * v;
-  return {
-    latitude:
-      anchor.latitude +
-      (triangle[index + 1]! * a + triangle[index + 3]! * b + triangle[index + 5]! * c) /
-        region.scale,
-    longitude:
-      anchor.longitude +
-      (triangle[index]! * a + triangle[index + 2]! * b + triangle[index + 4]! * c) / region.scale,
-    precision: 'country',
-  };
+  return mapPosition(station);
 }
 
 export interface StationMarker extends StationGroup {
   groupId: string;
-  memberIndex: number;
-  memberCount: number;
 }
 export function stationMarkers(groups: readonly StationGroup[]): StationMarker[] {
   const markers: StationMarker[] = [];
-  for (const group of groups)
-    for (const [memberIndex, station] of group.stations.entries()) {
+  for (const group of groups) {
+    if (group.precision !== 'coordinates') {
+      markers.push({ ...group, groupId: group.id });
+      continue;
+    }
+    for (const station of group.stations) {
       const point = stationPosition(station);
       if (point)
         markers.push({
           ...point,
           id: `station:${station.id}`,
           groupId: group.id,
-          memberIndex,
-          memberCount: group.stations.length,
           stations: [station],
         });
     }
+  }
   return markers;
 }

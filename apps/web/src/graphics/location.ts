@@ -1,5 +1,6 @@
 import type { StationPreview } from '@haen/contracts';
 import countries from './countries.json' with { type: 'json' };
+import interiors from './country-interiors.json' with { type: 'json' };
 import { coordinatesMatchCountry } from './country-coverage.js';
 import { coordinatesMatchRegion, stationRegion } from './regions.js';
 
@@ -12,6 +13,7 @@ export interface MapPosition {
   regionNameEn?: string;
 }
 const countryLabels: Readonly<Record<string, readonly number[]>> = countries;
+const countryInteriors: Readonly<Record<string, readonly number[]>> = interiors;
 const regionNames = new Map<string, Intl.DisplayNames>();
 
 /** Presentation positions never replace a station's original geographic evidence. */
@@ -40,7 +42,23 @@ export function mapPosition(station: StationPreview): MapPosition | null {
       regionNameEn: region.nameEn,
     };
   const point = station.countryCode ? countryLabels[station.countryCode] : undefined;
-  return point ? { latitude: point[0]!, longitude: point[1]!, precision: 'country' } : null;
+  const interior = station.countryCode ? countryInteriors[station.countryCode] : undefined;
+  if (!point || !interior) return null;
+  // Use one inland representative point for the area, independent of station IDs.
+  const [scale, ax, ay, bx, by, cx, cy] = interior as readonly [
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+    number,
+  ];
+  return {
+    latitude: point[0]! + (ay + by + cy) / (3 * scale),
+    longitude: point[1]! + (ax + bx + cx) / (3 * scale),
+    precision: 'country',
+  };
 }
 
 export function countryName(code: string | null, language: string): string {

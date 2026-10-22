@@ -6,6 +6,7 @@ import { first, second, install } from './listening-fixture.js';
 // Synthetic scale data is restricted to this test; the application has no fixture fallback.
 export const stations = Array.from({ length: 30000 }, (_, index) => ({
   ...(index === 0 ? first : index === 1 ? second : testStation(index + 1)),
+  countryCode: null,
   latitude: -75 + Math.floor(index / 300) * 1.5,
   longitude: -180 + (index % 300) * 1.2,
   locationPrecision: 'coordinates' as const,
@@ -18,7 +19,7 @@ const manifest = {
   ...testScene([]).manifest,
   stationCount: stations.length,
   playableCount: stations.length,
-  countryCount: 1,
+  countryCount: 0,
   genres: [
     { id: 'jazz', count: 15000 },
     { id: 'pop', count: 15000 },

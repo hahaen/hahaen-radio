@@ -41,7 +41,7 @@ it('labels a country map position without presenting its anchor as station coord
   const station = testStation(1);
   const result = render(<StationFacts station={station} detail={station} />);
   expect(screen.getByText('国家级位置')).toBeInTheDocument();
-  expect(screen.queryByText('坐标')).toBeNull();
+  expect(screen.queryByText('来源坐标')).toBeNull();
   expect(screen.queryByText('当地时间')).toBeNull();
   await act(async () => {
     await setLanguage('en');
@@ -59,7 +59,7 @@ it('labels a country map position without presenting its anchor as station coord
       detail={station}
     />,
   );
-  expect(screen.getByText('Coordinates')).toBeInTheDocument();
+  expect(screen.getByText('Source coordinates')).toBeInTheDocument();
   expect(screen.queryByText('Country-level location')).toBeNull();
 });
 
@@ -72,6 +72,6 @@ it('does not present a conflicting source coordinate as an exact map location', 
     longitude: 116.4,
   };
   render(<StationFacts station={station} detail={station} />);
-  expect(screen.queryByText('坐标')).toBeNull();
+  expect(screen.queryByText('来源坐标')).toBeNull();
   expect(screen.getByText('国家级位置')).toBeInTheDocument();
 });

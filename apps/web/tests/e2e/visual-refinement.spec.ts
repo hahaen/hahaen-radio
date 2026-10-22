@@ -55,8 +55,10 @@ for (const [width, height] of [
     await expect(page.getByTestId('globe-panel')).toHaveAttribute('data-state', 'ready');
     await expect(page.getByTestId('globe-panel').locator('canvas')).toHaveAttribute(
       'data-marker-count',
-      '3',
+      '1',
     );
+    if (width <= 360 || height <= 500)
+      await expect(page.getByTestId('selected-station-label').locator('strong')).toBeHidden();
     const toggle = page.getByRole('button', { name: '地图信息', exact: true });
     const details = page.getByRole('region', { name: '地图信息', exact: true });
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');
@@ -77,7 +79,10 @@ for (const [width, height] of [
     await expect(details).toBeHidden();
     await expect(toggle).toBeFocused();
     await expect(
-      page.getByText('仅确定国家；空心点不代表真实台址。', { exact: true }),
+      page
+        .getByTestId('globe-panel')
+        .getByText('仅确定国家；空心圆汇总电台，不表示具体台址。', { exact: true })
+        .or(page.getByTestId('globe-panel').getByText('3 个电台', { exact: true })),
     ).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
@@ -108,10 +113,10 @@ for (const language of ['zh', 'en'] as const) {
     await page.addInitScript((value) => localStorage.setItem('haen:language:v1', value), language);
     await page.goto('/');
     const canvas = page.getByTestId('globe-panel').locator('canvas');
-    await expect(canvas).toHaveAttribute('data-marker-count', '3');
+    await expect(canvas).toHaveAttribute('data-marker-count', '1');
     await page.route('**/api/v1/catalog/scene', (route) => route.abort());
     await page.reload();
-    await expect(canvas).toHaveAttribute('data-marker-count', '3');
+    await expect(canvas).toHaveAttribute('data-marker-count', '1');
     const name = language === 'zh' ? '地图信息' : 'Map information';
     const toggle = page.getByRole('button', { name, exact: true });
     await expect(toggle).toHaveAttribute('aria-expanded', 'false');

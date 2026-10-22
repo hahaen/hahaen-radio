@@ -10,9 +10,9 @@
   "purpose": "Country labels and interior display areas; never station coordinates",
   "count": 250,
   "assetSha256": "7583e38cce2927a85daac0b801ec46d45a842c71c4eb246eb2e35f91b7f909e7",
-  "interiorSha256": "1e5548a0440f30fef2acc267419ea7e05eb29cfb3e9569fe464e816c84d4f79d",
+  "interiorSha256": "8265f455c8a4714cb90498e17984d4aa9db06f64a740b1f6d9ae768aa2905072",
   "interiorScale": "Coordinates are offsets from country labels; the first value is the quantization scale",
-  "interiorRule": "Up to sixteen largest safe interior triangles per code, inset and checked against the source face; holes excluded",
+  "interiorRule": "One largest safe interior triangle per code, inset and checked against the source face; holes excluded",
   "coverageSha256": "ed9b28b079e815e3c093302b6daf8bb73b3eaf1445f76a7a9548074d6cc1c674",
   "coverageRule": "Half-degree land cells including boundary cells, encoded as start/length runs; display plausibility only"
 }

@@ -44,7 +44,8 @@ for (const [width, height] of [
     expect(clockBounds!.x + clockBounds!.width).toBeLessThanOrEqual(width);
     expect(clockBounds!.y + clockBounds!.height).toBeLessThanOrEqual(height);
     const locationHint = await page
-      .getByText('仅确定国家；空心点不代表真实台址。', { exact: true })
+      .getByTestId('globe-panel')
+      .getByRole('button', { name: '英国 · 国家级位置', exact: true })
       .boundingBox();
     if (locationHint) {
       expect(
