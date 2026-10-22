@@ -116,7 +116,12 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await groupButton.click();
   const dialog = page.getByRole('dialog', { name: '英国 · 国家级位置' });
   await expect(dialog.getByText('15 个电台', { exact: true })).toBeVisible();
-  await expect(dialog.getByText('仅确定国家；空心点不代表真实台址。')).toBeVisible();
+  await expect(dialog.getByText('仅确定国家；空心点不代表真实台址。')).toHaveCount(0);
+  const firstStation = dialog.getByRole('button', { name: '收听 ' + first.name, exact: true });
+  await expect(firstStation).toHaveText(first.name);
+  await firstStation.click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(first.name);
+  await page.screenshot({ path: info.outputPath('country-station-list.png') });
   await expect(dialog.getByRole('button', { name: '附近下一站', exact: true })).toHaveCount(0);
   await dialog.getByRole('button', { name: '下一页', exact: true }).click();
   await expect(
@@ -148,6 +153,16 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await expect(
     panel.getByRole('button', { name: 'United Kingdom · Country-level location' }),
   ).toBeVisible();
+  await panel
+    .getByRole('button', { name: 'United Kingdom · Country-level location', exact: true })
+    .click();
+  const englishDialog = page.getByRole('dialog', {
+    name: 'United Kingdom · Country-level location',
+  });
+  await expect(englishDialog.locator('p')).toHaveCount(1);
+  await expect(
+    englishDialog.getByRole('button', { name: 'Listen to ' + first.name, exact: true }),
+  ).toHaveText(first.name);
 });
 
 test('draws one point per station and retains every marker during cluster expansion and power saving', async ({

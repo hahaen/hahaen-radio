@@ -190,7 +190,6 @@ export function Exploration({
         <Modal title={title} onClose={close}>
           <section className={styles.groupList} aria-label={title}>
             <p>{t('placeStationCount', { count: members.length })}</p>
-            {group?.precision === 'country' && <p>{t('countryMapHint')}</p>}
             {group?.precision === 'region' && <p>{t('regionMapHint')}</p>}
             {members.length === 0 ? (
               <p>{t('placeEmpty')}</p>
@@ -199,10 +198,11 @@ export function Exploration({
                 {members.slice(pageOffset, pageOffset + 12).map((item) => (
                   <li key={item.id}>
                     <button
+                      aria-label={t('listenStation', { name: item.name })}
                       aria-current={station?.id === item.id ? 'true' : undefined}
                       onClick={() => onSelect(item, 'listen')}
                     >
-                      {t('listenStation', { name: item.name })}
+                      {item.name}
                     </button>
                   </li>
                 ))}
