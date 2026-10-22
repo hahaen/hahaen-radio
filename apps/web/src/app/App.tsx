@@ -1086,14 +1086,13 @@ export function App() {
             </button>
             <button
               aria-label={t('immersiveListening')}
-              data-control-motion="press"
               title={t('immersiveListening')}
               onClick={(event) => {
                 event.currentTarget.focus({ preventScroll: true });
                 enterImmersive();
               }}
             >
-              <Disc3 size={20} aria-hidden="true" />
+              <Disc3 className={styles.listeningDisc} size={20} aria-hidden="true" />
             </button>
             <button
               aria-label={t('share')}

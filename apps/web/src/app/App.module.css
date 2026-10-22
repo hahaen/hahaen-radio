@@ -559,6 +559,14 @@
   transform-box: fill-box;
   transform-origin: center;
 }
+.listeningDisc {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: recordSpin 8s linear infinite paused;
+}
+.player[data-playing='true'][data-controls-motion='true'][data-immersive='false'] .listeningDisc {
+  animation-play-state: running;
+}
 @keyframes playbackBreath {
   0%,
   100% {

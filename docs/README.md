@@ -6,7 +6,7 @@
 
 地球柔光分布、交互定位与地形细节见[任务记录](iterations/2026-10-22-globe-radiance/README.md)，最终验证状态以该记录为准。
 
-本次更新：[播放控制区轻动效](iterations/2026-10-22-player-control-motion/README.md)。
+本次更新：[收听唱片图标随播放旋转](iterations/2026-10-22-listening-disc-spin/README.md)。
 
 整体收听布局、搜索浮层与多尺寸验证见[收听页面布局优化](iterations/2026-10-22-listening-layout/README.md)。
 
