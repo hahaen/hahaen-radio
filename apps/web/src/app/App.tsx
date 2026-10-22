@@ -368,9 +368,23 @@ export function App() {
     retry: 1,
     staleTime: 30000,
   });
+  const [remoteSnapshot, setRemoteSnapshot] = useState<{
+    filters: typeof filters;
+    data: Awaited<ReturnType<typeof searchStations>>;
+  } | null>(null);
+  // Retain one rendered page through a pending request or error, only for the same filters.
+  // Adjust during render so a successful response and its page number appear together.
+  if (
+    remoteStations.data &&
+    (remoteSnapshot?.data !== remoteStations.data || remoteSnapshot.filters !== filters)
+  ) {
+    setRemoteSnapshot({ filters, data: remoteStations.data });
+  }
+  const remotePage =
+    remoteStations.data ?? (remoteSnapshot?.filters === filters ? remoteSnapshot.data : undefined);
   const pageOffset = candidates
     ? Math.min(offset, Math.max(0, Math.floor((candidates.length - 1) / 30) * 30))
-    : offset;
+    : (remotePage?.offset ?? offset);
   const stations = {
     data: candidates
       ? {
@@ -379,10 +393,10 @@ export function App() {
           offset: pageOffset,
           limit: 30,
         }
-      : remoteStations.data,
+      : remotePage,
     isPending:
       candidates === undefined
-        ? remoteStations.isPending
+        ? remoteStations.isPending && !remotePage
         : !scene.data &&
           personal.filters.favoritesOnly &&
           favoriteIds.size > 0 &&
@@ -764,7 +778,11 @@ export function App() {
                     </button>
                   </>
                 ) : stations.data ? (
-                  t('directoryCount', { count: stations.data.total })
+                  stations.isFetching ? (
+                    t('pageLoading')
+                  ) : (
+                    t('directoryCount', { count: stations.data.total })
+                  )
                 ) : (
                   t('directoryLoading')
                 )}

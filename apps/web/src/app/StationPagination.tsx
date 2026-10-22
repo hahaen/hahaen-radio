@@ -63,12 +63,20 @@ export function StationPagination({
   }, [totalPages]);
 
   return (
-    <nav ref={ref} className={styles.pagination} aria-label={t('stationPagination')}>
+    <nav
+      ref={ref}
+      className={styles.pagination}
+      aria-label={t('stationPagination')}
+      aria-busy={busy}
+    >
       <button
         type="button"
         aria-label={t('earlier')}
-        disabled={page === 1 || busy}
-        onClick={() => onChange(page - 1)}
+        disabled={page === 1}
+        aria-disabled={busy || undefined}
+        onClick={() => {
+          if (!busy) onChange(page - 1);
+        }}
       >
         <ChevronLeft size={17} aria-hidden="true" />
       </button>
@@ -79,9 +87,9 @@ export function StationPagination({
             key={item}
             aria-label={t('pageNumber', { page: item })}
             aria-current={item === page ? 'page' : undefined}
-            disabled={busy}
+            aria-disabled={busy || undefined}
             onClick={() => {
-              if (item !== page) onChange(item);
+              if (!busy && item !== page) onChange(item);
             }}
           >
             {item}
@@ -95,8 +103,11 @@ export function StationPagination({
       <button
         type="button"
         aria-label={t('later')}
-        disabled={page === totalPages || busy}
-        onClick={() => onChange(page + 1)}
+        disabled={page === totalPages}
+        aria-disabled={busy || undefined}
+        onClick={() => {
+          if (!busy) onChange(page + 1);
+        }}
       >
         <ChevronRight size={17} aria-hidden="true" />
       </button>

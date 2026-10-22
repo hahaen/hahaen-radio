@@ -118,3 +118,134 @@ test('numbered pages request the matching remote offset and retain keyboard navi
   );
   await expect(nav.getByRole('button', { name: 'Next page' })).toBeDisabled();
 });
+
+test('keeps the list, page and focus stable while a remote page loads or fails', async ({
+  page,
+}, info) => {
+  await page.setViewportSize(
+    info.project.name === 'mobile-chromium'
+      ? { width: 390, height: 844 }
+      : { width: 1440, height: 900 },
+  );
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+  await install(page, false);
+  let releasePage!: () => void;
+  const pendingPage = new Promise<void>((resolve) => {
+    releasePage = resolve;
+  });
+  let failThird = true;
+  const requested: number[] = [];
+  await page.route('**/api/v1/stations?**', async (route) => {
+    const offset = Number(new URL(route.request().url()).searchParams.get('offset'));
+    requested.push(offset);
+    if (offset === 30) await pendingPage;
+    if (offset === 60 && failThird) {
+      return route.fulfill({
+        status: 503,
+        json: { code: 'SERVICE_UNAVAILABLE', message: 'Fixture failure', requestId: 'fixture' },
+      });
+    }
+    await route.fulfill({
+      json: { items: entries.slice(offset, offset + 30), total: entries.length, offset, limit: 30 },
+    });
+  });
+  await page.goto('/');
+  await openDirectory(page);
+  const panel = page.locator('#station-directory');
+  const nav = panel.getByRole('navigation', { name: '电台分页' });
+  const second = nav.getByRole('button', { name: '第 2 页', exact: true });
+  await second.scrollIntoViewIfNeeded();
+  const before = await panel.boundingBox();
+  await second.focus();
+  await second.press('Enter');
+  await expect.poll(() => requested.includes(30)).toBe(true);
+  await expect(panel.locator('[data-station-id]')).toHaveCount(30);
+  await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 1');
+  await expect(nav.getByRole('button', { name: '第 1 页', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(second).toBeFocused();
+  await expect(nav).toHaveAttribute('aria-busy', 'true');
+  expect((await panel.boundingBox())!.height).toBe(before!.height);
+  await page.keyboard.press('Enter');
+  expect(requested.filter((offset) => offset === 30)).toHaveLength(1);
+  await page.screenshot({ path: info.outputPath('pagination-loading.png') });
+  releasePage();
+  await expect(nav.getByRole('button', { name: '第 2 页', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 31');
+  await expect(second).toBeFocused();
+  await nav.getByRole('button', { name: '第 3 页', exact: true }).click();
+  await expect(panel.getByRole('button', { name: '重试', exact: true })).toBeVisible();
+  await expect(panel.locator('[data-station-id]')).toHaveCount(30);
+  await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 31');
+  await expect(nav.getByRole('button', { name: '第 2 页', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  failThird = false;
+  await panel.getByRole('button', { name: '重试', exact: true }).click();
+  await expect(nav.getByRole('button', { name: '第 3 页', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 61');
+});
+
+test('does not retain the previous search results when filters change during a page request', async ({
+  page,
+}) => {
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+  await install(page, false);
+  let releaseOld!: () => void;
+  let releaseSearch!: () => void;
+  let oldRequested = false;
+  let finishOld!: () => void;
+  const oldFinished = new Promise<void>((resolve) => {
+    finishOld = resolve;
+  });
+  const oldPage = new Promise<void>((resolve) => {
+    releaseOld = resolve;
+  });
+  const newSearch = new Promise<void>((resolve) => {
+    releaseSearch = resolve;
+  });
+  let searchStarted = false;
+  await page.route('**/api/v1/stations?**', async (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const offset = Number(params.get('offset'));
+    if (params.get('q')) {
+      searchStarted = true;
+      await newSearch;
+      return route.fulfill({ json: { items: [entries[389]], total: 1, offset: 0, limit: 30 } });
+    }
+    if (offset === 30) {
+      oldRequested = true;
+      await oldPage;
+    }
+    await route.fulfill({
+      json: { items: entries.slice(offset, offset + 30), total: entries.length, offset, limit: 30 },
+    });
+    if (offset === 30) finishOld();
+  });
+  await page.goto('/');
+  await openDirectory(page);
+  const panel = page.locator('#station-directory');
+  const nav = panel.getByRole('navigation', { name: '电台分页' });
+  await nav.getByRole('button', { name: '第 2 页', exact: true }).click();
+  await expect.poll(() => oldRequested).toBe(true);
+  await panel.getByRole('searchbox').fill('Test radio 390');
+  await expect.poll(() => searchStarted).toBe(true);
+  await expect(panel.locator('[data-station-id]')).toHaveCount(0);
+  await expect(nav).toHaveCount(0);
+  releaseSearch();
+  await expect(panel.locator('[data-station-id]')).toHaveCount(1);
+  await expect(panel.locator('[data-station-id]').first()).toContainText('Test radio 390');
+  releaseOld();
+  await oldFinished;
+  await expect(panel.locator('[data-station-id]')).toHaveCount(1);
+  await expect(nav).toHaveCount(0);
+});

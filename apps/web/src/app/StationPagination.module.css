@@ -43,6 +43,9 @@
   opacity: 0.4;
   cursor: default;
 }
+.pagination[aria-busy='true'] button:not(:disabled) {
+  cursor: progress;
+}
 .ellipsis {
   flex: 0 0 20px;
   text-align: center;
