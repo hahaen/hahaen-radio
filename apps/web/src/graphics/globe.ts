@@ -632,15 +632,14 @@ export function createGlobe(
   controls.addEventListener('change', changed);
   controls.addEventListener('start', started);
   controls.addEventListener('end', ended);
-  let lastPaint = 0;
+  let lastFrame = 0;
   function draw(now: number) {
     frame = 0;
     if (disposed || !active || lost || document.hidden) return;
-    if (!reduced && !powerSave && now - lastPaint < 32) {
-      invalidate();
-      return;
-    }
-    lastPaint = now;
+    // Preserve the original inertia while drawing at the display's refresh rate.
+    const elapsed = Math.min(1000 / 30, now - lastFrame);
+    lastFrame = now;
+    controls.dampingFactor = 1 - Math.pow(1 - 0.09, elapsed / (1000 / 30));
     if (transition) {
       const t = Math.min(1, (now - transition.start) / 500),
         eased = 1 - (1 - t) ** 3;
