@@ -800,6 +800,7 @@
 .directory {
   min-height: 0;
   overflow-y: auto;
+  overflow-anchor: none;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   padding: 0 20px 20px;

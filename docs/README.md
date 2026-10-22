@@ -1,5 +1,7 @@
 # 技术文档导航
 
+电台搜索已改为[滚动加载](iterations/2026-10-23-station-scroll/README.md)，向下追加直到末尾。
+
 刷新恢复与地球入场连续性优化见[任务记录](iterations/2026-10-23-startup-continuity/README.md)。
 
 手机潮汐与远山的构图美化见[任务记录](iterations/2026-10-23-mobile-immersive-landscapes/README.md)。

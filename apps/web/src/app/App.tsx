@@ -35,7 +35,7 @@ import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationPreview } from '@haen/contracts';
 import { observeLanguage, setLanguage } from '../locales/i18n';
 import { createPlayerController, type PlayerState } from '../audio/controller';
-import { lookupStations, randomStation, searchStations } from '../services/catalog';
+import { lookupStations, randomStation } from '../services/catalog';
 import { useListeningLibrary } from '../library/use-library';
 import { defaultFilters, type ListeningFilters } from '../library/model';
 import { sharedStation, shareStation } from '../library/share';
@@ -57,7 +57,8 @@ import { explorationAutoplay } from '../graphics/model';
 import { StationFacts } from './StationFacts';
 import { ChinaClock } from './ChinaClock';
 import { StationDial } from './StationDial';
-import { StationPagination } from './StationPagination';
+import { StationLoadMore } from './StationLoadMore';
+import { useStationResults } from './use-station-results';
 import { GenreBar } from './GenreBar';
 import { InformationPanel } from '../information/InformationPanel';
 import { EmptyState } from './EmptyState';
@@ -181,7 +182,7 @@ export function App() {
   const [informationOpen, setInformationOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false),
     [immersive, setImmersive] = useState(false);
-  const [offset, setOffset] = useState(0);
+  const directoryScrollRef = useRef<HTMLElement>(null);
   const openDirectory = useCallback(() => {
     player.invalidateSelection();
     setDirectoryOpen(true);
@@ -258,7 +259,6 @@ export function App() {
     const timer = setTimeout(() => {
       player.invalidateSelection();
       library.setFilters({ ...library.store.getState().filters, q: draft.trim() });
-      setOffset(0);
     }, 200);
     return () => clearTimeout(timer);
   }, [directoryOpen, composing, draft, search, player, library]);
@@ -369,56 +369,28 @@ export function App() {
       page.style.removeProperty('--player-height');
     };
   }, []);
-  const remoteStations = useQuery({
-    queryKey: ['stations', filters, offset],
-    enabled: candidates === undefined,
-    queryFn: ({ signal }) => searchStations(filters, offset, 30, signal),
-    retry: 1,
-    staleTime: 30000,
-  });
-  const [remoteSnapshot, setRemoteSnapshot] = useState<{
-    filters: typeof filters;
-    data: Awaited<ReturnType<typeof searchStations>>;
-  } | null>(null);
-  // Retain one rendered page through a pending request or error, only for the same filters.
-  // Adjust during render so a successful response and its page number appear together.
-  if (
-    remoteStations.data &&
-    (remoteSnapshot?.data !== remoteStations.data || remoteSnapshot.filters !== filters)
-  ) {
-    setRemoteSnapshot({ filters, data: remoteStations.data });
-  }
-  const remotePage =
-    remoteStations.data ?? (remoteSnapshot?.filters === filters ? remoteSnapshot.data : undefined);
-  const pageOffset = candidates
-    ? Math.min(offset, Math.max(0, Math.floor((candidates.length - 1) / 30) * 30))
-    : (remotePage?.offset ?? offset);
+  const results = useStationResults(filters, candidates);
+  useLayoutEffect(() => {
+    if (directoryScrollRef.current) directoryScrollRef.current.scrollTop = 0;
+  }, [filters]);
   const stations = {
-    data: candidates
-      ? {
-          items: candidates.slice(pageOffset, pageOffset + 30),
-          total: candidates.length,
-          offset: pageOffset,
-          limit: 30,
-        }
-      : remotePage,
+    ...results,
     isPending:
       candidates === undefined
-        ? remoteStations.isPending && !remotePage
+        ? results.isPending
         : !scene.data &&
           personal.filters.favoritesOnly &&
           favoriteIds.size > 0 &&
           savedLookup.isPending,
     isError:
       candidates === undefined
-        ? remoteStations.isError
+        ? results.isError
         : !scene.data && personal.filters.favoritesOnly && savedLookup.isError,
     isFetching:
       candidates === undefined
-        ? remoteStations.isFetching
+        ? results.isFetching
         : !scene.data && personal.filters.favoritesOnly && savedLookup.isFetching,
-    refetch:
-      personal.filters.favoritesOnly && !scene.data ? savedLookup.refetch : remoteStations.refetch,
+    refetch: personal.filters.favoritesOnly && !scene.data ? savedLookup.refetch : results.refetch,
   };
   const outsideFilter = !!(
     state.station &&
@@ -513,13 +485,11 @@ export function App() {
     player.invalidateSelection();
     setDraft('');
     library.setFilters(defaultFilters());
-    setOffset(0);
   };
   const changeFilters = (value: ListeningFilters) => {
     player.invalidateSelection();
     library.setFilters(value);
     setDraft(value.q);
-    setOffset(0);
   };
   return (
     <div
@@ -764,7 +734,11 @@ export function App() {
               <X size={20} aria-hidden="true" />
             </button>
           </div>
-          <section className={styles.directory} aria-label={t('stationList')}>
+          <section
+            ref={directoryScrollRef}
+            className={styles.directory}
+            aria-label={t('stationList')}
+          >
             <div className={styles.directoryTools} data-error={stations.isError}>
               <div
                 className={styles.directoryState}
@@ -786,11 +760,7 @@ export function App() {
                     </button>
                   </>
                 ) : stations.data ? (
-                  stations.isFetching ? (
-                    t('pageLoading')
-                  ) : (
-                    t('directoryCount', { count: stations.data.total })
-                  )
+                  t('directoryCount', { count: stations.data.total })
                 ) : (
                   t('directoryLoading')
                 )}
@@ -861,12 +831,14 @@ export function App() {
                 </li>
               ))}
             </ul>
-            {stations.data && stations.data.total > 30 && (
-              <StationPagination
-                page={Math.floor(pageOffset / 30) + 1}
-                totalPages={Math.ceil(stations.data.total / 30)}
+            {stations.data && stations.data.items.length > 0 && (
+              <StationLoadMore
+                root={directoryScrollRef}
+                hasMore={results.hasMore}
                 busy={stations.isFetching}
-                onChange={(page) => setOffset((page - 1) * 30)}
+                error={results.loadMoreError}
+                loaded={stations.data.items.length}
+                onLoad={results.loadMore}
               />
             )}
             <p className={styles.source}>{t('directorySource')}</p>

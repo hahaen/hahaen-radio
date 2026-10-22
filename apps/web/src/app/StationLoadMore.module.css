@@ -1,0 +1,31 @@
+.footer {
+  min-height: 60px;
+  padding-top: 12px;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--panel-caption-size);
+}
+.footer p {
+  margin: 0 0 8px;
+  line-height: 1.6;
+}
+.footer button {
+  min-height: 44px;
+  padding: 8px 18px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.footer button:hover:not([aria-disabled='true']) {
+  background: var(--color-selected-bg);
+  color: var(--color-text);
+}
+.footer button[aria-busy='true'] {
+  cursor: progress;
+}
+.footer button[data-complete='true'] {
+  border-color: transparent;
+  cursor: default;
+}
