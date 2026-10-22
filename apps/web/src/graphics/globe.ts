@@ -618,6 +618,11 @@ export function createGlobe(
     }
     invalidate();
   }
+  function centerSelection() {
+    if (!selection.visible) return;
+    showPreview(null);
+    moveTo(selection.position.clone().normalize().multiplyScalar(camera.position.length()));
+  }
   function rebuildMarkers() {
     allowDwell = false;
     dwell.cancel();
@@ -695,7 +700,8 @@ export function createGlobe(
       resize();
     },
     setSelection(station) {
-      if (selected?.id !== station?.id) {
+      const changed = selected?.id !== station?.id;
+      if (changed) {
         allowDwell = false;
         transition = undefined;
         dwell.cancel();
@@ -703,9 +709,12 @@ export function createGlobe(
       }
       selected = station;
       updateSelection();
+      if (changed && playing) centerSelection();
     },
     setPlaying(value) {
+      const started = value && !playing;
       playing = value;
+      if (started) centerSelection();
       invalidate();
     },
     setPinned(value) {

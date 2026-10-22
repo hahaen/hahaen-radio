@@ -32,10 +32,10 @@ test('animates station lights during playback and settles when paused or motion 
   await expect.poll(async () => (await report()).draws).toBeGreaterThan(start + 3);
   const bounds = (await panel.locator('canvas').boundingBox())!;
   const clip = {
-    x: bounds.x + bounds.width * 0.25,
-    y: bounds.y + bounds.height * 0.48,
-    width: bounds.width * 0.1,
-    height: bounds.height * 0.1,
+    x: bounds.x + bounds.width / 2 - 48,
+    y: bounds.y + bounds.height / 2 - 48,
+    width: 96,
+    height: 96,
   };
   const before = await page.screenshot({ clip });
   await page.waitForTimeout(650);
