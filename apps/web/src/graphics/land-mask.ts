@@ -1,7 +1,7 @@
 import type { LandData } from './land.js';
 
-export const LAND_MASK_WIDTH = 1024;
-export const LAND_MASK_HEIGHT = 512;
+export const LAND_MASK_WIDTH = 2048;
+export const LAND_MASK_HEIGHT = 1024;
 
 /** Rasterize the local coastline, including holes, without fetching a basemap. */
 export function rasterizeLand(polygons: LandData['polygons']) {

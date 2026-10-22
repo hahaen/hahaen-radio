@@ -8,8 +8,8 @@ const stars = Array.from({ length: 210 }, (_, index) => {
   return {
     x: (index * 61.803398875 + 3.7) % 100,
     y: (index * 37.172 + value * 23) % 100,
-    radius: 0.45 + value * 0.7,
-    opacity: 0.18 + value * 0.42,
+    radius: 0.4 + value * 0.55,
+    opacity: 0.12 + value * 0.29,
   };
 });
 const beacons = [
@@ -46,8 +46,8 @@ export function Starfield({ animated }: { animated: boolean }) {
     >
       <defs>
         <radialGradient id={haloId}>
-          <stop stopColor="currentColor" stopOpacity="0.28" />
-          <stop offset="0.25" stopColor="currentColor" stopOpacity="0.09" />
+          <stop stopColor="currentColor" stopOpacity="0.18" />
+          <stop offset="0.25" stopColor="currentColor" stopOpacity="0.045" />
           <stop offset="1" stopColor="currentColor" stopOpacity="0" />
         </radialGradient>
       </defs>
@@ -65,13 +65,13 @@ export function Starfield({ animated }: { animated: boolean }) {
       <g className={styles.beacons}>
         {beacons.map(([x, y], index) => (
           <svg key={index} x={`${x}%`} y={`${y}%`} width="18" height="18" overflow="visible">
-            <circle r="12" fill={`url(#${haloId})`} />
+            <circle r="9" fill={`url(#${haloId})`} />
             <path
-              d="M0-5.5 .65-.65 5.5 0 .65.65 0 5.5-.65.65-5.5 0-.65-.65Z"
+              d="M0-3.5 .28-.28 3.5 0 .28.28 0 3.5-.28.28-3.5 0-.28-.28Z"
               fill="currentColor"
-              opacity={index % 3 === 0 ? 0.7 : 0.42}
+              opacity={index % 3 === 0 ? 0.26 : 0.16}
             />
-            <circle r="0.9" fill="currentColor" opacity="0.9" />
+            <circle r="0.65" fill="currentColor" opacity="0.76" />
           </svg>
         ))}
       </g>

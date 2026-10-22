@@ -12,7 +12,7 @@ async function collect(directory = '') {
       await collect(file + '/');
       continue;
     }
-    if (!/\.(js|css|woff2?|ttf|otf|json|svg)$/.test(entry.name)) continue;
+    if (!/\.(js|css|woff2?|ttf|otf|json|svg|jpe?g|webp)$/.test(entry.name)) continue;
     const data = await readFile(new URL(file, root));
     assets.push({
       file,
@@ -32,6 +32,8 @@ const entry = assets.filter((asset) => /^assets\/index-.*\.js$/.test(asset.file)
 if (entry.length !== 1) throw new Error('Expected one application entry bundle');
 for (const file of [
   'geography/land.json',
+  'geography/relief.jpg',
+  'geography/relief-source.json',
   'geography/world.svg',
   'geography/regions.json',
   'geography/regions-source.json',
@@ -50,7 +52,7 @@ const checks = [
   { name: 'fontsRaw', actual: sum(/\.(woff2?|ttf|otf)$/, 'bytes'), limit: 512 * 1024 },
   {
     name: 'geographyRaw',
-    actual: sum(/^geography\/(land\.json|world\.svg)$/, 'bytes'),
+    actual: sum(/^geography\/(land\.json|world\.svg|relief\.jpg)$/, 'bytes'),
     limit: 1024 * 1024,
   },
   {

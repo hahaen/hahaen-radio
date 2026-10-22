@@ -1,5 +1,7 @@
 # 技术文档导航
 
+地球柔光分布、交互定位与地形细节见[任务记录](iterations/2026-10-22-globe-radiance/README.md)，最终验证状态以该记录为准。
+
 整体收听布局、搜索浮层与多尺寸验证见[收听页面布局优化](iterations/2026-10-22-listening-layout/README.md)。
 
 地球与电台播放动效见[任务记录](iterations/2026-10-22-globe-playback-motion/README.md)。
@@ -162,6 +164,8 @@ docs/
 │   └── playback-diagnostics.md
 └── iterations/
     ├── README.md
+    ├── 2026-10-22-globe-radiance/
+    │   └── README.md
     ├── 2026-10-18-china-search/
     │   └── README.md
     ├── 2026-10-18-favicon-concepts/

@@ -1,4 +1,5 @@
 import {
+  BackSide,
   BufferAttribute,
   BufferGeometry,
   Color,
@@ -24,16 +25,23 @@ import {
   ShaderMaterial,
   SphereGeometry,
   Spherical,
+  Texture,
   Vector2,
   Vector3,
   WebGLRenderer,
 } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { applicationPath } from '../platform/paths.js';
 import type { StationPreview } from '@haen/contracts';
 import type { LandData } from './land.js';
 import { DwellSelection, globePosition, type StationGroup } from './model.js';
 import { stationMarkers, stationPosition, type StationMarker } from './markers.js';
 import { markerCrowding } from './marker-appearance.js';
+import {
+  rasterizeStationRadiance,
+  STATION_RADIANCE_WIDTH,
+  STATION_RADIANCE_HEIGHT,
+} from './station-radiance.js';
 import { rasterizeLand, LAND_MASK_WIDTH, LAND_MASK_HEIGHT } from './land-mask.js';
 export type PickReason = 'click' | 'dwell';
 export interface GlobeController {
@@ -129,16 +137,35 @@ export function createGlobe(
   landMask.magFilter = LinearFilter;
   landMask.wrapS = RepeatWrapping;
   landMask.needsUpdate = true;
+  const stationRadiance = new DataTexture(
+    new Uint8Array(STATION_RADIANCE_WIDTH * STATION_RADIANCE_HEIGHT),
+    STATION_RADIANCE_WIDTH,
+    STATION_RADIANCE_HEIGHT,
+    RedFormat,
+  );
+  stationRadiance.minFilter = LinearFilter;
+  stationRadiance.magFilter = LinearFilter;
+  stationRadiance.wrapS = RepeatWrapping;
+  stationRadiance.needsUpdate = true;
+  canvas.dataset.relief = 'loading';
+  const reliefRequest = new AbortController();
+  let reliefTexture: Texture | undefined;
+  let reliefImage: ImageBitmap | undefined;
   const body = new Mesh(
     geometry(new SphereGeometry(1, 80, 48)),
     material(
       new ShaderMaterial({
         uniforms: {
-          ocean: { value: new Color(0x091b18) },
-          shadow: { value: new Color(0x020807) },
-          atmosphere: { value: new Color(0x8abfb4) },
-          continental: { value: new Color(0x244337) },
+          ocean: { value: new Color(0x071a18) },
+          shadow: { value: new Color(0x020908) },
+          atmosphere: { value: new Color(0x82b6ad) },
+          continental: { value: new Color(0x214139) },
           landMask: { value: landMask },
+          relief: { value: landMask as Texture },
+          reliefStrength: { value: 0 },
+          stationRadiance: { value: stationRadiance },
+          radianceStrength: { value: 1 },
+          signalBreath: { value: 1 },
         },
         vertexShader: `
         varying vec3 vNormal;
@@ -153,22 +180,31 @@ export function createGlobe(
         }`,
         fragmentShader: `
         uniform vec3 ocean; uniform vec3 shadow; uniform vec3 atmosphere; uniform vec3 continental;
-        uniform sampler2D landMask;
+        uniform sampler2D landMask; uniform sampler2D relief; uniform float reliefStrength;
+        uniform sampler2D stationRadiance; uniform float radianceStrength; uniform float signalBreath;
         varying vec3 vNormal; varying vec3 vView; varying vec3 vLocal;
         void main() {
           vec3 n = normalize(vNormal);
-          float sun = dot(n, normalize(vec3(-0.9, 0.55, 0.55)));
-          float light = smoothstep(-0.18, 0.95, sun);
+          vec3 view = normalize(vView);
+          vec3 lamp = normalize(vec3(-0.85, 0.8, 0.65));
+          float sun = dot(n, lamp);
+          float light = pow(smoothstep(-0.24, 1.0, sun),1.65);
           vec3 local = normalize(vLocal);
           vec2 uv = vec2(atan(local.x, local.z) / 6.2831853 + 0.5, 0.5 - asin(clamp(local.y, -1.0, 1.0)) / 3.14159265);
           float land = texture2D(landMask, uv).r;
-          float edge = pow(1.0 - max(0.0, dot(n, normalize(vView))), 5.0);
-          vec3 sea = mix(shadow, ocean, 0.16 + light * 0.84);
-          vec3 ground = mix(shadow * 1.2, continental, 0.08 + light * 0.92);
+          float facing = max(0.0, dot(n, view));
+          float edge = pow(1.0 - facing, 3.5);
+          vec3 sea = mix(shadow, ocean, 0.18 + light * 0.82);
+          vec3 ground = mix(shadow * 1.6, continental, 0.13 + light * 0.87);
+          float terrain = texture2D(relief,uv).r;
+          ground *= mix(1.0,0.38+pow(terrain,1.6)*0.9,reliefStrength);
           vec3 color = mix(sea, ground, land);
-          float sheen = pow(max(0.0, dot(reflect(-normalize(vec3(-0.9, 0.55, 0.55)), n), normalize(vView))), 32.0);
-          color += atmosphere * sheen * (1.0 - land) * 0.025;
-          color += atmosphere * edge * light * 0.11;
+          float sheen = pow(max(0.0, dot(reflect(-lamp, n), view)), 24.0);
+          color += atmosphere * sheen * (1.0-land) * 0.055;
+          color += atmosphere * edge * light * 0.065;
+          float signal = pow(texture2D(stationRadiance,uv).r,2.4);
+          color += vec3(0.90,0.78,0.50)*signal*0.16*radianceStrength
+            *mix(0.06,1.0,land)*smoothstep(0.0,0.2,facing)*signalBreath;
           gl_FragColor = vec4(color, 1.0);
           #include <colorspace_fragment>
         }`,
@@ -176,6 +212,34 @@ export function createGlobe(
     ),
   );
   earth.add(body);
+  // Optional local shaded relief never blocks the map or station controls.
+  void (async () => {
+    const signal = AbortSignal.any([reliefRequest.signal, AbortSignal.timeout(10000)]);
+    const response = await fetch(applicationPath('geography/relief.jpg?v=3.2.0-1'), {
+      signal,
+      cache: 'force-cache',
+    });
+    if (!response.ok) throw new Error('RELIEF_UNAVAILABLE');
+    const bitmap = await createImageBitmap(await response.blob(), {
+      colorSpaceConversion: 'none',
+    });
+    if (disposed || signal.aborted) {
+      bitmap.close();
+      if (!disposed) canvas.dataset.relief = 'unavailable';
+      return;
+    }
+    reliefImage = bitmap;
+    reliefTexture = new Texture(bitmap);
+    reliefTexture.flipY = false;
+    reliefTexture.wrapS = RepeatWrapping;
+    reliefTexture.needsUpdate = true;
+    body.material.uniforms.relief!.value = reliefTexture;
+    body.material.uniforms.reliefStrength!.value = 1;
+    canvas.dataset.relief = 'ready';
+    invalidate();
+  })().catch(() => {
+    if (!disposed) canvas.dataset.relief = 'unavailable';
+  });
   const pointShader = (size: number, opacity: number, glow = false) =>
     material(
       new ShaderMaterial({
@@ -207,8 +271,8 @@ export function createGlobe(
             vPulse=mix(0.5,0.5+0.5*sin(time*(1.1+vSeed*0.5)+vSeed*62.8),playing);
             vDensity=sqrt(clamp(crowding/(zoom*zoom),0.0,1.0))*(1.0-emphasis);
             // Regional anchors remain quiet, stable rings; precise locations carry the light.
-            float stationSize=mix(0.88+vSeed*0.24,0.78,approximate);
-            gl_PointSize=pointSize*mix(1.0,stationSize,glow)*mix(1.0,mix(0.60,0.90,approximate),vDensity)
+            float stationSize=mix(0.86+vSeed*0.28,0.64,approximate);
+            gl_PointSize=pointSize*mix(1.0,stationSize,glow)*mix(1.0,mix(0.72,0.95,approximate),vDensity)
               *(1.0+glow*(1.0-approximate)*playing*vPulse*0.06+emphasis*0.28);
             gl_Position=projectionMatrix*viewPosition;
           }`,
@@ -218,6 +282,7 @@ export function createGlobe(
           varying float vDensity; varying float vEmphasis; varying float vSeed; varying float vLight;
           void main() {
             if(glow>0.5 && vFacing<=0.0)discard;
+            if(glow>0.5 && vEmphasis<0.001)discard;
             float d=length(gl_PointCoord-0.5);
             float aa=max(fwidth(d)*0.65,0.015);
             if(d>0.5)discard;
@@ -230,19 +295,20 @@ export function createGlobe(
               #include <colorspace_fragment>
               return;
             }
-            float core=1.0-smoothstep(0.10-aa,0.16+aa,d);
-            float halo=exp(-d*d*22.0)*0.22*(1.0-vDensity*0.70);
+            float core=exp(-d*d*135.0);
+            float halo=exp(-d*d*24.0)*0.26*(1.0-vDensity*0.88);
             float light=(core+halo)*(1.0-smoothstep(0.36,0.5,d));
-            float hollow=(1.0-smoothstep(0.035,0.035+aa,abs(d-0.29)))
+            float hollow=(1.0-smoothstep(0.025,0.025+aa,abs(d-0.29)))
               *smoothstep(0.12,0.20,d);
             float stationAlpha=mix(min(1.0,light),hollow,vApproximate);
-            float precisionAlpha=mix(1.0,0.56+vEmphasis*0.24,vApproximate);
-            float densityAlpha=mix(1.0,mix(0.32,0.60,vApproximate),vDensity);
-            float facing=mix(0.12,1.0,smoothstep(0.0,0.55,vFacing));
+            float precisionAlpha=mix(1.0,0.46+vEmphasis*0.34,vApproximate);
+            float densityAlpha=mix(1.0,mix(0.20,0.55,vApproximate),vDensity);
+            float facing=mix(0.04,1.0,smoothstep(0.0,0.65,vFacing));
             float alpha=opacity*facing*stationAlpha*precisionAlpha*densityAlpha*(0.78+vSeed*0.22);
             alpha*=mix(1.0,0.80+0.20*vPulse,playing*(1.0-vApproximate));
+            alpha*=vEmphasis;
             vec3 tint=mix(vColor,vec3(1.0,0.94,0.83),core*(0.25+vEmphasis*0.30)*(1.0-vApproximate));
-            tint=mix(tint,vec3(0.40,0.53,0.46),vApproximate*(1.0-vEmphasis)*0.45);
+            tint=mix(tint,vec3(0.32,0.50,0.43),vApproximate*(1.0-vEmphasis)*0.65);
             gl_FragColor=vec4(tint,alpha);
             #include <colorspace_fragment>
           }`,
@@ -298,11 +364,11 @@ export function createGlobe(
       }
   const coast = new LineSegments(
     geometry(new BufferGeometry().setAttribute('position', new Float32BufferAttribute(outline, 3))),
-    material(new LineBasicMaterial({ color: 0xb3d8c0, transparent: true, opacity: 0.085 })),
+    material(new LineBasicMaterial({ color: 0x739d8d, transparent: true, opacity: 0.038 })),
   );
   earth.add(coast);
   const rim = new Mesh(
-    geometry(new SphereGeometry(1.015, 64, 40)),
+    geometry(new SphereGeometry(1.004, 96, 64)),
     material(
       new ShaderMaterial({
         transparent: true,
@@ -313,15 +379,40 @@ export function createGlobe(
         fragmentShader: `uniform float intensity; varying vec3 vNormal; varying vec3 vView;
           void main(){
             vec3 n=normalize(vNormal);
-            float edge=pow(1.0-abs(dot(n,normalize(vView))),5.0);
+            float edge=pow(1.0-abs(dot(n,normalize(vView))),4.5);
             float light=smoothstep(-0.35,0.8,dot(n,normalize(vec3(-0.9,0.55,0.55))));
-            gl_FragColor=vec4(0.43,0.67,0.60,edge*(0.012+light*0.18)*intensity);
+            gl_FragColor=vec4(0.32,0.53,0.47,edge*(0.003+light*0.065)*intensity);
             #include <colorspace_fragment>
           }`,
       }),
     ),
   );
   earth.add(rim);
+  const atmosphere = new Mesh(
+    geometry(new SphereGeometry(1.055, 96, 64)),
+    material(
+      new ShaderMaterial({
+        side: BackSide,
+        transparent: true,
+        depthWrite: false,
+        vertexShader: `varying vec3 vWorld; varying vec3 vNormal;
+          void main(){vWorld=(modelMatrix*vec4(position,1.0)).xyz;
+            vNormal=normalize(normalMatrix*normal);
+            gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+        fragmentShader: `varying vec3 vWorld; varying vec3 vNormal;
+          void main(){
+            vec3 ray=normalize(vWorld-cameraPosition);
+            float altitude=length(cross(cameraPosition,ray))-1.0;
+            float haze=exp(-max(altitude,0.0)*72.0)*(1.0-smoothstep(0.015,0.055,altitude));
+            float light=smoothstep(-0.3,0.85,dot(normalize(vNormal),normalize(vec3(-0.85,0.8,0.65))));
+            gl_FragColor=vec4(0.34,0.57,0.51,haze*(0.014+light*0.16));
+            #include <colorspace_fragment>
+          }`,
+      }),
+    ),
+  );
+  atmosphere.renderOrder = -1;
+  earth.add(atmosphere);
   const markers = new Points(geometry(new BufferGeometry()), pointShader(8.0, 0.94, true));
   earth.add(markers);
   const selection = new Group();
@@ -338,9 +429,9 @@ export function createGlobe(
     ),
   );
   const tickVertices: number[] = [];
-  for (let index = 0; index < 48; index++) {
-    const angle = (index * Math.PI) / 24;
-    const outer = index % 4 === 0 ? 0.052 : 0.048;
+  for (let index = 0; index < 12; index++) {
+    const angle = (index * Math.PI) / 6;
+    const outer = index % 3 === 0 ? 0.052 : 0.047;
     tickVertices.push(
       Math.cos(angle) * 0.043,
       Math.sin(angle) * 0.043,
@@ -432,6 +523,8 @@ export function createGlobe(
   function showPreview(group: StationGroup | null) {
     if (previewId === (group?.id ?? null)) return;
     previewId = group?.id ?? null;
+    updateMarkerEmphasis();
+    invalidate();
     callbacks.preview(group);
   }
   function centerGroup(): StationGroup | null {
@@ -518,8 +611,9 @@ export function createGlobe(
     const animated = playing && !reduced && !powerSave;
     markers.material.uniforms.time!.value = animated ? now / 1000 : 0;
     markers.material.uniforms.playing!.value = animated ? 1 : 0;
+    body.material.uniforms.signalBreath!.value = animated ? 0.96 + Math.sin(now / 1800) * 0.04 : 1;
     rim.material.uniforms.intensity!.value = animated
-      ? 0.85 + (0.5 + 0.5 * Math.sin((now / 1000) * 1.8)) * 1.15
+      ? 0.9 + (0.5 + 0.5 * Math.sin((now / 1000) * 1.1)) * 0.45
       : 1;
     const moving = controls.update();
     updateMarkerSize();
@@ -548,7 +642,7 @@ export function createGlobe(
         camera.position.distanceTo(selection.position) *
         Math.tan((camera.fov * Math.PI) / 360)) /
       height;
-    selection.scale.setScalar(((width < 768 ? 28 : 40) * pixel) / 0.052);
+    selection.scale.setScalar(((width < 768 ? 23 : 30) * pixel) / 0.052);
     selection.lookAt(camera.position);
     if (label) {
       projected.copy(selection.position).project(camera);
@@ -568,6 +662,8 @@ export function createGlobe(
     // A compact globe packs the same coordinates into fewer pixels.
     markers.material.uniforms.zoom!.value = zoom * Math.max(0.4, viewportScale);
     markers.material.uniforms.pointSize!.value = size * renderer.getPixelRatio();
+    body.material.uniforms.radianceStrength!.value =
+      0.55 + 0.45 * Math.min(1, Math.max(0, (camera.position.length() - 1.5) / 1.8));
   }
   function resize() {
     const bounds = container.getBoundingClientRect();
@@ -610,9 +706,16 @@ export function createGlobe(
       };
     invalidate();
   }
+  function updateMarkerEmphasis() {
+    const emphasis = markers.geometry.getAttribute('emphasis');
+    if (!emphasis) return;
+    const selectedIndex = selected ? markerIndices.get(selected.id) : undefined;
+    for (let index = 0; index < groups.length; index++)
+      emphasis.setX(index, index === selectedIndex || groups[index]!.id === previewId ? 1 : 0);
+    emphasis.needsUpdate = true;
+  }
   function updateSelection() {
     const colors = markers.geometry.getAttribute('color');
-    const emphasis = markers.geometry.getAttribute('emphasis');
     if (colors) {
       for (let index = 0; index < groups.length; index++)
         (groups[index]!.stations.some((station) => station.id === selected?.id)
@@ -620,15 +723,8 @@ export function createGlobe(
           : cyan
         ).toArray(colors.array, index * 3);
       colors.needsUpdate = true;
-      if (emphasis) {
-        for (let index = 0; index < groups.length; index++)
-          emphasis.setX(
-            index,
-            groups[index]!.stations.some((station) => station.id === selected?.id) ? 1 : 0,
-          );
-        emphasis.needsUpdate = true;
-      }
     }
+    updateMarkerEmphasis();
     const position = selected ? stationPosition(selected) : null;
     selection.visible = position !== null;
     selectedIsPrecise = position?.precision === 'coordinates';
@@ -692,6 +788,8 @@ export function createGlobe(
     setData(value) {
       sourceGroups = value;
       rebuildMarkers();
+      stationRadiance.image.data = rasterizeStationRadiance(groups);
+      stationRadiance.needsUpdate = true;
     },
     setExpanded(id) {
       if (expandedId === id) return;
@@ -723,6 +821,7 @@ export function createGlobe(
         controls.update();
       }
       oceanDots.visible = !powerSave;
+      atmosphere.visible = !powerSave;
       resize();
     },
     setSelection(station) {
@@ -798,6 +897,7 @@ export function createGlobe(
       cancelAnimationFrame(hoverFrame);
       if (disposed) return;
       disposed = true;
+      reliefRequest.abort();
       dwell.cancel();
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
@@ -810,6 +910,9 @@ export function createGlobe(
       for (const value of geometries) value.dispose();
       for (const value of materials) value.dispose();
       landMask.dispose();
+      stationRadiance.dispose();
+      reliefTexture?.dispose();
+      reliefImage?.close();
       scene.clear();
       renderer.dispose();
       renderer.forceContextLoss();

@@ -1,0 +1,56 @@
+{
+  "name": "Natural Earth Shaded Relief Basic",
+  "sourcePage": "https://www.naturalearthdata.com/downloads/50m-raster-data/50m-shaded-relief/",
+  "url": "https://naciscdn.org/naturalearth/50m/raster/SR_50M.zip",
+  "officialDownloadLink": "https://www.naturalearthdata.com/http//www.naturalearthdata.com/download/50m/raster/SR_50M.zip",
+  "websiteVersion": "3.2.0",
+  "archiveVersion": "2.0.0",
+  "versionNote": "The official page advertises 3.2.0; the downloaded archive contains a VERSION file identifying 2.0.0.",
+  "license": "Public domain",
+  "terms": "https://www.naturalearthdata.com/about/terms-of-use/",
+  "retrievedOn": "2026-10-22",
+  "sha256": "ff810f5f2747463fd8ffa612b23e5f5e5d593a345218976872b6749610976ab7",
+  "sourceArchiveBytes": 11380369,
+  "sourceRaster": {
+    "name": "SR_50M.tif",
+    "sha256": "aff6ec6905554ed489087edf46e61cbf68c810fe99f2a1d2cddda7e986a540a2",
+    "width": 10800,
+    "height": 5400,
+    "channels": 1,
+    "bitsPerChannel": 8,
+    "colorModel": "Gray"
+  },
+  "georeferencing": {
+    "coordinateReferenceSystem": "WGS 84 (EPSG:4326)",
+    "projection": "Equirectangular (plate carree)",
+    "bounds": {
+      "west": -180,
+      "south": -90,
+      "east": 180,
+      "north": 90
+    },
+    "rowOrder": "north-to-south",
+    "columnOrder": "west-to-east",
+    "sourceWorldFile": [
+      0.03333333333333, 0.0, 0.0, -0.03333333333333, -179.98333333333332, 89.98333333333333
+    ],
+    "textureUv": "u=(longitude+180)/360; v=(90-latitude)/180; top row is v=0"
+  },
+  "dataMeaning": "Grayscale shaded relief derived from downsampled SRTM Plus elevation data; land shading with flat gray water. This is baked shading, not an elevation or displacement map.",
+  "processing": {
+    "tool": "macOS sips 316",
+    "steps": [
+      "Preserve the complete source raster extent and orientation without cropping, rotation, flipping, or generated terrain.",
+      "Resample from 10800x5400 to 2048x1024 using sips.",
+      "Encode as single-channel 8-bit grayscale JPEG with quality 75."
+    ],
+    "command": "sips --resampleHeightWidth 1024 2048 -s format jpeg -s formatOptions 75 SR_50M.tif --out relief.jpg"
+  },
+  "asset": "relief.jpg",
+  "assetSha256": "f1c9f1507832b01c0514303d7eb05dd23095ea0c683abd96346ff995a4081877",
+  "assetBytes": 187548,
+  "width": 2048,
+  "height": 1024,
+  "channels": 1,
+  "bitsPerChannel": 8
+}

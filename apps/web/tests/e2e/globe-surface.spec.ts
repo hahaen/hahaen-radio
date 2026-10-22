@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-test('draws surface markers on the front hemisphere without leaking through the globe', async ({
+test('draws station light on the front surface and clears it when the data changes', async ({
   page,
 }, info) => {
   await page.setViewportSize({ width: 800, height: 600 });
@@ -59,8 +59,9 @@ test('draws surface markers on the front hemisphere without leaking through the 
           requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
         ),
     );
-  await settle();
   const canvas = page.locator('canvas');
+  await expect(canvas).toHaveAttribute('data-relief', /^(ready|unavailable)$/, { timeout: 15000 });
+  await settle();
   const pixels = (png: Buffer) =>
     page.evaluate(async (base64) => {
       const bytes = Uint8Array.from(atob(base64), (value) => value.charCodeAt(0));
@@ -96,9 +97,27 @@ test('draws surface markers on the front hemisphere without leaking through the 
     ),
   );
   await settle();
+  const front = await pixels(
+    await page.screenshot({ clip: patch, path: info.outputPath('front.png') }),
+  );
+  expect(front).not.toBe(empty);
+  await page.mouse.move(400, 300);
+  await settle();
   expect(
-    await pixels(await page.screenshot({ clip: patch, path: info.outputPath('front.png') })),
-  ).not.toBe(empty);
+    await pixels(await page.screenshot({ clip: patch, path: info.outputPath('hover.png') })),
+  ).not.toBe(front);
+  await page.mouse.move(5, 5);
+  await settle();
+  expect(await pixels(await page.screenshot({ clip: patch }))).toBe(front);
+  await page.evaluate(() =>
+    (
+      Reflect.get(window, 'surfaceVerification') as { engine: { setData(groups: []): void } }
+    ).engine.setData([]),
+  );
+  await settle();
+  expect(
+    await pixels(await page.screenshot({ clip: patch, path: info.outputPath('cleared.png') })),
+  ).toBe(empty);
   await page.evaluate(() =>
     (
       Reflect.get(window, 'surfaceVerification') as { engine: { destroy(): void } }

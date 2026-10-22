@@ -50,6 +50,9 @@ test('animates station lights during playback and settles when paused or motion 
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', 'ready', { timeout: 15000 });
+  await expect(panel.locator('canvas')).toHaveAttribute('data-relief', /^(ready|unavailable)$/, {
+    timeout: 15000,
+  });
   await expect(page.getByTestId('selected-station-label')).toHaveAttribute('data-visible', 'true');
   await page.waitForTimeout(800);
   await page.screenshot({ path: info.outputPath('station-lights.png') });
@@ -135,6 +138,7 @@ test('breathes the globe rim even without plotted stations', async ({ page }) =>
   await expect(panel).toHaveAttribute('data-state', 'ready', { timeout: 15000 });
   const canvas = panel.locator('canvas');
   await expect(canvas).toHaveAttribute('data-marker-count', '0');
+  await expect(canvas).toHaveAttribute('data-relief', /^(ready|unavailable)$/, { timeout: 15000 });
   await page.getByRole('button', { name: '播放', exact: true }).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
   // Hide surrounding DOM decoration to compare only the empty globe's rendered pixels.

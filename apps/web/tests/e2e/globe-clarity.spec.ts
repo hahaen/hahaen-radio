@@ -25,6 +25,7 @@ test('keeps the full globe responsive and idle drawing bounded after brightness 
   await expect(panel).toHaveAttribute('data-state', 'ready');
   const canvas = panel.locator('canvas');
   await expect(canvas).toHaveAttribute('data-marker-count', '30000');
+  await expect(canvas).toHaveAttribute('data-relief', /^(ready|unavailable)$/, { timeout: 15000 });
   await expect.poll(async () => (await glReport(page))[0]?.draws ?? 0).toBeGreaterThan(0);
   await page.screenshot({ path: info.outputPath('global.png') });
   await canvas.press('ArrowLeft');
