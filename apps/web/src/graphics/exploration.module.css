@@ -22,6 +22,31 @@
   display: block;
   touch-action: none;
 }
+.canvasHost {
+  opacity: 0;
+  transition: opacity 450ms ease-out;
+}
+.globePanel[data-state='ready'] .canvasHost {
+  opacity: 1;
+}
+.globePanel[data-state='loading'] .fallback {
+  visibility: hidden;
+}
+.globePanel:not([data-state='ready']) .selectionLabel {
+  opacity: 0;
+}
+.globePanel[data-state='ready'] .selectionLabel {
+  opacity: 1;
+  transition: opacity 300ms 150ms ease-out;
+}
+.globePanel[data-power-save='true'] :is(.canvasHost, .selectionLabel) {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .globePanel :is(.canvasHost, .selectionLabel) {
+    transition: none;
+  }
+}
 .globeStage::before {
   content: '';
   position: absolute;

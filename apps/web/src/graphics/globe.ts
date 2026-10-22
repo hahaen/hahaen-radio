@@ -69,6 +69,7 @@ export function createGlobe(
     preview(group: StationGroup | null): void;
     lost(): void;
     restored(): void;
+    ready?(): void;
   },
 ): GlobeController {
   const canvas = document.createElement('canvas');
@@ -633,6 +634,7 @@ export function createGlobe(
   controls.addEventListener('start', started);
   controls.addEventListener('end', ended);
   let lastFrame = 0;
+  let firstFrame = true;
   function draw(now: number) {
     frame = 0;
     if (disposed || !active || lost || document.hidden) return;
@@ -678,6 +680,10 @@ export function createGlobe(
     camera.updateMatrixWorld();
     updateSelectionAppearance();
     renderer.render(scene, camera);
+    if (firstFrame) {
+      firstFrame = false;
+      callbacks.ready?.();
+    }
     if (moving || transition || animated || playbackFade) invalidate();
   }
   function updateSelectionAppearance() {
@@ -846,6 +852,7 @@ export function createGlobe(
       dwell.cancel();
     },
     setData(value) {
+      if (sourceGroups === value) return;
       sourceGroups = value;
       rebuildMarkers();
       stationRadiance.image.data = rasterizeStationRadiance(groups);

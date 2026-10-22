@@ -96,6 +96,9 @@ export function GlobePanel({
           pick: (group, reason) => latest.current.onPick(group, reason),
           preview: setPreview,
           lost: () => setState('lost'),
+          ready: () => {
+            if (!controller.signal.aborted) setState('ready');
+          },
           restored: () => {
             setState('loading');
             setPreview(null);
@@ -111,7 +114,6 @@ export function GlobePanel({
         instance.setActive(value.active);
         instance.setPowerSave(value.powerSave);
         instance.setExpanded(value.expandedId);
-        setState('ready');
       })
       .catch(() => {
         if (!controller.signal.aborted) {
@@ -159,6 +161,7 @@ export function GlobePanel({
       className={styles.globePanel}
       data-testid="globe-panel"
       data-state={state}
+      data-power-save={powerSave}
       hidden={!active}
     >
       <Starfield animated={playing && active && !powerSave && state === 'ready'} />

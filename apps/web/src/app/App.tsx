@@ -119,6 +119,17 @@ export function App() {
   const track = useNowPlaying(state);
   const library = useListeningLibrary(player);
   const personal = useStore(library.store);
+  const [lastEntry] = useState(personal.lastStation);
+  const route = useLocation();
+  const shared = useMemo(() => sharedStation(route.search), [route.search]);
+  const restoreId = shared.invalid ? null : (shared.id ?? lastEntry?.id);
+  const restoring =
+    !!restoreId &&
+    !state.station &&
+    !state.requestFailure &&
+    (state.selectionVersion === 0 || (state.resolving && state.requestedStationId === restoreId));
+  const restoredName = restoring && lastEntry?.id === restoreId ? lastEntry.name : null;
+  const hasStationLayout = !!state.station || restoring;
   usePlaybackFavicon(state.playback.status === 'playing', personal.scene.powerSave);
   const [exploring, setExploring] = useState(() => {
     try {
@@ -127,7 +138,7 @@ export function App() {
       return false;
     }
   });
-  const intro = !state.station && !exploring;
+  const intro = !state.station && !exploring && !restoreId;
   const browse = () => {
     setExploring(true);
     try {
@@ -251,9 +262,6 @@ export function App() {
     }, 200);
     return () => clearTimeout(timer);
   }, [directoryOpen, composing, draft, search, player, library]);
-  const [lastEntry] = useState(personal.lastStation);
-  const route = useLocation();
-  const shared = useMemo(() => sharedStation(route.search), [route.search]);
   useEffect(() => {
     const id = shared.invalid ? null : (shared.id ?? lastEntry?.id);
     if (id) void player.open(id, false);
@@ -430,7 +438,7 @@ export function App() {
   const active = state.resolving
     ? state.intent
     : ['playing', 'connecting', 'buffering'].includes(state.playback.status);
-  const status = t(statusKey(state));
+  const status = t(restoring ? 'loadingPaused' : statusKey(state));
   const failed = state.requestFailure !== null || state.playback.status === 'failed';
   const toggle = () => {
     if (active) player.pause();
@@ -912,6 +920,7 @@ export function App() {
         interactionVersion={interactionVersion}
         value={personal.filters}
         stations={genreStations}
+        loading={scene.isPending && !collection}
         manifest={sceneManifest}
         onChange={changeFilters}
         hidden={immersive || intro}
@@ -922,7 +931,8 @@ export function App() {
         id={intro ? 'welcome' : undefined}
         tabIndex={intro ? -1 : undefined}
         data-intro={intro}
-        data-has-station={!!state.station}
+        data-has-station={hasStationLayout}
+        data-restoring={restoring}
         data-playing={state.playback.status === 'playing'}
         data-immersive={immersive}
         ref={footerRef}
@@ -941,8 +951,10 @@ export function App() {
                 : t('welcomeLead')
               : status}
           </p>
-          <h1 data-long={(state.station?.name.length ?? 0) > 45}>
-            {state.station?.name ?? t(intro ? 'welcomeHeadline' : 'headline')}
+          <h1 data-long={(state.station?.name.length ?? restoredName?.length ?? 0) > 45}>
+            {state.station?.name ??
+              restoredName ??
+              t(restoring ? 'restoringStation' : intro ? 'welcomeHeadline' : 'headline')}
           </h1>
           {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
           {state.station ? (
@@ -960,6 +972,15 @@ export function App() {
                 </span>
               </p>
             </>
+          ) : restoring ? (
+            <div aria-hidden="true">
+              <p className={styles.location}>
+                <span className={styles.loadingLine} />
+              </p>
+              <p className={styles.metadata}>
+                <span className={styles.loadingLine} />
+              </p>
+            </div>
           ) : (
             <p className={styles.description}>
               {t(intro ? 'welcomeDescription' : 'chooseStation')}
@@ -989,6 +1010,11 @@ export function App() {
               />
               <StationFacts station={state.station} detail={state.detail} />
             </details>
+          )}
+          {restoring && (
+            <div className={styles.stationDetails} aria-hidden="true">
+              <span className={styles.detailsPlaceholder} />
+            </div>
           )}
           {state.autoSkips > 0 && (
             <p className={styles.note}>{t('autoSkip', { count: state.autoSkips })}</p>
@@ -1030,8 +1056,10 @@ export function App() {
           </button>
           <button
             className={styles.playButton}
-            aria-label={active ? t('pause') : state.station ? t('play') : t('start')}
-            disabled={!state.station && (!stations.data?.total || stations.isPending)}
+            aria-label={active ? t('pause') : hasStationLayout ? t('play') : t('start')}
+            disabled={
+              restoring || (!state.station && (!stations.data?.total || stations.isPending))
+            }
             onClick={toggle}
           >
             {active ? (
@@ -1039,7 +1067,7 @@ export function App() {
             ) : (
               <Play size={24} aria-hidden="true" />
             )}
-            {!state.station && <span>{t('start')}</span>}
+            {!hasStationLayout && <span>{t('start')}</span>}
           </button>
           <button
             aria-label={t('nextStation')}
@@ -1124,6 +1152,15 @@ export function App() {
             >
               <Share2 size={20} aria-hidden="true" />
             </button>
+          </div>
+        )}
+        {restoring && (
+          <div className={styles.stationActions} aria-hidden="true">
+            {[Star, Disc3, Share2].map((Icon, index) => (
+              <button key={index} disabled tabIndex={-1}>
+                <Icon size={20} />
+              </button>
+            ))}
           </div>
         )}
         {intro && (

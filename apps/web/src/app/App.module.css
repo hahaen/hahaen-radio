@@ -363,6 +363,33 @@
   content: '·';
   margin-right: 10px;
 }
+.player[data-restoring='true'] .location {
+  min-height: 1.6em;
+}
+.player[data-restoring='true'] .metadata {
+  min-height: 1.8em;
+}
+.player[data-restoring='true'] .metadata span::before {
+  content: none;
+}
+.loadingLine {
+  display: inline-block;
+  width: 12ch;
+  height: 0.55em;
+  align-self: center;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+.metadata .loadingLine {
+  width: 9ch;
+}
+.detailsPlaceholder {
+  display: block;
+  min-height: 32px;
+}
+.player[data-restoring='true'] .stationActions {
+  opacity: 0.35;
+}
 .status {
   display: flex;
   align-items: center;
@@ -961,6 +988,8 @@
   margin-right: 8px;
 }
 .genreBar small {
+  min-width: 5ch;
+  text-align: right;
   font: 10px var(--font-mono);
   color: var(--color-text-muted);
 }
@@ -1609,16 +1638,6 @@
   }
 }
 
-@keyframes nightArrival {
-  from {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 @keyframes welcomeArrival {
   from {
     opacity: 0;
@@ -1628,9 +1647,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-.page[data-intro='true'] .main canvas {
-  animation: nightArrival 1.8s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .player[data-intro='true'] .current {
   animation: welcomeArrival 850ms 180ms cubic-bezier(0.16, 1, 0.3, 1) both;

@@ -10,6 +10,7 @@ export interface PlayerState {
   detail: StationDetail | null;
   playback: PlaybackSnapshot;
   resolving: boolean;
+  requestedStationId: string | null;
   intent: boolean;
   requestFailure: 'network' | 'not-found' | 'unavailable' | 'empty' | 'offline' | null;
   pinned: boolean;
@@ -42,6 +43,7 @@ export function createPlayerController(
     detail: null,
     playback: emptyPlayback,
     resolving: false,
+    requestedStationId: null,
     intent: false,
     requestFailure: null,
     pinned: false,
@@ -70,6 +72,7 @@ export function createPlayerController(
     token++;
     request?.abort();
     request = undefined;
+    store.setState({ requestedStationId: null });
     exploring = false;
     automaticExploration = false;
   };
@@ -134,6 +137,7 @@ export function createPlayerController(
       station,
       detail: null,
       resolving: true,
+      requestedStationId: id,
       intent: autoplay,
       requestFailure: null,
       autoSkips: automatic ? store.getState().autoSkips : 0,

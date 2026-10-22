@@ -14,6 +14,7 @@ export function GenreBar({
   manifest,
   onChange,
   hidden,
+  loading = false,
 }: {
   interactionVersion?: number;
   value: ListeningFilters;
@@ -21,6 +22,7 @@ export function GenreBar({
   manifest: CatalogManifest | undefined;
   onChange(value: ListeningFilters): void;
   hidden: boolean;
+  loading?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const [openedAt, setOpenedAt] = useState<number | null>(null);
@@ -48,7 +50,7 @@ export function GenreBar({
     BROWSABLE_GENRES.map((genre) => [genre, 0]),
   );
   for (const station of stations) counts.set(station.genre, (counts.get(station.genre) ?? 0) + 1);
-  const count = (n: number) => n.toLocaleString(i18n.language);
+  const count = (n: number) => (loading ? '—' : n.toLocaleString(i18n.language));
   return (
     <div ref={root} className={styles.genreDock} hidden={hidden}>
       {open && (

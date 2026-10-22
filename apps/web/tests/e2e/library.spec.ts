@@ -128,7 +128,7 @@ test('restores successful listening paused and gives a shared station priority o
     panel(page).getByRole('button', { name: '电台收藏（1）', exact: true }),
   ).toBeVisible();
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('把世界，听近一点。');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/把世界，\s*听近一点。/);
   await page.goto('/?station=invalid');
   await expect(page.getByText(/此分享链接没有有效的电台编号/)).toBeVisible();
   await expect(page.locator('audio')).toHaveCount(0);
