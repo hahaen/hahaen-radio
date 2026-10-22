@@ -55,3 +55,47 @@ test('keeps every immersive artwork readable, accessible and on the same playbac
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
 });
+
+test('keeps tidal and mountain scenes clear of phone controls through viewport changes', async ({
+  page,
+}, info) => {
+  await install(page);
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/?station=' + first.id);
+  await page.getByRole('button', { name: '沉浸收听', exact: true }).click();
+  const immersive = page.getByRole('main', { name: '沉浸收听', exact: true });
+  for (const [width, height] of [
+    [390, 844],
+    [320, 700],
+    [375, 667],
+    [844, 390],
+    [768, 1024],
+    [1440, 900],
+  ]) {
+    await page.setViewportSize({ width: width!, height: height! });
+    for (const name of ['潮汐', '远山']) {
+      await immersive.getByRole('button', { name, exact: true }).click();
+      const heading = immersive.getByRole('heading', { level: 1 });
+      const favorite = immersive.getByRole('button', { name: /收藏 Harbor Jazz/ });
+      await expect(heading).toBeInViewport();
+      await expect(favorite).toBeInViewport();
+      const title = (await heading.boundingBox())!;
+      const footer = (await page.getByRole('contentinfo').boundingBox())!;
+      const back = (await immersive
+        .getByRole('button', { name: '返回探索', exact: true })
+        .boundingBox())!;
+      expect(title.y).toBeGreaterThan(back.y + back.height);
+      expect(title.y + title.height).toBeLessThan(footer.y);
+      const star = (await favorite.boundingBox())!;
+      expect(star.y + star.height).toBeLessThan(footer.y);
+      await expect(page.getByRole('button', { name: '播放', exact: true })).toBeInViewport();
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+        true,
+      );
+      await page.screenshot({
+        path: info.outputPath(`${width}-${height}-${name === '潮汐' ? 'ocean' : 'dunes'}.png`),
+      });
+    }
+  }
+});

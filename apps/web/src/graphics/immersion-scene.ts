@@ -78,7 +78,63 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         col+=terrain*reflected*exp(-water*9.0)*smoothstep(0.0,0.04,water)*0.22;
         return col;
       }
+      bool portraitScene(){return resolution.x<768.0 && resolution.y>=500.0;}
+      vec3 moonlitSky(vec2 uv){
+        vec2 p=(uv-0.5)*vec2(resolution.x/resolution.y,1.0);
+        vec3 col=sky(p)*0.85;
+        float haze=exp(-square((uv.y-0.64)*8.0))*exp(-square((uv.x-0.65)*1.3));
+        col+=mistColor*haze*0.075;
+        vec2 moon=(uv-vec2(0.72,0.77))*vec2(resolution.x/resolution.y,1.0);
+        float radius=0.010;
+        float edge=1.2/resolution.y;
+        float disk=1.0-smoothstep(radius-edge,radius+edge,length(moon));
+        float halo=exp(-length(moon)*48.0);
+        col+=mix(mistColor,starlight,0.55)*(disk*0.60+halo*0.035);
+        return col;
+      }
+      vec3 portraitOcean(vec2 uv){
+        vec3 col=moonlitSky(uv);
+        float depth=0.61-uv.y;
+        float horizon=exp(-square((uv.y-0.61)*180.0));
+        col+=mistColor*horizon*0.065;
+        if(depth>0.0){
+          float perspective=1.0/(depth+0.10);
+          vec2 sea=vec2((uv.x-0.5)*perspective,perspective);
+          float drift=time*0.18;
+          float swell=sin(sea.y*12.0-drift+sin(sea.x*2.2+drift*0.3)*0.7);
+          float detail=noise(vec2(sea.x*28.0+drift,sea.y*18.0));
+          float crest=pow(max(0.0,swell),12.0);
+          float reflection=exp(-square((uv.x-0.72)/(0.028+depth*0.70)));
+          float glints=smoothstep(0.48,0.82,detail)*crest;
+          float fade=exp(-depth*6.0)*smoothstep(0.0,0.018,depth);
+          col=mix(terrain*0.42,ink*0.72,smoothstep(0.0,0.48,depth));
+          col+=mistColor*(crest*0.012+glints*(0.024+reflection*0.30))*fade;
+          col+=mistColor*reflection*fade*0.016;
+        }
+        return col;
+      }
+      vec3 portraitMountains(vec2 uv){
+        vec3 col=moonlitSky(uv);
+        for(int i=0;i<5;i++){
+          float f=float(i);
+          float x=uv.x*2.8+f*3.7;
+          float profile=0.045*sin(x*2.1+f)+0.020*sin(x*4.8+f*1.4)
+            +0.032*noise(vec2(x*2.5,f*11.0))
+            +0.014*noise(vec2(x*7.0,f*5.0))
+            +0.006*noise(vec2(x*19.0,f*3.0));
+          float ridge=0.68-f*0.056+profile;
+          float below=ridge-uv.y;
+          float edge=1.5/resolution.y;
+          vec3 tint=mix(mix(terrain,mistColor,0.12),ink*0.82,f/4.0);
+          float valley=exp(-square((below-0.045)*23.0));
+          float mistDrift=0.8+0.2*noise(vec2(uv.x*5.0+time*0.018,f));
+          tint+=mistColor*valley*mistDrift*(0.040-f*0.007);
+          col=mix(col,tint,smoothstep(-edge,edge,below));
+        }
+        return col;
+      }
       vec3 ocean(vec2 p){
+        if(portraitScene())return portraitOcean(uvScene);
         vec3 col=sky(p)*0.85;
         float horizonY=resolution.y<500.0?0.30:0.13;
         float distance=-p.y+horizonY;
@@ -96,6 +152,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         return col;
       }
       vec3 dunes(vec2 p){
+        if(portraitScene())return portraitMountains(uvScene);
         vec3 col=sky(p);
         col+=mistColor*0.10*exp(-square((p.y-0.10)*3.8))*0.6;
         for(int i=0;i<6;i++){
@@ -179,6 +236,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         return light;
       }
       vec3 soundWaves(int effect,vec2 uv){
+        if(portraitScene() && effect!=0)return vec3(0.0);
         if(effect==1)return tidalRings(uv);
         if(effect==2)return harmonicRidges(uv);
         return lightRibbons(uv);

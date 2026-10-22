@@ -75,7 +75,7 @@ test('runs fullscreen environments on one audio session, settles motion and rele
   });
   if (simulated) {
     await expect(art).toHaveAttribute('data-rendered', 'false');
-    await expect(art.locator('svg')).toBeVisible();
+    await expect(art.locator('svg:visible')).toBeVisible();
     await expect(art.locator('canvas')).toBeHidden();
     await expect(immersive.getByRole('status')).toHaveAttribute('data-state', 'playing');
     await art.locator('canvas').evaluate((element) => {
@@ -137,9 +137,21 @@ test('keeps a full scene and playback controls when WebGL is unavailable', async
   await page.getByRole('button', { name: '沉浸收听', exact: true }).click();
   const art = page.getByRole('main', { name: '沉浸收听', exact: true }).locator('[data-effect]');
   await expect(art).toHaveAttribute('data-rendered', 'false');
-  await expect(art.locator('svg')).toBeVisible();
+  await expect(art.locator('svg:visible')).toBeVisible();
   await page.getByRole('button', { name: '潮汐', exact: true }).click();
   await expect(art).toHaveAttribute('data-effect', 'ocean');
+  for (const viewport of [
+    { width: 390, height: 844 },
+    { width: 844, height: 390 },
+  ]) {
+    await page.setViewportSize(viewport);
+    for (const name of ['潮汐', '远山']) {
+      await page.getByRole('button', { name, exact: true }).click();
+      await expect(art.locator('svg:visible')).toHaveCount(1);
+      await expect(art.locator('svg:visible path')).not.toHaveCount(0);
+      await expect(page.getByRole('button', { name: '返回探索', exact: true })).toBeInViewport();
+    }
+  }
   await page.getByRole('button', { name: '播放', exact: true }).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
 });

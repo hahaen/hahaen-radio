@@ -319,6 +319,9 @@
 .artwork[data-effect='dunes'] .sceneFallback {
   filter: none;
 }
+.portraitFallback {
+  display: none;
+}
 .artwork[data-rendered='true'] .sceneFallback {
   visibility: hidden;
 }
@@ -341,7 +344,7 @@
   }
   .sceneChoices button {
     min-width: 44px;
-    min-height: 40px;
+    min-height: 44px;
     padding-inline: 6px;
     font-size: 11px;
   }
@@ -384,5 +387,39 @@
   .favorite {
     min-height: 36px;
     padding-block: 4px;
+  }
+}
+
+@media (width < 768px) and (height >= 500px) {
+  .immersive {
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: calc(164px + env(safe-area-inset-bottom));
+  }
+  .immersive::after {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-bg) 24%, transparent),
+      transparent 22%,
+      transparent 43%,
+      color-mix(in srgb, var(--color-bg) 74%, transparent) 64%,
+      var(--color-bg) 88%
+    );
+  }
+  .listeningStage {
+    margin-bottom: clamp(12px, 3svh, 28px);
+  }
+  .immersive h1 {
+    font-size: clamp(28px, 7.8vw, 34px);
+    margin-block: 12px 16px;
+  }
+  .listeningMeta {
+    margin-bottom: 18px;
+  }
+  .artwork:not([data-effect='aurora']) .wideFallback {
+    display: none;
+  }
+  .portraitFallback {
+    display: block;
+    filter: none;
   }
 }
