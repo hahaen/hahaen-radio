@@ -204,11 +204,12 @@ export function createGlobe(
             vFacing=max(0.0,dot(viewNormal,normalize(-viewPosition.xyz)));
             vLight=smoothstep(-0.3,0.9,dot(viewNormal,normalize(vec3(-0.75,0.65,0.7))));
             vSeed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
-            vPulse=mix(0.5,0.5+0.5*sin(time*(1.8+vSeed*0.9)+vSeed*62.8),playing);
+            vPulse=mix(0.5,0.5+0.5*sin(time*(1.1+vSeed*0.5)+vSeed*62.8),playing);
             vDensity=sqrt(clamp(crowding/(zoom*zoom),0.0,1.0))*(1.0-emphasis);
-            gl_PointSize=pointSize*mix(1.0,1.45,approximate)*mix(1.0,0.62,vDensity)
-              *mix(1.0,0.80+vSeed*0.40,glow)
-              *(1.0+glow*playing*vPulse*0.22+emphasis*0.35);
+            // Regional anchors remain quiet, stable rings; precise locations carry the light.
+            float stationSize=mix(0.88+vSeed*0.24,0.78,approximate);
+            gl_PointSize=pointSize*mix(1.0,stationSize,glow)*mix(1.0,mix(0.60,0.90,approximate),vDensity)
+              *(1.0+glow*(1.0-approximate)*playing*vPulse*0.06+emphasis*0.28);
             gl_Position=projectionMatrix*viewPosition;
           }`,
         fragmentShader: `
@@ -217,19 +218,31 @@ export function createGlobe(
           varying float vDensity; varying float vEmphasis; varying float vSeed; varying float vLight;
           void main() {
             if(glow>0.5 && vFacing<=0.0)discard;
-            float d=length(gl_PointCoord-0.5); if(d>0.5)discard;
+            float d=length(gl_PointCoord-0.5);
+            float aa=max(fwidth(d)*0.65,0.015);
+            if(d>0.5)discard;
             float dotAlpha=1.0-smoothstep(0.32,0.5,d);
-            float core=1.0-smoothstep(0.08,0.24,d);
-            float halo=exp(-d*d*36.0)*(0.11+0.16*playing*vPulse);
-            float hollow=smoothstep(0.10,0.20,d)*(1.0-smoothstep(0.32,0.48,d));
-            float stationAlpha=mix(min(1.0,core+halo),hollow,vApproximate);
-            float precisionAlpha=mix(1.0,0.85,vApproximate);
-            float densityAlpha=mix(1.0,0.38,vDensity);
-            float facing=mix(0.20,1.0,smoothstep(0.0,0.65,vFacing));
-            float alpha=opacity*facing*mix(dotAlpha,stationAlpha*precisionAlpha*densityAlpha*(0.60+vSeed*0.40),glow);
-            alpha*=mix(1.0,0.40+0.60*vPulse,glow*playing);
-            vec3 tint=mix(vColor,vec3(1.0,0.94,0.83),core*(0.38+vEmphasis*0.30));
-            tint*=mix(0.58+0.42*vLight,1.0,glow);
+            if(glow<0.5){
+              float surfaceCore=1.0-smoothstep(0.08,0.24,d);
+              float surfaceFacing=mix(0.20,1.0,smoothstep(0.0,0.65,vFacing));
+              vec3 surfaceTint=mix(vColor,vec3(1.0,0.94,0.83),surfaceCore*0.38);
+              gl_FragColor=vec4(surfaceTint*(0.58+0.42*vLight),opacity*surfaceFacing*dotAlpha);
+              #include <colorspace_fragment>
+              return;
+            }
+            float core=1.0-smoothstep(0.10-aa,0.16+aa,d);
+            float halo=exp(-d*d*22.0)*0.22*(1.0-vDensity*0.70);
+            float light=(core+halo)*(1.0-smoothstep(0.36,0.5,d));
+            float hollow=(1.0-smoothstep(0.035,0.035+aa,abs(d-0.29)))
+              *smoothstep(0.12,0.20,d);
+            float stationAlpha=mix(min(1.0,light),hollow,vApproximate);
+            float precisionAlpha=mix(1.0,0.56+vEmphasis*0.24,vApproximate);
+            float densityAlpha=mix(1.0,mix(0.32,0.60,vApproximate),vDensity);
+            float facing=mix(0.12,1.0,smoothstep(0.0,0.55,vFacing));
+            float alpha=opacity*facing*stationAlpha*precisionAlpha*densityAlpha*(0.78+vSeed*0.22);
+            alpha*=mix(1.0,0.80+0.20*vPulse,playing*(1.0-vApproximate));
+            vec3 tint=mix(vColor,vec3(1.0,0.94,0.83),core*(0.25+vEmphasis*0.30)*(1.0-vApproximate));
+            tint=mix(tint,vec3(0.40,0.53,0.46),vApproximate*(1.0-vEmphasis)*0.45);
             gl_FragColor=vec4(tint,alpha);
             #include <colorspace_fragment>
           }`,
@@ -309,7 +322,7 @@ export function createGlobe(
     ),
   );
   earth.add(rim);
-  const markers = new Points(geometry(new BufferGeometry()), pointShader(5.2, 0.94, true));
+  const markers = new Points(geometry(new BufferGeometry()), pointShader(8.0, 0.94, true));
   earth.add(markers);
   const selection = new Group();
   const selectionRing = new Mesh(
@@ -550,9 +563,11 @@ export function createGlobe(
   }
   function updateMarkerSize() {
     const zoom = Math.min(1.7, 3.8 / camera.position.length());
-    const size = 6.4 * Math.min(1, Math.min(width, height) / 600) * zoom;
-    markers.material.uniforms.zoom!.value = zoom;
-    markers.material.uniforms.pointSize!.value = Math.max(1.8, size) * renderer.getPixelRatio();
+    const viewportScale = Math.min(1, Math.min(width, height) / 600);
+    const size = Math.max(5.8, 8.0 * viewportScale) * zoom;
+    // A compact globe packs the same coordinates into fewer pixels.
+    markers.material.uniforms.zoom!.value = zoom * Math.max(0.4, viewportScale);
+    markers.material.uniforms.pointSize!.value = size * renderer.getPixelRatio();
   }
   function resize() {
     const bounds = container.getBoundingClientRect();
