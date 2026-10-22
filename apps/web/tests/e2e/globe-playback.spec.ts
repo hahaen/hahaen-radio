@@ -5,9 +5,7 @@ import { testScene } from '../../src/testing/stations.js';
 import { first, install } from './listening-fixture.js';
 import { glReport, installGLProbe } from '../performance/webgl-probe.js';
 
-test('animates station lights during playback and settles when paused or motion is reduced', async ({
-  page,
-}, info) => {
+test('animates selected sound waves and gently settles when paused', async ({ page }, info) => {
   test.setTimeout(60000);
   await page.setViewportSize(
     info.project.name === 'mobile-chromium'
@@ -70,10 +68,6 @@ test('animates station lights during playback and settles when paused or motion 
   await page.waitForTimeout(650);
   const after = await page.screenshot({ clip });
   expect(before.equals(after)).toBe(false);
-  const neighbors = { ...clip, x: clip.x - 60, y: clip.y - 60, width: 48, height: 48 };
-  const neighborsBefore = await page.screenshot({ clip: neighbors });
-  await page.waitForTimeout(800);
-  expect(neighborsBefore.equals(await page.screenshot({ clip: neighbors }))).toBe(false);
   for (const [width, height] of [
     [1440, 900],
     [768, 1024],
@@ -82,13 +76,18 @@ test('animates station lights during playback and settles when paused or motion 
     [844, 390],
   ]) {
     await page.setViewportSize({ width: width!, height: height! });
+    // Resizing clears the WebGL buffer; allow the next scheduled frame to repaint.
+    await page.waitForTimeout(250);
     await page.screenshot({ path: info.outputPath(`playing-${width}x${height}.png`) });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
       true,
     );
   }
   await page.getByRole('button', { name: '暂停', exact: true }).click();
+  const fading = (await report()).draws;
   await page.waitForTimeout(300);
+  expect((await report()).draws).toBeGreaterThan(fading);
+  await page.waitForTimeout(850);
   const paused = (await report()).draws;
   await page.waitForTimeout(250);
   expect((await report()).draws).toBe(paused);
@@ -111,7 +110,7 @@ test('animates station lights during playback and settles when paused or motion 
   expect(errors).toEqual([]);
 });
 
-test('breathes the globe rim even without plotted stations', async ({ page }) => {
+test('ripples outside the entire globe even without plotted stations', async ({ page }, info) => {
   test.setTimeout(60000);
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await install(page);
@@ -145,12 +144,26 @@ test('breathes the globe rim even without plotted stations', async ({ page }) =>
   const isolation = await page.addStyleTag({
     content: 'body * { visibility: hidden !important; } canvas { visibility: visible !important; }',
   });
-  const before = await canvas.screenshot();
-  await page.waitForTimeout(800);
-  expect(before.equals(await canvas.screenshot())).toBe(false);
+  await page.waitForTimeout(1000);
+  const bounds = (await canvas.boundingBox())!;
+  const centerX = page.viewportSize()!.width >= 1024 ? 0.59 : 0.5;
+  const framingWidth = bounds.width * (1 - 2 * (centerX - 0.5));
+  const focal = Math.min(framingWidth, bounds.height) / (2 * Math.tan((19 * Math.PI) / 180));
+  // Sample beyond the old atmosphere's 1.055 radius, where only the new outer waves render.
+  const radius = (focal * 1.075) / Math.sqrt(3.8 ** 2 - 1.075 ** 2);
+  const outerClip = {
+    x: bounds.x + bounds.width * centerX - 24,
+    y: bounds.y + bounds.height / 2 - radius - 4,
+    width: 48,
+    height: 8,
+  };
+  const before = await page.screenshot({ clip: outerClip });
+  await page.waitForTimeout(1000);
+  expect(before.equals(await page.screenshot({ clip: outerClip }))).toBe(false);
+  await canvas.screenshot({ path: info.outputPath('whole-globe-waves.png') });
   await isolation.evaluate((element) => element.parentNode?.removeChild(element));
   await page.getByRole('button', { name: '暂停', exact: true }).click();
-  await page.waitForTimeout(300);
+  await page.waitForTimeout(1200);
   const draws = (await glReport(page))[0]!.draws;
   await page.waitForTimeout(300);
   expect((await glReport(page))[0]!.draws).toBe(draws);

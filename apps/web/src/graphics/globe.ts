@@ -120,6 +120,9 @@ export function createGlobe(
     previewId: string | null = null;
   const markerIndices = new Map<string, number>();
   let selectedIsPrecise = false;
+  let centeredStationId: string | null = null;
+  let playbackLevel = 0;
+  let playbackFade: { from: number; to: number; start: number } | undefined;
   let transition: { from: Vector3; to: Vector3; rotation: Quaternion; start: number } | undefined;
   const easingRotation = new Quaternion();
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -389,23 +392,32 @@ export function createGlobe(
   );
   earth.add(rim);
   const atmosphere = new Mesh(
-    geometry(new SphereGeometry(1.055, 96, 64)),
+    geometry(new SphereGeometry(1.13, 96, 64)),
     material(
       new ShaderMaterial({
         side: BackSide,
         transparent: true,
         depthWrite: false,
+        uniforms: { time: { value: 0 }, intensity: { value: 0 } },
         vertexShader: `varying vec3 vWorld; varying vec3 vNormal;
           void main(){vWorld=(modelMatrix*vec4(position,1.0)).xyz;
             vNormal=normalize(normalMatrix*normal);
             gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
-        fragmentShader: `varying vec3 vWorld; varying vec3 vNormal;
+        fragmentShader: `uniform float time; uniform float intensity;
+          varying vec3 vWorld; varying vec3 vNormal;
           void main(){
             vec3 ray=normalize(vWorld-cameraPosition);
             float altitude=length(cross(cameraPosition,ray))-1.0;
             float haze=exp(-max(altitude,0.0)*72.0)*(1.0-smoothstep(0.015,0.055,altitude));
             float light=smoothstep(-0.3,0.85,dot(normalize(vNormal),normalize(vec3(-0.85,0.8,0.65))));
-            gl_FragColor=vec4(0.34,0.57,0.51,haze*(0.014+light*0.16));
+            float waves=0.0;
+            for(int i=0;i<3;i++){
+              float phase=fract(time/7.2+float(i)/3.0);
+              float distance=(altitude-(0.008+phase*0.10))/0.004;
+              waves+=exp(-distance*distance)*smoothstep(0.0,0.12,phase)*pow(1.0-phase,1.5);
+            }
+            float ripple=waves*0.09*intensity*(0.45+light*0.55)*smoothstep(0.0,0.006,altitude);
+            gl_FragColor=vec4(0.34,0.57,0.51,haze*(0.014+light*0.16)+ripple);
             #include <colorspace_fragment>
           }`,
       }),
@@ -490,10 +502,43 @@ export function createGlobe(
   );
   selectionDot.position.set(0, 0, 0.002);
   selectionGlow.renderOrder = 10;
+  const waves = new Mesh(
+    geometry(new PlaneGeometry(0.25, 0.25)),
+    material(
+      new ShaderMaterial({
+        transparent: true,
+        depthWrite: false,
+        depthTest: false,
+        uniforms: {
+          time: { value: 0 },
+          intensity: { value: 0 },
+          color: { value: new Color(0xf36b45) },
+        },
+        vertexShader:
+          'varying vec2 vUv; void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+        fragmentShader: `uniform float time; uniform float intensity; uniform vec3 color;
+        varying vec2 vUv;
+        void main(){
+          float radius=length(vUv-0.5)*2.0;
+          float alpha=0.0;
+          for(int i=0;i<3;i++){
+            float phase=fract(time/4.8+float(i)/3.0);
+            float ringRadius=0.10+phase*0.84;
+            float feather=max(fwidth(radius),0.009);
+            float ring=1.0-smoothstep(0.004,0.004+feather,abs(radius-ringRadius));
+            alpha+=ring*smoothstep(0.0,0.12,phase)*pow(1.0-phase,1.5);
+          }
+          gl_FragColor=vec4(color,alpha*0.36*intensity);
+          #include <colorspace_fragment>
+        }`,
+      }),
+    ),
+  );
+  waves.renderOrder = 9;
   selectionTicks.renderOrder = 11;
   selectionRing.renderOrder = 12;
   selectionDot.renderOrder = 13;
-  selection.add(selectionGlow, selectionTicks, selectionRing, selectionDot);
+  selection.add(waves, selectionGlow, selectionTicks, selectionRing, selectionDot);
   selection.visible = false;
   earth.add(selection);
   const ray = new Raycaster(),
@@ -611,20 +656,32 @@ export function createGlobe(
       if (t === 1) transition = undefined;
     }
     const animated = playing && !reduced && !powerSave;
-    markers.material.uniforms.time!.value = animated ? now / 1000 : 0;
-    markers.material.uniforms.playing!.value = animated ? 1 : 0;
-    body.material.uniforms.signalBreath!.value = animated ? 0.96 + Math.sin(now / 1800) * 0.04 : 1;
-    rim.material.uniforms.intensity!.value = animated
-      ? 0.9 + (0.5 + 0.5 * Math.sin((now / 1000) * 1.1)) * 0.45
-      : 1;
+    if (reduced || powerSave) {
+      playbackLevel = 0;
+      playbackFade = undefined;
+    } else if (playbackFade) {
+      const t = Math.min(1, (now - playbackFade.start) / 900);
+      const eased = t * t * (3 - 2 * t);
+      playbackLevel = playbackFade.from + (playbackFade.to - playbackFade.from) * eased;
+      if (t === 1) playbackFade = undefined;
+    } else playbackLevel = animated ? 1 : 0;
+    // Keep the surface and locator steady; motion belongs to the sound waves and rim.
+    markers.material.uniforms.playing!.value = 0;
+    body.material.uniforms.signalBreath!.value = 1;
+    rim.material.uniforms.intensity!.value =
+      1 + playbackLevel * (0.08 + Math.sin(now / 1100) * 0.12);
+    waves.material.uniforms.time!.value = now / 1000;
+    waves.material.uniforms.intensity!.value = playbackLevel;
+    atmosphere.material.uniforms.time!.value = now / 1000;
+    atmosphere.material.uniforms.intensity!.value = playbackLevel;
     const moving = controls.update();
     updateMarkerSize();
     camera.updateMatrixWorld();
-    updateSelectionAppearance(animated ? now / 1000 : null);
+    updateSelectionAppearance();
     renderer.render(scene, camera);
-    if (moving || transition || animated) invalidate();
+    if (moving || transition || animated || playbackFade) invalidate();
   }
-  function updateSelectionAppearance(time: number | null) {
+  function updateSelectionAppearance() {
     const label = callbacks.selectionLabel;
     if (!selection.visible) {
       if (label) label.dataset.visible = 'false';
@@ -634,11 +691,8 @@ export function createGlobe(
     for (const child of selection.children) child.visible = front;
     selectionGlow.visible = front && selectedIsPrecise;
     selectionDot.visible = front && selectedIsPrecise;
-    const pulse = time === null ? 1 : 0.5 + 0.5 * Math.sin(time * 1.8);
-    selectedLight.uniforms.intensity!.value = 0.58 + pulse * 0.42;
-    selectionRing.material.opacity = 0.46 + pulse * 0.52;
-    selectionRing.scale.setScalar(time === null ? 1 : 0.98 + pulse * 0.08);
-    selectionTicks.material.opacity = 0.16 + pulse * 0.22;
+    waves.visible = front && playbackLevel > 0;
+    waves.material.uniforms.color!.value.setHex(selectedIsPrecise ? 0xf36b45 : 0x91aaa0);
     const pixel =
       (2 *
         camera.position.distanceTo(selection.position) *
@@ -748,6 +802,7 @@ export function createGlobe(
   }
   function centerSelection() {
     if (!selection.visible) return;
+    centeredStationId = selected?.id ?? null;
     showPreview(null);
     moveTo(selection.position.clone().normalize().multiplyScalar(camera.position.length()));
   }
@@ -844,8 +899,10 @@ export function createGlobe(
     },
     setPlaying(value) {
       const started = value && !playing;
+      if (value !== playing)
+        playbackFade = { from: playbackLevel, to: value ? 1 : 0, start: performance.now() };
       playing = value;
-      if (started) centerSelection();
+      if (started && selected?.id !== centeredStationId) centerSelection();
       invalidate();
     },
     setPinned(value) {

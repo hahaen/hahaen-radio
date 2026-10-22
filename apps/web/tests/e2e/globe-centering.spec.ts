@@ -73,6 +73,8 @@ for (const mode of ['animated', 'reduced', 'power-save'] as const) {
     await page.getByRole('button', { name: '播放', exact: true }).click();
     await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
     await centered();
+    await page.waitForTimeout(1000);
+    expect(await offset()).toBeLessThan(1);
     await page.screenshot({ path: info.outputPath('centered-sydney.png') });
 
     // Pinning keeps manual exploration from selecting a different station.
@@ -80,8 +82,11 @@ for (const mode of ['animated', 'reduced', 'power-save'] as const) {
     await page.getByRole('button', { name: '暂停', exact: true }).click();
     await canvas.press('ArrowLeft');
     await expect.poll(offset).toBeGreaterThan(10);
+    await page.waitForTimeout(700);
+    const exploredOffset = await offset();
     await page.getByRole('button', { name: '播放', exact: true }).click();
-    await centered();
+    await page.waitForTimeout(1200);
+    expect(Math.abs((await offset()) - exploredOffset)).toBeLessThan(1);
 
     for (const station of entries.slice(1, 3)) {
       await selectStation(page, station.name);

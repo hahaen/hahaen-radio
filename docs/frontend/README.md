@@ -1,5 +1,7 @@
 # 前端技术文档
 
+地球播放声波、暂停渐隐与恢复播放视角规则见[任务记录](../iterations/2026-10-22-globe-sound-waves/README.md)。
+
 当前收听区、搜索与流派条样式见[收听页面布局优化](../iterations/2026-10-22-listening-layout/README.md)。
 
 沉浸场景与地球页的色调统一见[沉浸收听配色](../iterations/2026-10-22-immersive-palette/README.md)。
