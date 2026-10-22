@@ -380,7 +380,7 @@
 
 @media (width < 768px) and (height >= 600px) {
   .modal {
-    max-height: calc(100dvh - 112px - var(--dock-bottom) - 100px);
+    max-height: calc(100dvh - 112px - var(--dock-bottom) - var(--panel-controls-clearance, 148px));
   }
 }
 

@@ -35,6 +35,8 @@ for (const [width, height] of [
     expect(heading!.y).toBeGreaterThanOrEqual(dock!.y);
     expect(dock!.y + dock!.height).toBeLessThan(height - 55);
     if (width >= 768) expect(dock!.width).toBeLessThan(width / 2);
+    if (width >= 768 && width < 1024 && height >= 600)
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(dock!.y);
     await expect(player.getByRole('button', { name: '播放', exact: true })).toBeInViewport();
     const volume = await player.getByRole('slider', { name: '音量', exact: true }).boundingBox();
     expect(volume!.x + volume!.width).toBeLessThanOrEqual(dock!.x + dock!.width);

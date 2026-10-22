@@ -10,9 +10,9 @@
   --color-on-accent: #172d2a;
   --color-border: rgb(245 241 232 / 12%);
   --color-selected-bg: rgb(245 241 232 / 8%);
-  --color-panel: rgb(11 35 28 / 70%);
+  --color-panel: rgb(14 30 25 / 92%);
   --panel-sheen: linear-gradient(135deg, rgb(245 241 232 / 4%), transparent 65%);
-  --panel-border: rgb(245 241 232 / 18%);
+  --panel-border: rgb(245 241 232 / 14%);
   --panel-backdrop: blur(28px) saturate(125%);
   --color-control-glass: rgb(20 43 35 / 42%);
   --control-backdrop: blur(14px) saturate(120%);
@@ -21,7 +21,7 @@
   --panel-body-size: 14px;
   --panel-control-size: 13px;
   --panel-caption-size: 12px;
-  --shadow-panel: 0 24px 80px #0005, inset 0 1px 0 #f5f1e80d;
+  --shadow-panel: 0 24px 80px #0007, inset 0 1px 0 #f5f1e808;
   --shadow-control: none;
   --font-display: 'Noto Serif SC', 'Songti SC', 'STSong', serif;
   --font-body: Inter, 'PingFang SC', 'Noto Sans SC', system-ui, sans-serif;

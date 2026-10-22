@@ -263,6 +263,18 @@ for (const [label, width, height] of [
     expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth + 1)).toBe(
       true,
     );
+    if (width < 768 && height >= 600) {
+      const panelBounds = await dialog.boundingBox();
+      const playBounds = await page
+        .getByRole('button', { name: '暂停', exact: true })
+        .boundingBox();
+      expect(panelBounds!.y + panelBounds!.height).toBeLessThan(playBounds!.y);
+      await dialog.getByRole('button', { name: '15 分钟', exact: true }).click();
+      const timedPanel = await dialog.boundingBox();
+      const timedPlay = await page.getByRole('button', { name: '暂停', exact: true }).boundingBox();
+      expect(timedPanel!.y + timedPanel!.height).toBeLessThan(timedPlay!.y);
+      await dialog.getByRole('button', { name: '关闭', exact: true }).click();
+    }
     await page.screenshot({ path: info.outputPath('settings.png') });
     await dialog.getByRole('heading', { name: '键盘操作', exact: true }).scrollIntoViewIfNeeded();
     await expect(dialog.getByRole('heading', { name: '键盘操作', exact: true })).toBeVisible();

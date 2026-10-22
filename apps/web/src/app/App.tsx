@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useStore } from 'zustand';
 import { useLocation } from 'react-router';
@@ -21,6 +29,7 @@ import {
   Info,
   Radio,
   SearchX,
+  MapPin,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationPreview } from '@haen/contracts';
@@ -521,7 +530,9 @@ export function App() {
                 else openDirectory();
               }}
             >
-              <Search size={21} aria-hidden="true" />
+              <Search size={19} aria-hidden="true" />
+              <span className={styles.searchLabel}>{t('findStation')}</span>
+              <kbd aria-hidden="true">/</kbd>
             </button>
           </div>
           <div className={styles.libraryControl}>
@@ -914,7 +925,10 @@ export function App() {
           {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
           {state.station ? (
             <>
-              <p className={styles.location}>{location(state.station)}</p>
+              <p className={styles.location}>
+                <MapPin size={14} aria-hidden="true" />
+                {location(state.station)}
+              </p>
               <p className={styles.metadata}>
                 {t('genre.' + state.station.genre)}
                 <span>
@@ -1110,6 +1124,7 @@ export function App() {
               max={1}
               step={0.01}
               value={state.playback.volume}
+              style={{ '--volume-level': `${state.playback.volume * 100}%` } as CSSProperties}
               onChange={(event) => player.setVolume(Number(event.target.value))}
             />
           ) : (
