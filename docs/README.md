@@ -1,5 +1,7 @@
 # 技术文档导航
 
+搜索电台数字分页见[任务记录](iterations/2026-10-23-station-pagination/README.md)。
+
 地球播放声波、暂停渐隐与恢复播放视角规则见[任务记录](iterations/2026-10-22-globe-sound-waves/README.md)。
 
 所有电台移除宗教分类与候选的范围见[任务记录](iterations/2026-10-22-religious-exclusion/README.md)。

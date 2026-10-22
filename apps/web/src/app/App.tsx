@@ -57,6 +57,7 @@ import { explorationAutoplay } from '../graphics/model';
 import { StationFacts } from './StationFacts';
 import { ChinaClock } from './ChinaClock';
 import { StationDial } from './StationDial';
+import { StationPagination } from './StationPagination';
 import { GenreBar } from './GenreBar';
 import { InformationPanel } from '../information/InformationPanel';
 import { EmptyState } from './EmptyState';
@@ -835,21 +836,12 @@ export function App() {
               ))}
             </ul>
             {stations.data && stations.data.total > 30 && (
-              <nav className={styles.pagination} aria-label={t('stationList')}>
-                <button
-                  disabled={pageOffset === 0 || stations.isFetching}
-                  onClick={() => setOffset(Math.max(0, pageOffset - 30))}
-                >
-                  {t('earlier')}
-                </button>
-                <span>{t('pageNumber', { page: Math.floor(pageOffset / 30) + 1 })}</span>
-                <button
-                  disabled={pageOffset + 30 >= stations.data.total || stations.isFetching}
-                  onClick={() => setOffset(pageOffset + 30)}
-                >
-                  {t('later')}
-                </button>
-              </nav>
+              <StationPagination
+                page={Math.floor(pageOffset / 30) + 1}
+                totalPages={Math.ceil(stations.data.total / 30)}
+                busy={stations.isFetching}
+                onChange={(page) => setOffset((page - 1) * 30)}
+              />
             )}
             <p className={styles.source}>{t('directorySource')}</p>
             <p className={styles.source}>

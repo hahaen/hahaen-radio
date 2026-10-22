@@ -893,25 +893,13 @@
 .stationPlay svg {
   width: 16px;
 }
-.textButton,
-.pagination button {
+.textButton {
   min-height: 44px;
   padding: 8px 14px;
   border: 1px solid var(--color-border);
   border-radius: 999px;
   background: transparent;
   color: var(--color-text);
-}
-.pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-  font-size: var(--panel-caption-size);
-}
-.pagination button:disabled {
-  opacity: 0.4;
 }
 .source {
   font: 11px / 1.8 var(--font-body);
