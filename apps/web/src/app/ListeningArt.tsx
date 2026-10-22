@@ -58,17 +58,24 @@ export function ListeningArt({
             <path
               key={i}
               d={`M-200 ${460 + i * 65} Q250 ${200 + i * 65} 700 ${420 + i * 45} T1800 ${330 + i * 70} V1000 H-200Z`}
-              fill={['#254434', '#203e30', '#1a3329', '#142a22', '#0f221b', '#0a1914'][i]}
+              fill={`color-mix(in srgb, var(--color-surface) ${100 - i * 16}%, var(--color-bg))`}
             />
           ))
         ) : mode === 'ocean' ? (
           <>
-            <ellipse cx="850" cy="420" rx="700" ry="60" fill="#6eab8a" opacity=".18" />
+            <ellipse
+              cx="850"
+              cy="420"
+              rx="700"
+              ry="60"
+              fill="var(--color-secondary)"
+              opacity=".08"
+            />
             {Array.from({ length: 18 }, (_, i) => (
               <path
                 key={i}
                 d={`M${180 + i * 20} ${450 + i * i} Q800 ${430 + i * i} ${1450 - i * 20} ${450 + i * i}`}
-                stroke="#91aaa0"
+                stroke="var(--color-secondary)"
                 strokeWidth={0.7 + i * 0.12}
                 opacity={0.2 - i * 0.008}
                 fill="none"
@@ -80,7 +87,7 @@ export function ListeningArt({
             <path
               key={i}
               d={`M-200 ${410 + i * 16} C260 ${50 + i * 25} 800 ${550 - i * 15} 1800 ${160 + i * 24}`}
-              stroke={i % 2 ? '#6ba889' : '#8bbe9f'}
+              stroke={i % 2 ? 'var(--color-surface)' : 'var(--color-secondary)'}
               strokeWidth={20 + i * 6}
               opacity={0.12 - i * 0.012}
               fill="none"

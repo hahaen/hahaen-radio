@@ -304,7 +304,7 @@
   z-index: -2;
   pointer-events: none;
   overflow: hidden;
-  background: radial-gradient(ellipse at 50% 35%, #264e3d, #081310 75%);
+  background: radial-gradient(ellipse at 50% 35%, var(--color-surface), var(--color-bg) 75%);
 }
 .artwork canvas,
 .sceneFallback {

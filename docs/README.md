@@ -1,5 +1,7 @@
 # 技术文档导航
 
+沉浸场景与地球页的色调统一见[沉浸收听配色](iterations/2026-10-22-immersive-palette/README.md)。
+
 当前页面调整：[播放状态动效与秒钟显示](iterations/2026-10-22-playback-status-and-clock/README.md)、[移除流派探索](iterations/2026-10-22-remove-genre-view/README.md)、[电影感夜航](iterations/2026-10-21-cinematic-night/README.md)，构图和组件基线见[夜航设计规范](frontend/design/night-voyage.md)。
 
 正式环境部署进展见[正式部署记录](iterations/2026-10-17-production-deployment/README.md)，服务器路径见[项目目录](deployment/containers/server-layout.md)，具体配置见[服务器配置与产物清单](deployment/containers/server-inventory.md)。

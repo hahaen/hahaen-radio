@@ -1,4 +1,5 @@
 import {
+  Color,
   Mesh,
   OrthographicCamera,
   PlaneGeometry,
@@ -20,7 +21,13 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
   const renderer = new WebGLRenderer({ canvas, antialias: false, powerPreference: 'low-power' });
   const scene = new Scene();
   const camera = new OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const theme = getComputedStyle(host);
+  const themeColor = (name: string) => new Color(theme.getPropertyValue(name).trim());
   const uniforms = {
+    ink: { value: themeColor('--color-bg') },
+    terrain: { value: themeColor('--color-surface').multiplyScalar(1.65) },
+    mistColor: { value: themeColor('--color-secondary') },
+    starlight: { value: themeColor('--color-text') },
     resolution: { value: new Vector2(1, 1) },
     time: { value: 9 },
     waveActivity: { value: initial.playing ? 1 : 0 },
@@ -36,6 +43,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
     vertexShader: `varying vec2 uvScene; void main(){uvScene=uv;gl_Position=vec4(position.xy,0.0,1.0);}`,
     fragmentShader: `
       uniform vec2 resolution; uniform float time; uniform float waveActivity; uniform int mode; uniform int previousMode; uniform float blend;
+      uniform vec3 ink; uniform vec3 terrain; uniform vec3 mistColor; uniform vec3 starlight;
       varying vec2 uvScene;
       float square(float x){return x*x;}
       float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
@@ -44,10 +52,10 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
       float mist(vec2 p){float n=0.0,a=0.5;for(int i=0;i<4;i++){n+=a*noise(p);p=p*2.03+vec2(17.3,9.1);a*=0.5;}return n;}
       vec3 sky(vec2 p){
         float glow=exp(-length((p-vec2(0.2,0.08))*vec2(0.7,1.8))*2.4);
-        vec3 col=mix(vec3(0.012,0.031,0.027),vec3(0.035,0.087,0.067),glow);
+        vec3 col=mix(ink*0.72,terrain*0.40,glow);
         vec2 cells=p*vec2(140.0,140.0);vec2 id=floor(cells);vec2 star=fract(cells)-0.5;
         float seed=hash(id);float dotLight=exp(-dot(star,star)*160.0)*step(0.995,seed);
-        col+=vec3(0.61,0.72,0.64)*dotLight*(0.34+0.07*sin(time*0.2+seed*30.0))*smoothstep(-0.12,0.25,p.y);
+        col+=starlight*dotLight*(0.34+0.07*sin(time*0.2+seed*30.0))*smoothstep(-0.12,0.25,p.y);
         return col;
       }
       vec3 aurora(vec2 p){
@@ -60,14 +68,14 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
           float ribbon=exp(-h*h/(0.00035+0.00015*f));
           float veil=exp(-abs(h)*12.0)*smoothstep(-0.025,0.08,h)*rays;
           float envelope=exp(-square((p.x+0.1-f*0.12)*0.65));
-          vec3 tint=mix(vec3(0.16,0.46,0.31),vec3(0.44,0.67,0.54),f/3.0);
+          vec3 tint=mix(terrain,mistColor*0.58,f/3.0);
           col+=tint*(ribbon*0.28+veil*0.20)*envelope;
         }
         float horizon=exp(-square((p.y+0.12)*25.0));
-        col+=vec3(0.12,0.21,0.15)*horizon*exp(-p.x*p.x*0.7)*0.25;
+        col+=mistColor*0.12*horizon*exp(-p.x*p.x*0.7)*0.25;
         float water=max(0.0,-p.y-0.12);
         float reflected=pow(max(0.0,sin(water*220.0+sin(p.x*23.0+time*0.12)*2.0)),18.0);
-        col+=vec3(0.12,0.29,0.20)*reflected*exp(-water*9.0)*smoothstep(0.0,0.04,water)*0.22;
+        col+=terrain*reflected*exp(-water*9.0)*smoothstep(0.0,0.04,water)*0.22;
         return col;
       }
       vec3 ocean(vec2 p){
@@ -75,26 +83,26 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         float horizonY=resolution.y<500.0?0.30:0.13;
         float distance=-p.y+horizonY;
         float horizon=exp(-square((p.y-horizonY)*14.0))*exp(-p.x*p.x*0.6);
-        col+=vec3(0.16,0.28,0.23)*horizon*0.75;
+        col+=mix(terrain*2.0,mistColor,0.55)*horizon*0.16;
         if(distance>0.0){
           vec2 sea=vec2(p.x/(distance+0.14),1.0/(distance+0.14));
           float wav=sin(sea.y*11.0-time*0.42+sin(sea.x*3.0+time*0.10)*1.4);
           float sheen=pow(max(0.0,wav),18.0);
           float grain=0.4+0.6*noise(vec2(sea.x*12.0+time*0.08,sea.y*3.0));
           float reflection=exp(-p.x*p.x/(0.035+distance*0.40));
-          col=mix(col,vec3(0.009,0.034,0.029),smoothstep(0.0,0.65,distance)*0.8);
-          col+=vec3(0.25,0.42,0.34)*sheen*grain*reflection*exp(-distance*2.8)*smoothstep(0.0,0.06,distance)*0.65;
+          col=mix(col,ink*0.85,smoothstep(0.0,0.65,distance)*0.8);
+          col+=mistColor*0.30*sheen*grain*reflection*exp(-distance*2.8)*smoothstep(0.0,0.06,distance)*0.65;
         }
         return col;
       }
       vec3 dunes(vec2 p){
         vec3 col=sky(p);
-        col+=vec3(0.13,0.22,0.17)*exp(-square((p.y-0.10)*3.8))*0.6;
+        col+=mistColor*0.10*exp(-square((p.y-0.10)*3.8))*0.6;
         for(int i=0;i<6;i++){
           float f=float(i);float ridge=0.10-f*0.075+0.075*sin(p.x*(1.5+f*0.35)+f*1.7+time*0.012)+0.06*mist(vec2(p.x*2.5+f*7.0,time*0.008));
-          vec3 tint=mix(vec3(0.13,0.24,0.18),vec3(0.012,0.037,0.029),f/5.0);
+          vec3 tint=mix(terrain*0.95,ink*0.80,f/5.0);
           float fog=exp(-abs(p.y-ridge)*32.0);
-          col+=vec3(0.14,0.24,0.17)*fog*0.16;
+          col+=mistColor*0.12*fog*0.16;
           col=mix(col,tint,1.0-smoothstep(ridge-0.008,ridge+0.008,p.y));
         }
         return col;
@@ -117,7 +125,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
           float core=exp(-square(distance*resolution.y/1.1));
           float halo=exp(-abs(distance)*150.0)*0.10;
           float emphasis=i==2?0.65:0.19;
-          vec3 tint=i==2?vec3(0.65,0.79,0.67):vec3(0.19,0.46,0.33);
+          vec3 tint=i==2?mix(mistColor,starlight,0.16):terrain*1.8;
           float glint=pow(max(0.0,cos(x*9.0-time*1.6+phase)),18.0)*waveActivity;
           light+=tint*(core*(1.0+glint*0.65)+halo)*emphasis*envelope;
         }
@@ -143,7 +151,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
           float halo=exp(-abs(r-radius)*90.0)*0.08;
           float fading=square(1.0-age)*smoothstep(0.0,0.12,age);
           float reflection=0.55+0.45*noise(p*6.0+vec2(time*0.07,f));
-          vec3 tint=mix(vec3(0.20,0.48,0.36),vec3(0.66,0.77,0.63),1.0-age);
+          vec3 tint=mix(terrain*1.5,mistColor,1.0-age);
           light+=tint*(core+halo)*fading*reflection*0.74*waveActivity*waterMask;
         }
         return light;
@@ -165,7 +173,7 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
           float core=exp(-square(distance*resolution.y/0.9));
           float mistLight=exp(-abs(distance)*100.0)*0.045;
           float glint=pow(max(0.0,cos(x*6.0+time*0.55-phase)),16.0)*waveActivity;
-          vec3 tint=mix(vec3(0.20,0.43,0.30),vec3(0.66,0.69,0.51),f/7.0);
+          vec3 tint=mix(terrain*1.5,mistColor,f/7.0);
           light+=tint*(core*(0.22+glint*0.28)+mistLight)*envelope;
         }
         return light;
@@ -181,9 +189,9 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         if(blend<1.0)col=mix(environment(previousMode,p)+soundWaves(previousMode,uvScene),col,smoothstep(0.0,1.0,blend));
         float vignette=1.0-smoothstep(0.25,1.0,length((uvScene-0.5)*vec2(0.8,0.9)));
         col*=0.75+0.25*vignette;
-        col+=(hash(gl_FragCoord.xy)-0.5)/360.0;
         gl_FragColor=vec4(col,1.0);
         #include <colorspace_fragment>
+        gl_FragColor.rgb+=(hash(gl_FragCoord.xy)-0.5)/255.0;
       }`,
   });
   scene.add(new Mesh(geometry, material));
