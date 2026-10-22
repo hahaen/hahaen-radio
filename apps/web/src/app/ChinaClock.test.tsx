@@ -20,21 +20,34 @@ afterEach(() => {
 
 it('always shows China time and a localized date without station data', async () => {
   render(<ChinaClock />);
-  expect(screen.getByText('21:27')).toBeInTheDocument();
+  expect(screen.getByText('21:27:00')).toBeInTheDocument();
   expect(screen.getByText('中国时间 · 2026年10月18日星期日')).toBeInTheDocument();
   expect(screen.getByText('农历九月初九')).toBeInTheDocument();
   await act(async () => setLanguage('en'));
-  expect(screen.getByText('21:27')).toBeInTheDocument();
+  expect(screen.getByText('21:27:00')).toBeInTheDocument();
   expect(screen.getByText('China time · Sunday, 18 October 2026')).toBeInTheDocument();
   expect(screen.getByText('Lunar: month 9, day 9')).toBeInTheDocument();
+});
+
+it('ticks on second boundaries and rolls over minutes without shifting the date', async () => {
+  vi.setSystemTime(new Date('2026-10-18T13:27:58.750Z'));
+  render(<ChinaClock />);
+  expect(screen.getByText('21:27:58')).toBeInTheDocument();
+  await act(async () => vi.advanceTimersByTimeAsync(249));
+  expect(screen.getByText('21:27:58')).toBeInTheDocument();
+  await act(async () => vi.advanceTimersByTimeAsync(1));
+  expect(screen.getByText('21:27:59')).toBeInTheDocument();
+  await act(async () => vi.advanceTimersByTimeAsync(1000));
+  expect(screen.getByText('21:28:00')).toBeInTheDocument();
+  expect(screen.getByText('中国时间 · 2026年10月18日星期日')).toBeInTheDocument();
 });
 
 it('updates both the time and date at midnight in China', async () => {
   vi.setSystemTime(new Date('2026-10-18T15:59:59Z'));
   render(<ChinaClock />);
-  expect(screen.getByText('23:59')).toBeInTheDocument();
+  expect(screen.getByText('23:59:59')).toBeInTheDocument();
   await act(async () => vi.advanceTimersByTimeAsync(1000));
-  expect(screen.getByText('00:00')).toBeInTheDocument();
+  expect(screen.getByText('00:00:00')).toBeInTheDocument();
   expect(screen.getByText('中国时间 · 2026年10月19日星期一')).toBeInTheDocument();
   expect(screen.getByText('农历九月初十')).toBeInTheDocument();
 });
@@ -60,7 +73,7 @@ it('keeps the China clock when the runtime does not support the Chinese calendar
   });
   expect(createLunarFormatter()).toBeNull();
   render(<ChinaClock />);
-  expect(screen.getByText('21:27')).toBeInTheDocument();
+  expect(screen.getByText('21:27:00')).toBeInTheDocument();
   expect(screen.getByText('中国时间 · 2026年10月18日星期日')).toBeInTheDocument();
   expect(screen.queryByText(/^农历/)).toBeNull();
 });
@@ -74,10 +87,10 @@ it('refreshes after resuming and cleans up its timer and listeners in strict mod
   expect(vi.getTimerCount()).toBe(1);
   vi.setSystemTime(new Date('2026-10-19T00:00:00Z'));
   act(() => window.dispatchEvent(new Event('focus')));
-  expect(screen.getByText('08:00')).toBeInTheDocument();
+  expect(screen.getByText('08:00:00')).toBeInTheDocument();
   vi.setSystemTime(new Date('2026-10-19T01:00:00Z'));
   act(() => document.dispatchEvent(new Event('visibilitychange')));
-  expect(screen.getByText('09:00')).toBeInTheDocument();
+  expect(screen.getByText('09:00:00')).toBeInTheDocument();
   expect(vi.getTimerCount()).toBe(1);
   result.unmount();
   window.dispatchEvent(new Event('focus'));

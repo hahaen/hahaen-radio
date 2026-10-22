@@ -13,6 +13,7 @@ export function ChinaClock() {
         timeZone: 'Asia/Shanghai',
         hour: '2-digit',
         minute: '2-digit',
+        second: '2-digit',
         hourCycle: 'h23',
       }),
       date: new Intl.DateTimeFormat(locale, {
@@ -31,9 +32,9 @@ export function ChinaClock() {
     const refresh = () => {
       clearTimeout(timer);
       setNow(Date.now());
-      timer = setTimeout(refresh, 60000 - (Date.now() % 60000));
+      timer = setTimeout(refresh, 1000 - (Date.now() % 1000));
     };
-    let timer = setTimeout(refresh, 60000 - (Date.now() % 60000));
+    let timer = setTimeout(refresh, 1000 - (Date.now() % 1000));
     window.addEventListener('focus', refresh);
     document.addEventListener('visibilitychange', refresh);
     return () => {
