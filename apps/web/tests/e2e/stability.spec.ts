@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { first, second, openDirectory, listenButton, selectStation } from './listening-fixture.js';
 import { installScale } from './scale-fixture.js';
 
-test('loads 30000 entries, reuses cached chunks and keeps resources bounded across 60 station and view switches', async ({
+test('loads 30000 entries, reuses cached chunks and keeps resources bounded across 60 station switches', async ({
   page,
   browserName,
 }, info) => {
@@ -60,9 +60,6 @@ test('loads 30000 entries, reuses cached chunks and keeps resources bounded acro
       await selectStation(page, station.name);
       await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
       await expect(page.getByRole('heading', { level: 1 })).toHaveText(station.name);
-      await page.getByRole('button', { name: '流派', exact: true }).click();
-      await expect(page.getByRole('button', { name: /爵士.*15,000 台/ })).toBeVisible();
-      await page.getByRole('button', { name: '地球', exact: true }).click();
       await expect(page.locator('audio')).toHaveCount(1);
       await expect(panel.locator('canvas')).toHaveCount(1);
       if ([9, 29, 59].includes(index)) {

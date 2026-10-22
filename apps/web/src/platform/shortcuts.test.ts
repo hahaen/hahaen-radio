@@ -7,18 +7,9 @@ afterEach(() => {
 });
 function setup() {
   const actions = Object.fromEntries(
-    [
-      'toggle',
-      'previous',
-      'next',
-      'view',
-      'search',
-      'favorite',
-      'pin',
-      'mute',
-      'enter',
-      'escape',
-    ].map((key) => [key, vi.fn()]),
+    ['toggle', 'previous', 'next', 'search', 'favorite', 'pin', 'mute', 'enter', 'escape'].map(
+      (key) => [key, vi.fn()],
+    ),
   ) as unknown as ShortcutActions;
   off = connectShortcuts(actions);
   return actions;
@@ -29,12 +20,12 @@ const key = (target: Element, value: string, extra: KeyboardEventInit = {}) =>
   );
 it('handles intentional page shortcuts once while preserving composition, modifiers and repeated keys', () => {
   const actions = setup();
-  key(document.body, 'G');
-  expect(actions.view).toHaveBeenCalledOnce();
-  key(document.body, 'g', { isComposing: true });
-  key(document.body, 'g', { repeat: true });
-  key(document.body, 'g', { ctrlKey: true });
-  expect(actions.view).toHaveBeenCalledOnce();
+  key(document.body, 'F');
+  expect(actions.favorite).toHaveBeenCalledOnce();
+  key(document.body, 'f', { isComposing: true });
+  key(document.body, 'f', { repeat: true });
+  key(document.body, 'f', { ctrlKey: true });
+  expect(actions.favorite).toHaveBeenCalledOnce();
   key(document.body, 'Enter');
   key(document.body, 'Escape');
   expect(actions.enter).toHaveBeenCalledOnce();

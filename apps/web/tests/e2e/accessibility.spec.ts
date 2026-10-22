@@ -45,7 +45,6 @@ const labels = {
     library: '我的收听',
     information: '关于与帮助',
     track: '曲目与歌词',
-    genre: '流派',
     filters: '筛选电台',
     favorite: '收藏 ',
     play: '收听 ',
@@ -56,7 +55,6 @@ const labels = {
     library: 'My listening',
     information: 'About and help',
     track: 'Track and lyrics',
-    genre: 'Genre',
     filters: 'Filter stations',
     favorite: 'Favorite ',
     play: 'Listen to ',
@@ -162,8 +160,6 @@ for (const language of ['zh', 'en'] as const) {
       if (issues.length) failures.push({ state, issues });
     };
     await scan('globe');
-    await page.getByRole('button', { name: text.genre, exact: true }).click();
-    await scan('genres');
     await openDirectory(page);
     await page.locator('#station-directory').getByText(text.filters, { exact: true }).click();
     await scan('filters');

@@ -137,7 +137,6 @@ function Help() {
         {[
           ['Space', 'keyPlay'],
           ['← / ↑ · → / ↓', 'keyStations'],
-          ['G', 'keyView'],
           ['/', 'keySearch'],
           ['F', 'keyFavorite'],
           ['L', 'keyPin'],

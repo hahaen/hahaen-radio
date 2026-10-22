@@ -216,7 +216,7 @@ test('continues explicit playback when switching from playing audio to a slow st
   ).toContain('tone.aac');
 });
 
-test('keeps actual audio playing across globe and genre views', async ({ page }) => {
+test('keeps actual audio playing while using genre filters on the globe', async ({ page }) => {
   const station = {
     ...fixture(1, 'mp3'),
     latitude: 25,
@@ -226,10 +226,10 @@ test('keeps actual audio playing across globe and genre views', async ({ page })
   await install(page, [station], undefined, undefined, true);
   await selectStation(page, station.name);
   await expectPlaying(page);
-  await page.getByRole('button', { name: '流派', exact: true }).click();
+  const genres = page.getByRole('navigation', { name: '流派', exact: true });
+  await genres.getByRole('button', { name: /^爵士/ }).click();
   await expectPlaying(page);
-  await expect(page.getByRole('button', { name: /爵士.*1 台/ })).toBeVisible();
-  await page.getByRole('button', { name: '地球', exact: true }).click();
+  await genres.getByRole('button', { name: /^全部流派/ }).click();
   await expectPlaying(page);
 });
 test('reuses the complete scene index from IndexedDB after reload', async ({ page }) => {

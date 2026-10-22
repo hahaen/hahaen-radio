@@ -61,39 +61,61 @@ test('preserves older preferences and remembers scene choices without changing p
     'dunes',
   );
 });
-test('keeps genre selection usable with and without WebGL', async ({ page }, info) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await install(page);
-  await page.goto('/');
-  await page.getByRole('button', { name: '流派', exact: true }).click();
-  const atlas = page.getByRole('group', { name: '按流派探索' });
-  await expect(atlas.getByRole('button', { name: /爵士.*1 台/ })).toBeVisible();
-  const webgl = await page.evaluate(() => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('webgl2');
-    context?.getExtension('WEBGL_lose_context')?.loseContext();
-    return !!context;
+
+for (const fallback of [false, true]) {
+  test(`restores a legacy genre view to the globe with WebGL fallback ${fallback}`, async ({
+    page,
+  }, info) => {
+    await install(page);
+    await page.addInitScript((fallback) => {
+      localStorage.setItem(
+        'haen:personal:v1:preferences',
+        JSON.stringify({
+          version: 1,
+          value: {
+            volume: 0.4,
+            muted: true,
+            showHints: false,
+            view: 'genres',
+            idleImmersive: false,
+          },
+        }),
+      );
+      if (fallback) {
+        const original = HTMLCanvasElement.prototype.getContext;
+        HTMLCanvasElement.prototype.getContext = function (
+          this: HTMLCanvasElement,
+          kind: string,
+          ...args: unknown[]
+        ) {
+          if (kind.startsWith('webgl')) return null;
+          return Reflect.apply(original, this, [kind, ...args]);
+        } as typeof original;
+      }
+    }, fallback);
+    await page.goto('/');
+    const globe = page.getByTestId('globe-panel');
+    await expect(globe).toHaveAttribute('data-state', fallback ? 'unavailable' : 'ready');
+    await expect(page.getByRole('button', { name: /^(流派|地球)$/ })).toHaveCount(0);
+    await selectStation(page, first.name);
+    await page.getByRole('button', { name: '暂停', exact: true }).click();
+    await page.evaluate(() => (document.activeElement as HTMLElement)?.blur());
+    await page.keyboard.press('g');
+    await expect(page.getByRole('group', { name: '按流派探索' })).toHaveCount(0);
+    await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
+    await page.getByRole('button', { name: '收听设置', exact: true }).click();
+    const settings = page.getByRole('dialog');
+    await expect(settings.getByRole('slider', { name: '音量', exact: true })).toHaveValue('0.4');
+    await expect(settings.getByRole('checkbox', { name: '静音', exact: true })).toBeChecked();
+    await expect(
+      settings.getByRole('checkbox', { name: '显示操作提示', exact: true }),
+    ).not.toBeChecked();
+    await expect(settings.getByText('切换地球与流派', { exact: true })).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
+    await expect(page.getByRole('button', { name: /^(Genre|Globe)$/ })).toHaveCount(0);
+    await expect(page.getByRole('navigation', { name: 'Genres', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(first.name);
+    await page.screenshot({ path: info.outputPath('globe-only.png') });
   });
-  if (webgl) {
-    await expect(atlas).toHaveAttribute('data-rendered', 'true');
-    await expect(atlas.locator('canvas')).toHaveCount(1);
-  }
-  await atlas.getByRole('button', { name: /爵士.*1 台/ }).click();
-  await expect(page.getByRole('heading', { name: '爵士', exact: true })).toBeVisible();
-  await page.screenshot({ path: info.outputPath('genre-scene.png'), fullPage: true });
-  await page.addInitScript(() => {
-    const original = HTMLCanvasElement.prototype.getContext;
-    HTMLCanvasElement.prototype.getContext = function (
-      this: HTMLCanvasElement,
-      kind: string,
-      ...args: unknown[]
-    ) {
-      if (kind.startsWith('webgl')) return null;
-      return Reflect.apply(original, this, [kind, ...args]);
-    } as typeof original;
-  });
-  await page.reload();
-  await expect(atlas.getByRole('button', { name: /爵士.*1 台/ })).toBeVisible();
-  await atlas.getByRole('button', { name: /爵士.*1 台/ }).click();
-  await expect(page.getByRole('heading', { name: '爵士', exact: true })).toBeVisible();
-});
+}

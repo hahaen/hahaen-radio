@@ -39,7 +39,7 @@ export const PreferencesSchema = z.strictObject({
   volume: z.number().min(0).max(1),
   muted: z.boolean(),
   showHints: z.boolean(),
-  view: z.enum(['globe', 'genres']),
+  view: z.enum(['globe', 'genres']).transform(() => 'globe' as const),
   idleImmersive: z.boolean(),
 });
 export type Preferences = z.infer<typeof PreferencesSchema>;

@@ -16,8 +16,6 @@ import {
   Star,
   Share2,
   Bookmark,
-  Globe2,
-  ListMusic,
   Settings2,
   Disc3,
   Info,
@@ -423,13 +421,6 @@ export function App() {
         next: () => {
           void player.next();
         },
-        view: () => {
-          player.invalidateSelection();
-          exploration.current?.close();
-          library.setPreferences({
-            view: library.store.getState().preferences.view === 'globe' ? 'genres' : 'globe',
-          });
-        },
         search: () => {
           if (immersive) {
             searchAfterExit.current = true;
@@ -533,26 +524,6 @@ export function App() {
               <Search size={21} aria-hidden="true" />
             </button>
           </div>
-          <div className={styles.viewTabs} role="group" aria-label={t('viewMode')}>
-            {(['globe', 'genres'] as const).map((view) => (
-              <button
-                key={view}
-                aria-pressed={personal.preferences.view === view}
-                onClick={() => {
-                  player.invalidateSelection();
-                  exploration.current?.close();
-                  library.setPreferences({ view });
-                }}
-              >
-                {view === 'globe' ? (
-                  <Globe2 size={16} aria-hidden="true" />
-                ) : (
-                  <ListMusic size={16} aria-hidden="true" />
-                )}
-                {t(view === 'globe' ? 'globeView' : 'genreView')}
-              </button>
-            ))}
-          </div>
           <div className={styles.libraryControl}>
             <button
               className={[styles.openLibrary, styles.libraryButton].join(' ')}
@@ -640,7 +611,6 @@ export function App() {
               ref={exploration}
               onInteract={closeForMap}
               interactionVersion={interactionVersion}
-              mode={personal.preferences.view}
               visible={!immersive}
               welcome={intro}
               onSearch={openDirectory}

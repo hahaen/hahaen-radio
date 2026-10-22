@@ -23,6 +23,8 @@ for (const [width, height] of [
     await selectStation(page, first.name);
     await page.getByRole('button', { name: '暂停', exact: true }).click();
     await expect(page.getByTestId('globe-panel')).toHaveAttribute('data-state', 'ready');
+    await expect(page.getByRole('button', { name: /^(流派|地球)$/ })).toHaveCount(0);
+    await expect(page.getByRole('group', { name: '探索方式' })).toHaveCount(0);
     const canvas = page.getByRole('img', { name: /可旋转的地球/ });
     const bounds = await canvas.boundingBox();
     const sceneCenter = width * (width >= 1024 ? 0.59 : 0.5);
@@ -71,7 +73,7 @@ for (const [width, height] of [
   });
 }
 
-test('filters from the bottom dock and keeps selection paused across views', async ({
+test('filters from the bottom dock and keeps selection paused while filtering', async ({
   page,
 }, info) => {
   await install(page);
@@ -95,11 +97,9 @@ test('filters from the bottom dock and keeps selection paused across views', asy
   ).toHaveCount(0);
   await page.locator('#station-search').press('Escape');
   await genres.getByRole('button', { name: /^全部流派/ }).click();
-  await page.getByRole('button', { name: '流派', exact: true }).click();
-  await expect(page.getByRole('group', { name: '按流派探索' })).toBeVisible();
-  await page.screenshot({ path: info.outputPath('genre-constellations.png') });
+  await expect(page.getByTestId('globe-panel')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('globe-filter-reset.png') });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.getByRole('button', { name: '地球', exact: true }).click();
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
 });
 

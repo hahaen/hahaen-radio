@@ -55,16 +55,9 @@ test('persists actual settings and synchronizes independent preferences and lang
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('slider', { name: 'Volume', exact: true })).toHaveValue('0.32');
   await otherDialog.getByRole('button', { name: 'Close panel', exact: true }).click();
-  await other.getByRole('button', { name: 'Genre', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Genre', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(page.getByRole('button', { name: 'Genre', exact: true })).toHaveCount(0);
   await page.reload();
-  await expect(page.getByRole('button', { name: 'Genre', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(page.getByRole('button', { name: 'Genre', exact: true })).toHaveCount(0);
   await expect(page.getByRole('slider', { name: 'Volume', exact: true })).toHaveValue('0.32');
   await expect(page.getByRole('button', { name: 'Unmute', exact: true })).toHaveAttribute(
     'aria-pressed',
@@ -138,10 +131,8 @@ test('keeps keyboard commands, immersion, focus, and refreshed previous navigati
   await bodyKey(page, 'm');
   expect(await page.locator('audio').evaluate((audio: HTMLAudioElement) => audio.muted)).toBe(true);
   await bodyKey(page, 'g');
-  await expect(page.getByRole('button', { name: '流派', exact: true })).toHaveAttribute(
-    'aria-pressed',
-    'true',
-  );
+  await expect(page.getByRole('group', { name: '按流派探索' })).toHaveCount(0);
+  await expect(page.getByTestId('globe-panel')).toBeVisible();
   await bodyKey(page, '/');
   await expect(page.getByRole('searchbox', { name: '搜索电台', exact: true })).toBeFocused();
   await page.keyboard.type('fm');

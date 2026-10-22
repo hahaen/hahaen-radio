@@ -42,20 +42,46 @@ describe('local personal library', () => {
       second = createLibrary(env);
     first.setPreferences({ volume: 0.25 });
     second.setPreferences({ muted: true });
-    first.setPreferences({ showHints: false, view: 'genres' });
+    first.setPreferences({ showHints: false, view: 'globe' });
     first.setSleep(30, 1000);
     const restored = createLibrary(env).store.getState();
     expect(restored.preferences).toMatchObject({
       volume: 0.25,
       muted: true,
       showHints: false,
-      view: 'genres',
+      view: 'globe',
       idleImmersive: false,
     });
     expect(restored.sleep).toMatchObject({ minutes: 30, deadline: 1801000, expired: false });
     const id = restored.sleep!.id;
     second.expireSleep(id, 1801000);
     expect(createLibrary(env).store.getState().sleep).toMatchObject({ id, expired: true });
+  });
+  it('maps the removed genre view to the globe without losing existing preferences', () => {
+    const env = environment();
+    env.values.set(
+      LIBRARY_PREFIX + 'preferences',
+      JSON.stringify({
+        version: 1,
+        value: { volume: 0.25, muted: true, showHints: false, view: 'genres', idleImmersive: true },
+      }),
+    );
+    const library = createLibrary(env);
+    expect(library.store.getState().preferences).toEqual({
+      volume: 0.25,
+      muted: true,
+      showHints: false,
+      view: 'globe',
+      idleImmersive: true,
+    });
+    expect(library.store.getState().storageProblem).toBeNull();
+    library.setPreferences({ volume: 0.4 });
+    expect(createLibrary(env).store.getState().preferences).toMatchObject({
+      volume: 0.4,
+      muted: true,
+      view: 'globe',
+      idleImmersive: true,
+    });
   });
   it('preserves independent concurrent favorites, reads current values for delayed events, and removes across tabs', async () => {
     const env = environment(),

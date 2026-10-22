@@ -2,7 +2,6 @@ export interface ShortcutActions {
   toggle(): void;
   previous(): void;
   next(): void;
-  view(): void;
   search(): void;
   favorite(): void;
   pin(): void;
@@ -38,7 +37,6 @@ export function connectShortcuts(actions: ShortcutActions, target: EventTarget =
       ArrowUp: 'previous',
       ArrowRight: 'next',
       ArrowDown: 'next',
-      g: 'view',
       '/': 'search',
       f: 'favorite',
       l: 'pin',

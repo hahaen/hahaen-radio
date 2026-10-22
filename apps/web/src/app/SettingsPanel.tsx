@@ -193,7 +193,6 @@ export function SettingsPanel({
               [
                 ['Space', 'keyPlayback'],
                 ['← ↑ / → ↓', 'keyStations'],
-                ['G', 'keyView'],
                 ['/', 'keySearch'],
                 ['F', 'keyFavorite'],
                 ['L', 'keyPin'],

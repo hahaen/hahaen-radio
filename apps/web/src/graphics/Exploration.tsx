@@ -9,7 +9,7 @@ import {
 } from 'react';
 import { regionsVersion, subscribeRegions } from './regions';
 import { useTranslation } from 'react-i18next';
-import type { Genre, StationPreview } from '@haen/contracts';
+import type { StationPreview } from '@haen/contracts';
 import {
   groupStations,
   type StationGroup,
@@ -18,12 +18,10 @@ import {
 } from './model';
 import type { PickReason } from './globe';
 import { GlobePanel } from './GlobePanel';
-import { GenreAtlas } from './GenreAtlas';
 import styles from './exploration.module.css';
 import { Modal } from '../app/Modal';
 import { countryName } from './location';
-import { MapNotes } from './MapNotes';
-type Selection = { kind: 'place'; id: string } | { kind: 'genre'; genre: Genre } | null;
+type Selection = { kind: 'place'; id: string } | null;
 export interface ExplorationHandle {
   close(): void;
 }
@@ -41,7 +39,6 @@ export function Exploration({
   onRetry,
   onSearch,
   onSelect,
-  mode,
   visible = true,
   welcome = false,
   showHints = true,
@@ -61,7 +58,6 @@ export function Exploration({
   onRetry(): void;
   onSearch(): void;
   onSelect(station: StationPreview, reason: ExplorationChoice, expected?: SceneExpectation): void;
-  mode: 'globe' | 'genres';
   visible?: boolean;
   welcome?: boolean;
   showHints?: boolean;
@@ -96,10 +92,7 @@ export function Exploration({
   }, [stations, regionsReady]);
   const group =
     selection?.kind === 'place' ? groups.find((value) => value.id === selection.id) : null;
-  const members =
-    selection?.kind === 'genre'
-      ? stations.filter((value) => value.genre === selection.genre)
-      : (group?.stations ?? []);
+  const members = group?.stations ?? [];
   const located = groups.reduce((count, value) => count + value.stations.length, 0);
   const countryLocated = groups
     .filter((value) => value.precision === 'country')
@@ -108,20 +101,18 @@ export function Exploration({
     .filter((value) => value.precision === 'region')
     .reduce((count, value) => count + value.stations.length, 0);
   const title =
-    selection?.kind === 'genre'
-      ? t('genre.' + selection.genre)
-      : group?.precision === 'country'
-        ? t('countryPlace', {
-            country: countryName(group.stations[0]?.countryCode ?? null, i18n.language),
+    group?.precision === 'country'
+      ? t('countryPlace', {
+          country: countryName(group.stations[0]?.countryCode ?? null, i18n.language),
+        })
+      : group?.precision === 'region'
+        ? t('regionPlace', {
+            region: i18n.language === 'en' ? group.regionNameEn : group.regionName,
           })
-        : group?.precision === 'region'
-          ? t('regionPlace', {
-              region: i18n.language === 'en' ? group.regionNameEn : group.regionName,
-            })
-          : (group?.stations[0]?.city ??
-            (group?.stations[0]?.nearbyCity
-              ? t('nearby', { city: group.stations[0].nearbyCity })
-              : t('coordinatePlace')));
+        : (group?.stations[0]?.city ??
+          (group?.stations[0]?.nearbyCity
+            ? t('nearby', { city: group.stations[0].nearbyCity })
+            : t('coordinatePlace')));
   const pageOffset = Math.min(offset, Math.max(0, Math.floor((members.length - 1) / 12) * 12));
   const choosePlace = (value: StationGroup, reason: PickReason) => {
     if (reason === 'dwell' && pinned) return;
@@ -137,11 +128,6 @@ export function Exploration({
         stationId: station?.id ?? null,
         version: selectionVersion,
       });
-  };
-  const expand = (genre: Genre) => {
-    rememberOrigin();
-    setOffset(0);
-    setSelection({ kind: 'genre', genre });
   };
   const dataNote = (
     <>
@@ -178,7 +164,7 @@ export function Exploration({
     <section
       className={styles.exploration}
       data-welcome={welcome}
-      data-mode={mode}
+      data-mode="globe"
       aria-label={t('exploration')}
     >
       <GlobePanel
@@ -196,24 +182,10 @@ export function Exploration({
         playing={playing}
         pinned={pinned}
         selectionVersion={selectionVersion}
-        active={mode === 'globe' && visible}
+        active={visible}
         showHints={showHints}
         onPick={choosePlace}
       />
-      {mode === 'genres' && (
-        <MapNotes interactionVersion={interactionVersion} attention={loading || error}>
-          {dataNote}
-        </MapNotes>
-      )}
-      {mode === 'genres' && (
-        <GenreAtlas
-          stations={stations}
-          onChoose={expand}
-          currentGenre={station?.genre ?? null}
-          showHints={showHints}
-          powerSave={powerSave}
-        />
-      )}
       {selection && (
         <Modal title={title} onClose={close}>
           <section className={styles.groupList} aria-label={title}>
