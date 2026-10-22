@@ -49,6 +49,7 @@ import { createSleepController, formatRemaining } from '../platform/sleep';
 import { connectMediaSession } from '../platform/media-session';
 import { connectShortcuts } from '../platform/shortcuts';
 import { connectIdleImmersion } from '../platform/idle';
+import { usePlaybackFavicon } from '../platform/use-playback-favicon';
 import { SettingsPanel } from './SettingsPanel';
 import { Immersive } from './Immersive';
 import { useNowPlaying } from '../tracks/use-now-playing';
@@ -116,6 +117,7 @@ export function App() {
   const track = useNowPlaying(state);
   const library = useListeningLibrary(player);
   const personal = useStore(library.store);
+  usePlaybackFavicon(state.playback.status === 'playing', personal.scene.powerSave);
   const [exploring, setExploring] = useState(() => {
     try {
       return sessionStorage.getItem('haen:exploring:v1') === 'true';
