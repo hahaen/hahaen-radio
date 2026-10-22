@@ -1,0 +1,42 @@
+.starfield {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  color: var(--color-text);
+  background:
+    radial-gradient(ellipse at 17% 32%, #91aaa00a, transparent 32%),
+    radial-gradient(ellipse at 92% 54%, #91aaa00d, transparent 26%);
+  mask-image: linear-gradient(transparent 4%, #000 19%, #000 65%, transparent 93%);
+}
+.distantStars circle:nth-child(3n) {
+  color: var(--color-secondary);
+}
+.beacons {
+  opacity: 0.8;
+}
+.starfield[data-animated='true'][data-visible='true'] .beacons {
+  animation: starlight 9s ease-in-out infinite;
+}
+@keyframes starlight {
+  0%,
+  100% {
+    opacity: 0.65;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@media (width < 768px) {
+  .starfield {
+    opacity: 0.75;
+    mask-image: linear-gradient(transparent, #000 20%, #000 72%, transparent);
+  }
+  .distantStars circle:nth-child(even) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .starfield[data-animated='true'][data-visible='true'] .beacons {
+    animation: none;
+  }
+}

@@ -8,6 +8,7 @@ import { loadLand } from './land';
 import { mapPosition, countryName } from './location';
 import styles from './exploration.module.css';
 import { MapNotes } from './MapNotes';
+import { Starfield } from './Starfield';
 export function GlobePanel({
   onInteract,
   interactionVersion = 0,
@@ -160,6 +161,7 @@ export function GlobePanel({
       data-state={state}
       hidden={!active}
     >
+      <Starfield animated={playing && active && !powerSave && state === 'ready'} />
       <div className={styles.globeStage}>
         <div
           ref={host}

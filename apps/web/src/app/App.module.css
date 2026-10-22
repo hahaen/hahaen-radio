@@ -7,21 +7,6 @@
   overflow: hidden;
   background: radial-gradient(ellipse at 66% 38%, #1b382d55, transparent 62%), var(--color-bg);
 }
-.page::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0.16;
-  background-image:
-    radial-gradient(circle at 32px 77px, #d5d9c980 0.7px, transparent 1.8px),
-    radial-gradient(circle at 154px 33px, #b3c1b780 0.6px, transparent 1.4px),
-    radial-gradient(circle at 84px 190px, #f5f1e855 0.6px, transparent 1.6px);
-  background-size:
-    263px 241px,
-    347px 293px,
-    419px 367px;
-}
 .page::after {
   content: '';
   position: absolute;
@@ -1304,9 +1289,6 @@
 
 .page[data-intro='true'] {
   background: radial-gradient(ellipse at 66% 38%, #1b382d44, transparent 65%), var(--color-bg);
-}
-.page[data-intro='true']::before {
-  display: none;
 }
 .page[data-intro='true'] .main {
   opacity: 0.85;
