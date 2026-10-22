@@ -1,5 +1,7 @@
 # 技术文档导航
 
+地球与电台播放动效见[任务记录](iterations/2026-10-22-globe-playback-motion/README.md)。
+
 电台分组列表的文案精简见[任务记录](iterations/2026-10-22-country-list-copy/README.md)。
 
 沉浸场景与地球页的色调统一见[沉浸收听配色](iterations/2026-10-22-immersive-palette/README.md)。

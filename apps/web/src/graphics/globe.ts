@@ -190,7 +190,7 @@ export function createGlobe(
           zoom: { value: 1 },
         },
         vertexShader: `
-          uniform float pointSize; uniform float time; uniform float glow; uniform float zoom;
+          uniform float pointSize; uniform float time; uniform float glow; uniform float zoom; uniform float playing;
           attribute float approximate; attribute float crowding; attribute float emphasis;
           varying float vApproximate; varying vec3 vColor; varying float vPulse; varying float vFacing;
           varying float vDensity; varying float vEmphasis; varying float vSeed; varying float vLight;
@@ -201,11 +201,11 @@ export function createGlobe(
             vFacing=max(0.0,dot(viewNormal,normalize(-viewPosition.xyz)));
             vLight=smoothstep(-0.3,0.9,dot(viewNormal,normalize(vec3(-0.75,0.65,0.7))));
             vSeed=fract(sin(dot(position,vec3(12.9898,78.233,37.719)))*43758.5453);
-            vPulse=0.5+0.5*sin(time*(0.6+vSeed*0.5)+vSeed*62.8);
+            vPulse=mix(0.5,0.5+0.5*sin(time*(1.8+vSeed*0.9)+vSeed*62.8),playing);
             vDensity=sqrt(clamp(crowding/(zoom*zoom),0.0,1.0))*(1.0-emphasis);
             gl_PointSize=pointSize*mix(1.0,0.66,approximate)*mix(1.0,0.62,vDensity)
               *mix(1.0,0.80+vSeed*0.40,glow)
-              *(1.0+glow*vPulse*0.10+emphasis*0.35);
+              *(1.0+glow*playing*vPulse*0.22+emphasis*0.35);
             gl_Position=projectionMatrix*viewPosition;
           }`,
         fragmentShader: `
@@ -216,14 +216,14 @@ export function createGlobe(
             float d=length(gl_PointCoord-0.5); if(d>0.5)discard;
             float dotAlpha=1.0-smoothstep(0.32,0.5,d);
             float core=1.0-smoothstep(0.08,0.24,d);
-            float halo=exp(-d*d*36.0)*(0.11+0.04*vPulse);
+            float halo=exp(-d*d*36.0)*(0.11+0.16*playing*vPulse);
             float hollow=smoothstep(0.10,0.20,d)*(1.0-smoothstep(0.32,0.48,d));
             float stationAlpha=mix(min(1.0,core+halo),hollow,vApproximate);
             float precisionAlpha=mix(1.0,0.30,vApproximate);
             float densityAlpha=mix(1.0,0.38,vDensity);
             float facing=mix(0.20,1.0,smoothstep(0.0,0.65,vFacing));
             float alpha=opacity*facing*mix(dotAlpha,stationAlpha*precisionAlpha*densityAlpha*(0.60+vSeed*0.40),glow);
-            alpha*=mix(1.0,0.72+0.28*vPulse,glow*playing);
+            alpha*=mix(1.0,0.40+0.60*vPulse,glow*playing);
             vec3 tint=mix(vColor,vec3(1.0,0.94,0.83),core*(0.38+vEmphasis*0.30));
             tint*=mix(0.58+0.42*vLight,1.0,glow);
             gl_FragColor=vec4(tint,alpha);
@@ -292,12 +292,13 @@ export function createGlobe(
         depthWrite: false,
         vertexShader:
           'varying vec3 vNormal; varying vec3 vView; void main(){vec4 p=modelViewMatrix*vec4(position,1.0);vNormal=normalize(normalMatrix*normal);vView=normalize(-p.xyz);gl_Position=projectionMatrix*p;}',
-        fragmentShader: `varying vec3 vNormal; varying vec3 vView;
+        uniforms: { intensity: { value: 1 } },
+        fragmentShader: `uniform float intensity; varying vec3 vNormal; varying vec3 vView;
           void main(){
             vec3 n=normalize(vNormal);
             float edge=pow(1.0-abs(dot(n,normalize(vView))),5.0);
             float light=smoothstep(-0.35,0.8,dot(n,normalize(vec3(-0.9,0.55,0.55))));
-            gl_FragColor=vec4(0.43,0.67,0.60,edge*(0.012+light*0.18));
+            gl_FragColor=vec4(0.43,0.67,0.60,edge*(0.012+light*0.18)*intensity);
             #include <colorspace_fragment>
           }`,
       }),
@@ -500,13 +501,15 @@ export function createGlobe(
     const animated = playing && !reduced && !powerSave;
     markers.material.uniforms.time!.value = animated ? now / 1000 : 0;
     markers.material.uniforms.playing!.value = animated ? 1 : 0;
+    rim.material.uniforms.intensity!.value = animated
+      ? 0.85 + (0.5 + 0.5 * Math.sin((now / 1000) * 1.8)) * 1.15
+      : 1;
     const moving = controls.update();
     updateMarkerSize();
     camera.updateMatrixWorld();
     updateSelectionAppearance(animated ? now / 1000 : null);
     renderer.render(scene, camera);
-    if (moving || transition || (playing && !reduced && !powerSave && groups.length > 0))
-      invalidate();
+    if (moving || transition || animated) invalidate();
   }
   function updateSelectionAppearance(time: number | null) {
     const label = callbacks.selectionLabel;
@@ -517,9 +520,10 @@ export function createGlobe(
     const front = selection.position.dot(camera.position) > 1.04;
     for (const child of selection.children) child.visible = front;
     const pulse = time === null ? 1 : 0.5 + 0.5 * Math.sin(time * 1.8);
-    selectedLight.uniforms.intensity!.value = 0.72 + pulse * 0.28;
-    selectionRing.material.opacity = 0.78 + pulse * 0.2;
-    selectionTicks.material.opacity = 0.24 + pulse * 0.14;
+    selectedLight.uniforms.intensity!.value = 0.58 + pulse * 0.42;
+    selectionRing.material.opacity = 0.46 + pulse * 0.52;
+    selectionRing.scale.setScalar(time === null ? 1 : 0.98 + pulse * 0.08);
+    selectionTicks.material.opacity = 0.16 + pulse * 0.22;
     const pixel =
       (2 *
         camera.position.distanceTo(selection.position) *
