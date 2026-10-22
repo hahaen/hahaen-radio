@@ -19,9 +19,18 @@ test('favicon follows actual playback and motion preferences', async ({ page }) 
   const moving = async () => {
     await expect.poll(href).toMatch(/^data:image\/png;base64,/);
     const frame = await href();
-    await expect.poll(href).not.toBe(frame);
-    const values = await attributes();
-    expect(values[0]).toEqual(values[1]);
+    await expect
+      .poll(async () => {
+        const values = await attributes();
+        const next = values[0]?.[0];
+        // A temporary buffering fallback must not count as an animation frame.
+        return (
+          !!next?.startsWith('data:image/png;base64,') &&
+          next !== frame &&
+          JSON.stringify(values[0]) === JSON.stringify(values[1])
+        );
+      })
+      .toBe(true);
   };
   await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
