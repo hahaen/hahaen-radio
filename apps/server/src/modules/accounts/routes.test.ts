@@ -96,6 +96,38 @@ describe('account routes', () => {
         .user,
     ).toBeNull();
   });
+  it.each([6, 128])('registers and signs in with a %i-character password', async (length) => {
+    const { app, users } = setup();
+    const input = { ...credentials(), password: randomBytes(length / 2).toString('hex') };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/account/login',
+        headers,
+        payload: input,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().user.username).toBe(input.username);
+    }
+    expect(users.size).toBe(1);
+  });
+  it.each([5, 129])(
+    'rejects a %i-character password before creating an account',
+    async (length) => {
+      const { app, users } = setup();
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/v1/account/login',
+        headers,
+        payload: {
+          ...credentials(),
+          password: randomBytes(length).toString('hex').slice(0, length),
+        },
+      });
+      expect(response.statusCode).toBe(400);
+      expect(users.size).toBe(0);
+    },
+  );
   it('rejects CSRF, invalid fields, reserved accounts, bad credentials and expired sessions', async () => {
     const { app, sessions } = setup();
     const input = credentials();

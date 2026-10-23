@@ -62,7 +62,6 @@ export function AccountPanel({ account }: { account: AccountController }) {
                 void submit(event);
               }}
             >
-              <p>{t('account.hint')}</p>
               <label htmlFor="account-username">{t('account.username')}</label>
               <input
                 id="account-username"
@@ -74,12 +73,10 @@ export function AccountPanel({ account }: { account: AccountController }) {
                 minLength={3}
                 maxLength={32}
                 pattern="[a-zA-Z0-9_]{3,32}"
-                aria-describedby="account-username-hint"
                 value={username}
                 disabled={state.busy}
                 onChange={(event) => setUsername(event.target.value)}
               />
-              <small id="account-username-hint">{t('account.usernameHint')}</small>
               <label htmlFor="account-password">{t('account.password')}</label>
               <div className={styles.password}>
                 <input
@@ -88,9 +85,8 @@ export function AccountPanel({ account }: { account: AccountController }) {
                   type={visible ? 'text' : 'password'}
                   autoComplete="current-password"
                   required
-                  minLength={15}
+                  minLength={6}
                   maxLength={128}
-                  aria-describedby="account-password-hint"
                   value={password}
                   disabled={state.busy}
                   onChange={(event) => setPassword(event.target.value)}
@@ -107,7 +103,6 @@ export function AccountPanel({ account }: { account: AccountController }) {
                   )}
                 </button>
               </div>
-              <small id="account-password-hint">{t('account.passwordHint')}</small>
               <button className={styles.submit} type="submit" disabled={state.busy}>
                 {t(state.busy ? 'account.working' : 'account.login')}
               </button>

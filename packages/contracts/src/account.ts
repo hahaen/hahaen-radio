@@ -12,7 +12,7 @@ export const AccountCredentialsSchema = z.strictObject({
     .trim()
     .toLowerCase()
     .regex(/^[a-z0-9_]{3,32}$/),
-  password: z.string().min(15).max(128),
+  password: z.string().min(6).max(128),
 });
 export const AccountUserSchema = z.strictObject({ id: z.uuid(), username: z.string() });
 export type AccountUser = z.infer<typeof AccountUserSchema>;

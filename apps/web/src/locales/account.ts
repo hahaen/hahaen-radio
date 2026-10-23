@@ -9,12 +9,8 @@ i18n.addResourceBundle(
       entry: '登录，跨设备同步收听',
       login: '登录 / 自动注册',
       logout: '退出登录',
-      hint: '输入账号和密码即可登录，账号不存在时自动注册，并合并本机收藏与历史。不登录也能继续使用。',
       username: '账号',
-      usernameHint:
-        '3–32 位字母、数字或下划线，不区分大小写；test、admin 等系统名称及其前缀不可使用。',
       password: '密码',
-      passwordHint: '15–128 个字符，支持粘贴和密码管理器。请妥善保存，暂不支持找回密码。',
       showPassword: '显示密码',
       hidePassword: '隐藏密码',
       working: '正在处理…',
@@ -57,13 +53,8 @@ i18n.addResourceBundle(
       entry: 'Sign in to sync across devices',
       login: 'Sign in / create account',
       logout: 'Sign out',
-      hint: 'Enter your username and password to sign in. A new username creates an account and merges local favorites and history. You can still listen without signing in.',
       username: 'Username',
-      usernameHint:
-        '3–32 letters, digits or underscores. Case insensitive. System names and prefixes such as test and admin are reserved.',
       password: 'Password',
-      passwordHint:
-        '15–128 characters. Paste and password managers are supported. Keep it safe; password recovery is not available yet.',
       showPassword: 'Show password',
       hidePassword: 'Hide password',
       working: 'Working…',

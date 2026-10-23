@@ -68,11 +68,11 @@ for (const viewport of [
     await expect(panel.getByRole('button', { name: '电台收藏（1）', exact: true })).toBeVisible();
     await panel.getByRole('button', { name: '登录，跨设备同步收听' }).click();
     await panel.getByLabel('账号', { exact: true }).fill('ADMIN');
-    await panel.getByLabel('密码', { exact: true }).fill(randomBytes(18).toString('hex'));
+    await panel.getByLabel('密码', { exact: true }).fill(randomBytes(3).toString('hex'));
     await panel.getByRole('button', { name: '登录 / 自动注册', exact: true }).click();
     await expect(panel.getByRole('alert')).toHaveText('此账号名称为系统保留名称，请换一个。');
     await panel.getByLabel('账号', { exact: true }).fill(user.username);
-    await panel.getByLabel('密码', { exact: true }).fill(randomBytes(18).toString('hex'));
+    await panel.getByLabel('密码', { exact: true }).fill(randomBytes(3).toString('hex'));
     await panel.getByRole('button', { name: '显示密码' }).click();
     await expect(panel.getByLabel('密码', { exact: true })).toHaveAttribute('type', 'text');
     await panel.getByRole('button', { name: '隐藏密码' }).click();
