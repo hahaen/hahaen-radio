@@ -47,7 +47,7 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 | 环境 | 服务端 `DB_NAME` | 状态 |
 | --- | --- | --- |
 | 开发 | `ha_radio_dev` | 已创建、应用四条迁移；API/任务保持受限分离身份，迁移私有配置使用已有维护身份以满足元数据可见性 |
-| 正式 | `ha_radio` | 只读检查时不存在，未创建，权限与应用连接待配置 |
+| 正式 | `ha_radio` | 已创建、应用四条迁移；现有 API/任务身份保持分离，API 已补齐三张账号表的必要 DML |
 
 启动和运维入口应显式选择环境，核对库名；不能在开发配置缺失时自动回退到正式库。数据库地址和身份只保存在私有连接配置中，结构分析得到的适用约定单独归档。
 
@@ -55,7 +55,7 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 
 本机 `.env.migration.local` 的 `DB_USER`、`DB_PASSWORD` 已调整为现有维护身份并显式加载，未创建账号或增加全局授权；API/任务凭据未改变。该配置是本机维护用途，目标环境须单独配置最小必要身份。详见[收尾记录](../iterations/2026-10-17-goal-completion/README.md)。
 
-2026-10-23 开发库已补充现有 API 身份对 `account_users`、`account_sessions`、`account_libraries` 的 SELECT/INSERT/UPDATE/DELETE；未增加全局权限，任务身份保持原范围。详见[账号功能记录](../iterations/2026-10-23-account-sync/README.md)。
+2026-10-23 开发库与正式库已分别补充各自现有 API 身份对 `account_users`、`account_sessions`、`account_libraries` 的 SELECT/INSERT/UPDATE/DELETE；未增加全局权限，任务身份保持原范围。详见[账号功能记录](../iterations/2026-10-23-account-sync/README.md)。
 
 迁移身份还需具备完整元数据可见性；只读 status、历史/表集合核对和初始化条件见[目标预检](../data/migrations/target-preflight.md)。
 
