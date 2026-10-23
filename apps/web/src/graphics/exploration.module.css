@@ -481,7 +481,7 @@
   .mobilePlaceHint {
     grid-area: 1 / 2;
     min-width: 0;
-    margin-bottom: 4px;
+    margin: 0;
     color: var(--color-text-muted);
     font: 10px / 1.6 var(--font-body);
     text-align: right;

@@ -85,9 +85,18 @@ for (const region of [null, '内蒙古自治区']) {
         h = (await hint.boundingBox())!;
       expect(b.x).toBeGreaterThanOrEqual(a.x + a.width);
       expect(Math.abs(a.y + a.height / 2 - b.y - b.height / 2)).toBeLessThan(2);
+      const metadata = (await player.locator('[class*=metadata]').boundingBox())!;
+      expect(
+        a.y - metadata.y - metadata.height,
+        'Precision copy must not add a separate blank row on the left',
+      ).toBeLessThan(24);
       expect(h.x).toBeGreaterThan(a.x);
       expect(h.y + h.height).toBeLessThanOrEqual(b.y + 1);
       await expect(panel.getByRole('button', { name: label, exact: true })).toHaveCount(0);
+      await player.locator('summary').click();
+      await expect(player.getByText('地图位置', { exact: true })).toBeVisible();
+      expect(await player.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+      await player.locator('summary').click();
       await location.click();
       await expect(page.getByRole('dialog', { name: label, exact: true })).toBeVisible();
       await page.keyboard.press('Escape');
@@ -97,6 +106,11 @@ for (const region of [null, '内蒙古自治区']) {
         scale: 'css',
       });
     }
+    await page.getByRole('button', { name: 'EN', exact: true }).click();
+    const summaryBox = (await player.locator('summary').boundingBox())!;
+    const metadataBox = (await player.locator('[class*=metadata]').boundingBox())!;
+    expect(summaryBox.y - metadataBox.y - metadataBox.height).toBeLessThan(24);
+    await page.screenshot({ path: info.outputPath('compact-en.png'), scale: 'css' });
   });
 }
 
@@ -195,5 +209,40 @@ test('audits phone and desktop controls after map hint relocation', async ({ pag
     expect(
       report.violations.map(({ id, nodes }) => ({ id, targets: nodes.map((n) => n.target) })),
     ).toEqual([]);
+  }
+});
+
+test('keeps long station titles and expanded details usable with compact metadata', async ({
+  page,
+}, info) => {
+  await install(page);
+  await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
+  const name = '广西文艺广播 FM950广西音乐台';
+  await page.route('**/api/v1/stations/' + first.id, (route) =>
+    route.fulfill({ json: { ...first, name } }),
+  );
+  await page.goto('/?station=' + first.id);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  const player = page.getByRole('contentinfo');
+  for (const [width, height] of [
+    [390, 844],
+    [320, 700],
+    [375, 667],
+    [768, 1024],
+    [1440, 900],
+    [844, 390],
+  ]) {
+    await page.setViewportSize({ width: width!, height: height! });
+    await expect(player.getByRole('heading', { level: 1 })).toHaveText(name);
+    await expect(player.getByRole('button', { name: '播放', exact: true })).toBeInViewport();
+    const summary = player.locator('summary');
+    await summary.click();
+    await expect(player.getByText('地图位置', { exact: true })).toBeVisible();
+    expect(await player.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+    await summary.click();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+    await page.screenshot({ path: info.outputPath(`compact-long-${width}.png`), scale: 'css' });
   }
 });

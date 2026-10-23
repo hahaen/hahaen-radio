@@ -1858,13 +1858,23 @@
 }
 @media (width < 768px) {
   .player[data-has-station='true'][data-immersive='false']:has(.mobilePlace:not(:empty)) {
-    max-height: min(424px, calc(44dvh + 64px));
+    max-height: min(384px, calc(44dvh + 24px));
   }
   .stationDetailsRow:has(.mobilePlace:not(:empty)) {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: start;
-    margin-top: 8px;
+    row-gap: 4px;
+    margin-top: 12px;
+  }
+  .stationDetailsRow:has(.mobilePlace:not(:empty)) .metadata {
+    grid-area: 1 / 1;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+  }
+  .stationDetailsRow:has(.mobilePlace:not(:empty)) .metadata span::before {
+    margin-right: 4px;
   }
   .stationDetailsRow:has(.mobilePlace:not(:empty)) .stationDetails {
     grid-area: 2 / 1 / 3 / -1;

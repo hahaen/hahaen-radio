@@ -938,20 +938,10 @@ export function App() {
           </h1>
           {shared.invalid && <p className={styles.note}>{t('invalidShare')}</p>}
           {state.station ? (
-            <>
-              <p className={styles.location}>
-                <MapPin size={14} aria-hidden="true" />
-                {location(state.station)}
-              </p>
-              <p className={styles.metadata}>
-                {t('genre.' + state.station.genre)}
-                <span>
-                  {state.station.bitrate
-                    ? String(state.station.bitrate) + ' kbps'
-                    : t('unknownBitrate')}
-                </span>
-              </p>
-            </>
+            <p className={styles.location}>
+              <MapPin size={14} aria-hidden="true" />
+              {location(state.station)}
+            </p>
           ) : restoring ? (
             <div aria-hidden="true">
               <p className={styles.location}>
@@ -980,6 +970,14 @@ export function App() {
           )}
           {state.station && (
             <div className={styles.stationDetailsRow}>
+              <p className={styles.metadata}>
+                {t('genre.' + state.station.genre)}
+                <span>
+                  {state.station.bitrate
+                    ? String(state.station.bitrate) + ' kbps'
+                    : t('unknownBitrate')}
+                </span>
+              </p>
               <details className={styles.stationDetails}>
                 <summary>{t('stationDetails')}</summary>
                 <StationDial
