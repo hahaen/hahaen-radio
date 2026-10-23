@@ -1,6 +1,6 @@
 # 技术文档导航
 
-Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)和[目录建立记录](iterations/2026-10-23-android-development-foundation/README.md)；原生工程尚未初始化。
+Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)、[入口建立记录](iterations/2026-10-23-android-development-foundation/README.md)和[目录骨架记录](iterations/2026-10-23-android-directory-layout/README.md)；源码、资源与测试目录已建立，Gradle 工程尚未初始化。
 
 可选账号登录与收藏、历史自动同步见[任务记录](iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
 
@@ -195,6 +195,8 @@ docs/
 │   └── playback-diagnostics.md
 └── iterations/
     ├── README.md
+    ├── 2026-10-23-android-directory-layout/
+    │   └── README.md
     ├── 2026-10-23-android-development-foundation/
     │   └── README.md
     ├── 2026-10-22-globe-radiance/

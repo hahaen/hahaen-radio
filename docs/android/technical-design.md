@@ -1,6 +1,6 @@
 # Android 客户端技术方案
 
-日期：2026-10-23。状态：技术路线已确定；本次仅建立目录、规范与文档，尚未初始化 Gradle 工程、安装 Android 依赖、实现客户端或生成安装包。
+日期：2026-10-23。状态：技术路线已确定，已建立源码、资源、测试和构建工具目录骨架、规范与文档；尚未初始化 Gradle 工程、安装 Android 依赖、实现客户端或生成安装包。
 
 ## 1. 目标与路线
 
@@ -49,9 +49,9 @@ ViewModel、分层和 Compose 的设计依据见 [Android 架构建议](https://
 
 ## 4. 工程与分层
 
-当前应用目录仅有 [README](../../apps/android/README.md) 和 [AGENTS.md](../../apps/android/AGENTS.md)。下列为后续单应用模块内的包职责规划，尚未创建：
+当前应用目录已有 [README](../../apps/android/README.md)、[AGENTS.md](../../apps/android/AGENTS.md) 和单应用模块目录骨架。以下职责目录已在 `app/src/main/kotlin/` 下建立，均仅含 Git 占位文件，没有业务实现：
 
-| 规划职责 | 内容 |
+| 目录职责 | 内容 |
 | --- | --- |
 | `app` | Activity、依赖注入、导航、主题及入口装配 |
 | `feature` | 探索、搜索、收听清单、设置、账号与沉浸页面及 ViewModel |
@@ -61,6 +61,10 @@ ViewModel、分层和 Compose 的设计依据见 [Android 架构建议](https://
 | `graphics` | WebView 宿主、消息协议、场景资源与生命周期 |
 
 先用一个 Android 应用模块按包隔离职责，不创建空 Gradle 多模块。达到编译、复用或团队边界需要时再拆模块。
+
+`app/src/main` 另有 `res` 与 `assets/graphics`；`src/test`、`src/androidTest` 分别用于 JVM 和设备测试，`app/schemas` 用于 Room Schema，`gradle/wrapper` 预留 Wrapper 文件位置。完整目录树见[应用说明](../../apps/android/README.md)。
+
+目录通过空 `.gitkeep` 保留；namespace 尚未冻结，初始化时将 Kotlin 职责目录归入统一包前缀，并移除已有实际文件目录的占位。当前没有构建脚本、Manifest、Wrapper 或可运行模块，不能把目录存在视为已完成工程初始化。
 
 界面状态路径为 Compose → ViewModel → Repository；播放命令经 MediaController 进入 MediaSessionService。服务中的播放器状态是播放事实，ViewModel 与图形只消费快照，不另行推断或持有第二个播放器。Compose 使用生命周期感知收集，不持有网络请求与数据库操作。
 
@@ -173,6 +177,6 @@ APK 用于设备安装，AAB 用于需要该格式的分发渠道。正式签名
 4. 实现搜索、Room 收藏历史、DataStore 设置和国际化，随后接入已有账号同步与安全会话。
 5. 完成关键 UI 与设备验证，记录 Android 构建和图形结果，再按发行需求接入签名与分发。
 
-以上均为后续工作，未在本次执行。本次建立结果与文档检查见[任务记录](../iterations/2026-10-23-android-development-foundation/README.md)；无需更新 Web 静态资源、API、后台任务、数据库或服务器配置。
+以上工程实施均为后续工作，尚未执行。入口与文档建立见[首次记录](../iterations/2026-10-23-android-development-foundation/README.md)，目录骨架补齐见[目录记录](../iterations/2026-10-23-android-directory-layout/README.md)；无需更新 Web 静态资源、API、后台任务、数据库或服务器配置。
 
 返回[Android 导航](README.md)或[文档总导航](../README.md)。

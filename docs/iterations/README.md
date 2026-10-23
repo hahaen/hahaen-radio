@@ -8,6 +8,7 @@
 
 | 日期 | 任务 | 状态 |
 | --- | --- | --- |
+| 2026-10-23 | [Android 开发目录骨架](2026-10-23-android-directory-layout/README.md) | 源码职责、资源、测试、Schema 与 Wrapper 目录已建立，Gradle 工程待初始化 |
 | 2026-10-23 | [Android 开发目录与技术方案](2026-10-23-android-development-foundation/README.md) | 目录、协作规范、完整技术方案与 ADR 已建立，原生工程待初始化 |
 | 2026-10-23 | [手机地球交互与控件配色](2026-10-23-mobile-globe-interaction/README.md) | 定位入口与精度说明归位、拖动防选字、灰绿焦点与流派选中态；未发布 |
 | 2026-10-23 | [手机动态、地图与搜索优化](2026-10-23-mobile-motion-and-map/README.md) | 潮汐与流雾动态、缩放去裁切、地图信息入口与搜索面板优化；未发布 |

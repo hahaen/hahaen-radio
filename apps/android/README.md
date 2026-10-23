@@ -1,6 +1,6 @@
 # 声屿 HAEN Android
 
-Android 客户端开发入口。当前已建立开发目录、协作规范和技术方案，尚未初始化 Gradle 工程、编写客户端或生成 APK/AAB。
+Android 客户端开发入口。当前已建立源码、资源、测试及构建工具的目录骨架、协作规范和技术方案，尚未初始化 Gradle 工程、编写客户端或生成 APK/AAB。
 
 ## 阅读入口
 
@@ -9,6 +9,7 @@ Android 客户端开发入口。当前已建立开发目录、协作规范和技
 - [完整技术方案](../../docs/android/technical-design.md)：技术栈、分层、播放、图形、接口、存储、安全与实施顺序。
 - [ADR-0007](../../docs/architecture/decisions/0007-android-native-client.md)：原生客户端与局部 WebView 的选型边界。
 - [目录与文档建立记录](../../docs/iterations/2026-10-23-android-development-foundation/README.md)。
+- [开发目录骨架记录](../../docs/iterations/2026-10-23-android-directory-layout/README.md)。
 
 ## 开发基线
 
@@ -21,10 +22,55 @@ Android 客户端开发入口。当前已建立开发目录、协作规范和技
 ```text
 apps/android/
 ├── AGENTS.md
-└── README.md
+├── README.md
+├── gradle/
+│   └── wrapper/                         后续保存 Gradle Wrapper 文件
+└── app/
+    ├── schemas/                         Room 版本化 Schema
+    └── src/
+        ├── main/
+        │   ├── kotlin/
+        │   │   ├── app/
+        │   │   │   ├── di/              Hilt 装配
+        │   │   │   ├── navigation/      页面与返回栈
+        │   │   │   └── theme/           Compose 夜航主题
+        │   │   ├── feature/
+        │   │   │   ├── explore/         地球探索
+        │   │   │   ├── search/          电台搜索与筛选
+        │   │   │   ├── library/         收藏与收听历史
+        │   │   │   ├── settings/        偏好设置
+        │   │   │   ├── account/         登录与同步界面
+        │   │   │   └── immersive/       沉浸收听
+        │   │   ├── data/
+        │   │   │   ├── remote/          Retrofit、OkHttp 与 DTO
+        │   │   │   ├── local/           Room、DataStore 与会话存储
+        │   │   │   ├── repository/      数据仓储实现
+        │   │   │   └── mapper/          DTO、领域与本地实体映射
+        │   │   ├── domain/
+        │   │   │   ├── model/           业务模型
+        │   │   │   └── repository/      仓储接口
+        │   │   ├── playback/            原生播放服务与策略
+        │   │   └── graphics/            WebView 宿主与消息协议
+        │   ├── assets/
+        │   │   └── graphics/            后续打包的图形产物
+        │   └── res/
+        │       ├── drawable/            图片与矢量资源
+        │       ├── font/                Android 字体资源
+        │       ├── mipmap/              应用图标
+        │       ├── values/              默认字符串、颜色等资源
+        │       ├── values-en/           英文资源
+        │       └── xml/                 平台 XML 配置
+        ├── test/
+        │   ├── kotlin/                  JVM 单元与网络测试
+        │   └── resources/               JVM 测试素材
+        └── androidTest/
+            ├── kotlin/                  设备界面、存储与迁移测试
+            └── assets/                  设备测试素材
 ```
 
-Gradle Wrapper、版本目录、应用模块与源码目录在工程初始化时按实际职责建立。本次不创建空业务模块或占位构建文件。
+叶子目录使用空的 `.gitkeep` 纳入 Git，后续有实际文件时移除对应占位文件。这里的 `app/` 是待初始化的单应用模块目录，尚未注册 Gradle 模块；`gradle/wrapper/` 也不包含 Wrapper 脚本、JAR 或配置。
+
+`kotlin/` 下先按职责分区，工程初始化确定 namespace 后再将这些目录归入统一包前缀，并让测试代码采用对应包路径。当前没有 Kotlin 包声明或 applicationId，不以目录骨架冻结包身份。详细职责见[技术方案](../../docs/android/technical-design.md)。
 
 ## 工程初始化前
 
