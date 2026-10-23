@@ -1,5 +1,7 @@
 # 前端技术文档
 
+Safari 主屏幕与 Mac 程序坞图标接入见[图标记录](../iterations/2026-10-18-favicon-concepts/README.md)及[平台说明](platform/browser-and-storage.md)。
+
 可选账号登录与收藏、历史自动同步见[任务记录](../iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
 
 刷新恢复与地球入场连续性优化见[任务记录](../iterations/2026-10-23-startup-continuity/README.md)。

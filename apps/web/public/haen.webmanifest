@@ -1,0 +1,24 @@
+{
+  "name": "声屿 HAEN · 嗯，听听世界。",
+  "short_name": "声屿 HAEN",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "browser",
+  "theme_color": "#081310",
+  "background_color": "#081310",
+  "icons": [
+    {
+      "src": "haen-app-icon-192-v1.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "haen-app-icon-512-v1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

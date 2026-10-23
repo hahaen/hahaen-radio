@@ -4,6 +4,12 @@
 
 以主流桌面浏览器和移动浏览器为验收对象，具体最低版本在初始化时结合构建目标与实际用户设备冻结。WebGL 2、HLS、Web Audio、Media Session 和 Web Share 分别检测，不用单一浏览器名称推断全部能力。
 
+## 桌面与主屏幕图标
+
+Safari 添加到主屏幕使用 `index.html` 的 180px `apple-touch-icon`；Mac 添加到程序坞可读取 `haen.webmanifest` 内的 192px / 512px PNG 图标。均由现有透明耳机海湾高清源图等比导出，保留主体与透明留白，不把标签页的播放动画用于桌面图标。
+
+HTML 图标与清单入口使用 Vite `%BASE_URL%`，清单内图标、启动地址和作用域均为相对路径，兼容开发根路径与正式 `/radio/`。清单保持 `display: browser`，不引入离线缓存或安装提示。资源随前端静态文件发布，已有桌面快捷方式可能需要重新添加；实际系统呈现待 Safari 与 iPhone 真机确认。实现及验证见[图标记录](../../iterations/2026-10-18-favicon-concepts/README.md)。
+
 ## 本地数据
 
 | 存储 | 用途 | 约定 |

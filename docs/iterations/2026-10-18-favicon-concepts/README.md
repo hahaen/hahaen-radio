@@ -96,9 +96,27 @@
 
 仅恢复 Hook 中的原图绘制、三根底部信号条与 240ms 刷新间隔，保留已修正的缓冲状态测试判定。Review 确认没有旋转变换，暂停、缓冲、减少动态效果、省电与后台计时器清理逻辑保持有效；不影响页面品牌唱片的独立动效。本轮前端 TypeScript / Vite 构建、相关 ESLint / Prettier 及文档链接检查通过；桌面 Chromium、Firefox、WebKit（1280×720）与 Pixel 7 手机模拟（393×727）的播放状态用例共 4 项通过，覆盖播放、暂停、缓冲、减少动态效果、省电与模拟后台。已目视检查 16 / 32 / 64px 连续帧，耳机固定、仅下方信号条变化。未执行线上发布、真机及原生标签栏显示验收。
 
+## Safari 桌面与主屏幕图标（2026-10-23）
+
+需求：Safari 添加到桌面时也使用当前耳机海湾图标。直接使用已归档的 1254px 透明高清源图，以 `sips -z` 等比导出 180px Apple Touch Icon、192px / 512px 应用图标，避免放大小尺寸截图；不改变主体、配色或标签页播放动效。
+
+- `index.html` 新增 `apple-touch-icon` 与 `haen.webmanifest` 入口，使用 `%BASE_URL%`。
+- 清单声明品牌名称及普通用途的高清图标，启动地址、作用域和图标使用相对路径，兼容根路径与 `/radio/`。保持 `display: browser`，不增加离线缓存或安装提示。
+- 图标为保留 alpha 的 PNG，未声明 `maskable`，系统可按自身规则处理背景和外框。图标随前端产物分发，常规构建不依赖源图、`sips` 或临时附件。
+- 接入依据：[Apple 的主屏幕图标配置](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html)与 [WebKit 的 Mac Web App 图标说明](https://webkit.org/blog/14787/webkit-features-in-safari-17-2/)。
+
+Review 限定为本次 HTML 声明、清单、三张图标与相关文档，核对源图一致性、尺寸、相对路径、发布范围及现有动效 Hook 仅匹配 `rel="icon"`，无未解决问题。
+
+- 前端 TypeScript 与根路径生产构建、`/radio/` Vite 生产构建通过；保留既有大分块提示。
+- Playwright Chromium、Firefox、WebKit 分别在 1440×900 电脑视口和 390×844 手机视口，检查两种生产构建，共 12 组通过。覆盖 HTML 声明、清单解析、图标与启动地址／作用域的路径解析、HTTP 200、响应与仓库文件逐字节一致、180 / 192 / 512px 图片解码、透明角及可见主体像素，并确认两个标签页图标声明仍在。
+- 已目视复核 180px 导出图；文档链接、相关 HTML / 清单的 Prettier 及差异检查通过。浏览器检查隔离应用脚本，仅验证图标元数据与资源，不替代完整页面或原生系统验收。
+- 未执行线上发布、Safari 原生添加操作或 iPhone 真机验收。
+
+同步时 GitHub 与 Gitee 均无新增提交，`git pull --ff-only` 无变更；再次复审本次差异，无冲突及新增问题。代码和图标未变化，复用上述构建及浏览器结果，文档链接、HTML / 清单格式与差异检查复验通过。
+
 ## 待完成事项与服务影响
 
-待执行前端发布后核对线上浏览器标签页；已有浏览器可能需要重新打开标签页或刷新图标缓存。手机主屏等其他用途不在本次范围。
+待执行前端发布后核对线上浏览器标签页和 Safari 主屏幕／程序坞图标；已有浏览器可能需要重新打开标签页或刷新图标缓存，已有桌面快捷方式可能需要重新添加。
 
 本次需要更新前端静态资源（`radio-frontend` 发布任务）；API（`radio-api`）和后台任务（`radio-jobs`）无需更新，无数据库迁移、配置调整或发布顺序要求。本次没有执行发布。
 
