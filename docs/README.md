@@ -1,5 +1,7 @@
 # 技术文档导航
 
+Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)和[目录建立记录](iterations/2026-10-23-android-development-foundation/README.md)；原生工程尚未初始化。
+
 可选账号登录与收藏、历史自动同步见[任务记录](iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
 
 手机地球拖动、定位说明及焦点与流派配色修复见[任务记录](iterations/2026-10-23-mobile-globe-interaction/README.md)。
@@ -67,7 +69,7 @@
 1. 阅读[项目协作规范](../AGENTS.md)，明确开发、验证和自动提交顺序。
 2. 阅读[项目总览](overview/README.md)和[技术选型](overview/technology-stack.md)，了解技术基线。
 3. 阅读[系统架构](architecture/system-design.md)和[代码目录规划](architecture/repository-layout.md)，了解模块关系。
-4. 按工作范围查阅前端、后端、数据与工程文档。
+4. 按工作范围查阅前端、Android、后端、数据与工程文档。
 5. 首次上线先阅读[服务器部署准备清单](deployment/releases/first-deployment-checklist.md)，再依次阅读容器、Jenkins、发布与回退文档。
 
 ## 分目录索引
@@ -76,6 +78,7 @@
 | --- | --- | --- |
 | `product/` | 产品目标、阶段进度与验收 | [产品目标](product/README.md)、[实施进度](product/progress.md)、[验收矩阵](product/acceptance.md) |
 | `overview/` | 项目状态、技术组合 | [总览](overview/README.md)、[技术选型](overview/technology-stack.md) |
+| `android/` | 原生客户端技术、播放、图形与验证 | [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)、[应用协作规范](../apps/android/AGENTS.md)、[ADR-0007](architecture/decisions/0007-android-native-client.md) |
 | `architecture/` | 系统、仓库、架构决策 | [架构导航](architecture/README.md)、[系统设计](architecture/system-design.md)、[仓库规划](architecture/repository-layout.md)、[决策记录](architecture/decisions/README.md)、[共享 Nginx 决策](architecture/decisions/0006-shared-nginx-static-release.md)、[识曲额度决策](architecture/decisions/0004-recognition-allowance.md) |
 | `frontend/` | 设计、应用、渲染、音频、浏览器 | [前端导航](frontend/README.md)、[夜航设计规范](frontend/design/night-voyage.md)、[本地字体](frontend/design/fonts.md)、[应用结构与状态](frontend/application/structure-and-state.md)、[收听入口](frontend/application/player-flow.md)、[探索界面](frontend/application/exploration.md)、[个人收听工具](frontend/application/listening-tools.md)、[收听设置](frontend/application/listening-controls.md)、[曲目与歌词](frontend/application/tracks-and-lyrics.md)、[手动识曲](frontend/application/recognition.md)、[产品说明与帮助](frontend/application/information-and-help.md)、[精简故障报告](frontend/application/playback-diagnostics.md)、[探索目录](frontend/rendering/exploration-data.md)、[Three.js](frontend/rendering/threejs.md)、[音频引擎](frontend/audio/audio-engine.md)、[可选音频增强](frontend/audio/enhancement.md)、[平台与本地存储](frontend/platform/browser-and-storage.md) |
 | `backend/` | API、服务分层、任务 | [后端导航](backend/README.md)、[API 约定](backend/api/conventions.md)、[目录 API](backend/api/catalog.md)、[曲目 API](backend/api/tracks.md)、[识曲 API](backend/api/recognition.md)、[诊断 API](backend/api/diagnostics.md)、[服务与外部接入](backend/services/layers-and-integrations.md)、[任务调度](backend/jobs/scheduling.md) |
@@ -108,7 +111,11 @@ docs/
 │       ├── 0003-table-options-and-target-environment.md
 │       ├── 0004-recognition-allowance.md
 │       ├── 0005-bounded-playback-diagnostics.md
-│       └── 0006-shared-nginx-static-release.md
+│       ├── 0006-shared-nginx-static-release.md
+│       └── 0007-android-native-client.md
+├── android/
+│   ├── README.md
+│   └── technical-design.md
 ├── frontend/
 │   ├── README.md
 │   ├── design/
@@ -188,6 +195,8 @@ docs/
 │   └── playback-diagnostics.md
 └── iterations/
     ├── README.md
+    ├── 2026-10-23-android-development-foundation/
+    │   └── README.md
     ├── 2026-10-22-globe-radiance/
     │   └── README.md
     ├── 2026-10-18-china-search/

@@ -9,8 +9,8 @@
 | ADR-0003 | [建表选项与实际目标环境](0003-table-options-and-target-environment.md) | 元数据已核对，规范已确定，应用待实施 |
 | ADR-0004 | [识曲采用显式预算与持久化预扣](0004-recognition-allowance.md) | 单实例运维状态与可控验证已接入，真实服务待授权条件 |
 | ADR-0005 | [匿名诊断采用事务额度与固定容量](0005-bounded-playback-diagnostics.md) | 实现已接入，适用验收见任务记录 |
-
 | ADR-0006 | [复用共享 Nginx 发布静态前端](0006-shared-nginx-static-release.md) | 已按用户调整实现，验收见正式部署记录 |
+| ADR-0007 | [原生 Android 客户端与局部图形复用](0007-android-native-client.md) | 技术路线、目录与文档已确定，原生工程及图形验证待实施 |
 
 ## 记录格式
 

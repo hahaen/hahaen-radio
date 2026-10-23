@@ -12,6 +12,7 @@
 - 总导航：[docs/README.md](docs/README.md)。
 - 产品目标：[docs/product/README.md](docs/product/README.md)，状态见[实施进度](docs/product/progress.md)与[验收矩阵](docs/product/acceptance.md)。
 - 技术基线：[docs/overview/technology-stack.md](docs/overview/technology-stack.md)。
+- Android 开发入口：[apps/android/README.md](apps/android/README.md)，专用规范见 [apps/android/AGENTS.md](apps/android/AGENTS.md)，方案见 [docs/android/README.md](docs/android/README.md)；目前仅建立目录与文档，原生工程待初始化。
 - 视觉基线：[夜航设计规范](docs/frontend/design/night-voyage.md)与[已确认概念图](docs/frontend/design/assets/night-voyage-concept.png)。
 - 系统设计：[docs/architecture/system-design.md](docs/architecture/system-design.md)。
 - 工程目录：[docs/architecture/repository-layout.md](docs/architecture/repository-layout.md)。
@@ -71,6 +72,23 @@
 
 主版本以技术基线为准。初始化时核对正式稳定版本的兼容组合，固定具体版本和 pnpm 版本，提交单一锁文件。元数据核对不能代替安装、类型检查、构建与运行验证。
 
+### 2.4 Android 客户端
+
+Android 技术路线已确定，工程尚未初始化。完整方案见 [Android 技术方案](docs/android/technical-design.md)，决策见 [ADR-0007](docs/architecture/decisions/0007-android-native-client.md)。
+
+| 领域 | 技术与约定 |
+| --- | --- |
+| 语言与界面 | Kotlin、Jetpack Compose、定制 Material 3、Navigation 3 |
+| 架构与状态 | ViewModel、单向数据流、Repository、Coroutines/Flow/StateFlow |
+| 依赖注入 | Hilt、KSP |
+| 网络与图片 | OkHttp、Retrofit、kotlinx.serialization、Coil |
+| 原生音频 | Media3 ExoPlayer、MediaSessionService、MediaController |
+| 本地数据与会话 | Room、DataStore；Keystore 密钥与 AES-GCM 保护持久会话 |
+| 图形 | 局部 WebView 复用 Three.js 优先验证，原生层管理播放和数据 |
+| 工程与测试 | Gradle Kotlin DSL、Wrapper、版本目录；JUnit、协程测试、MockWebServer、Room 迁移测试、Compose UI Test |
+
+Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在初始化时核对、固定并验证，pnpm 检查不能替代 Android 构建。原生客户端复用现有 API 和 Cookie 会话，后台播放策略不依赖 WebView 存活；不改变现有网页与后端技术栈。
+
 ## 3. 架构与目录边界
 
 - 前后端分别开发、构建和运行，通过同一个域名访问。
@@ -78,6 +96,7 @@
 - API 和任务分别作为一个实例运行，基线部署在一台具有持久磁盘的 Linux 服务器。
 - 音频默认由浏览器直连电台服务器，后端提供数据和播放信息。不得未经专项评估将全部音频改为后端代理或转码。
 - `apps/web`：前端应用、浏览器测试、前端资源脚本及测试产物；`apps/server`：API、任务、表结构定义和迁移入口。
+- `apps/android`：Android 开发入口与专用规范，后续承载原生客户端；技术文档位于 `docs/android`。本阶段不创建无职责的空模块或占位构建配置。
 - `packages/contracts`：可公开共享的 DTO、Zod Schema 和错误码。
 - `packages/config`：共享工程配置；`apps/server/migrations`：数据库迁移及元数据。
 - `deploy/docker`、`deploy/compose`、`deploy/caddy`：容器与运行配置。

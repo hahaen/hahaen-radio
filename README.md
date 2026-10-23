@@ -14,6 +14,7 @@
 - [验收矩阵](docs/product/acceptance.md)：实际通过项、未完成项及部署前检查。
 - [完整文档导航](docs/README.md)：按主题查找全部技术文档。
 - [技术选型](docs/overview/technology-stack.md)：已确定的技术组合与版本策略。
+- [Android 客户端](apps/android/README.md)：开发目录与协作规范；[完整技术方案](docs/android/technical-design.md)已整理，原生工程待初始化。
 - [系统架构](docs/architecture/system-design.md)：前后端边界、访问路径与部署关系。
 - [代码目录规划](docs/architecture/repository-layout.md)：后续应用工程的目录约定。
 - [Jenkins 流水线](docs/deployment/jenkins/pipeline.md)：构建、迁移、发布与验收流程。
@@ -23,6 +24,7 @@
 | 领域 | 选型 |
 | --- | --- |
 | 前端 | React 19、TypeScript、Vite 8 |
+| Android（待初始化） | Kotlin、Compose、Media3、Room、DataStore；局部 WebView 图形复用待验证 |
 | 图形与音频 | Three.js、WebGL 2、Web Audio、HTMLAudioElement、hls.js |
 | 后端 | Node.js 24 LTS、Fastify 5、TypeScript |
 | 数据 | MySQL 8.0.46、mysql2、Drizzle ORM、Drizzle Kit |
@@ -37,6 +39,7 @@
 | --- | --- |
 | [apps/web](apps/web/README.md) | 前端应用、图形与音频引擎 |
 | [apps/server](apps/server/README.md) | 后端 API、任务和数据库访问 |
+| [apps/android](apps/android/README.md) | Android 开发入口与规范，尚未建立 Gradle 工程 |
 | [packages/contracts](packages/contracts/README.md) | 前后端共享数据契约 |
 | [packages/config](packages/config/README.md) | 共享工程配置 |
 | [apps/server/migrations](apps/server/migrations/README.md) | 数据库迁移 |
