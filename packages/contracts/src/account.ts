@@ -19,7 +19,7 @@ export type AccountUser = z.infer<typeof AccountUserSchema>;
 export const AccountSessionSchema = z.strictObject({ user: AccountUserSchema.nullable() });
 const savedAt = z.number().int().nonnegative().max(8640000000000000);
 export const CollectionStationSchema = z.strictObject({
-  id: StationIdSchema.transform((id) => id.toLowerCase()),
+  id: StationIdSchema.toLowerCase(),
   name: z.string().trim().min(1).max(512),
   countryCode: z
     .string()

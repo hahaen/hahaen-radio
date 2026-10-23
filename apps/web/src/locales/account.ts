@@ -31,6 +31,8 @@ i18n.addResourceBundle(
         VALIDATION_ERROR: '请检查账号格式和密码长度。',
         SERVICE_UNAVAILABLE: '账号服务暂不可用，请稍后再试，本机收听不受影响。',
         NETWORK: '连接未成功，请检查网络后重试。',
+        INTERNAL_ERROR: '账号服务处理失败，请稍后重试。',
+        HTTP_ERROR: '账号服务响应异常，请稍后重试。',
         FORBIDDEN: '请求未通过验证，请刷新页面后重试。',
         CONFLICT: '其他设备正在更新，请重试同步。',
         expired: '登录状态已变化，请重新登录。未同步内容会在此标签页再次登录同一账号后重试。',
@@ -75,6 +77,8 @@ i18n.addResourceBundle(
         VALIDATION_ERROR: 'Check the username format and password length.',
         SERVICE_UNAVAILABLE: 'Account service is unavailable. Local listening still works.',
         NETWORK: 'Could not connect. Check your network and retry.',
+        INTERNAL_ERROR: 'The account service could not process the request. Please retry later.',
+        HTTP_ERROR: 'Unexpected account service response. Please retry later.',
         FORBIDDEN: 'Request could not be verified. Refresh and retry.',
         CONFLICT: 'Another device is updating. Retry sync.',
         expired:

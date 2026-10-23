@@ -27,6 +27,40 @@ const credentials = () => ({
 });
 const cookieOf = (value: string | string[] | number | undefined) => String(value).split(';')[0]!;
 describe('account routes', () => {
+  it.each(['favorites', 'history'] as const)(
+    'serializes nonempty %s after saving and reading the account library',
+    async (kind) => {
+      const { app } = setup();
+      const login = await app.inject({
+        method: 'POST',
+        url: '/api/v1/account/login',
+        headers,
+        payload: credentials(),
+      });
+      const userId = login.json().user.id;
+      const authenticated = { ...headers, cookie: cookieOf(login.headers['set-cookie']) };
+      const item = {
+        id: 'ABCDEFAB-1234-4567-89AB-ABCDEFABCDEF',
+        name: '同步电台',
+        countryCode: 'CN',
+        savedAt: 1,
+      };
+      const saved = await app.inject({
+        method: 'POST',
+        url: '/api/v1/account/library',
+        headers: authenticated,
+        payload: { userId, revision: 0, collection: { ...emptyCollection(), [kind]: [item] } },
+      });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.json().collection[kind]).toEqual([{ ...item, id: item.id.toLowerCase() }]);
+      const restored = await app.inject({
+        url: '/api/v1/account/library?userId=' + userId,
+        headers: authenticated,
+      });
+      expect(restored.statusCode).toBe(200);
+      expect(restored.json()).toEqual(saved.json());
+    },
+  );
   it('keeps guest access, registers a hashed account, rotates sessions, scopes collections and logs out', async () => {
     const { app, users, sessions } = setup(true);
     expect((await app.inject('/api/v1/account/session')).json()).toEqual({ user: null });

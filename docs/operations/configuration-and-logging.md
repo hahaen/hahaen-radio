@@ -32,7 +32,7 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 
 | 入口 | 显式加载的根目录私有文件 | 权限范围 |
 | --- | --- | --- |
-| API dev/start | `.env.local` | 当前目录 API 只读 4 张所需业务表 |
+| API dev/start | `.env.local` | 目录所需表只读；诊断表按职责读写；三张账号表 SELECT/INSERT/UPDATE/DELETE，无 DDL |
 | catalog/jobs/start:jobs | `.env.jobs.local` | 当前 8 张业务表的必要 DML，无 DDL、无迁移记录写入 |
 | db:migrate/test:mysql | `.env.migration.local` | 当前目标库的 DDL 与必要 DML；测试流程另需隔离测试库建删权限 |
 
@@ -46,7 +46,7 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 
 | 环境 | 服务端 `DB_NAME` | 状态 |
 | --- | --- | --- |
-| 开发 | `ha_radio_dev` | 已创建、应用三条迁移；API/任务保持受限分离身份，迁移私有配置使用已有维护身份以满足元数据可见性 |
+| 开发 | `ha_radio_dev` | 已创建、应用四条迁移；API/任务保持受限分离身份，迁移私有配置使用已有维护身份以满足元数据可见性 |
 | 正式 | `ha_radio` | 只读检查时不存在，未创建，权限与应用连接待配置 |
 
 启动和运维入口应显式选择环境，核对库名；不能在开发配置缺失时自动回退到正式库。数据库地址和身份只保存在私有连接配置中，结构分析得到的适用约定单独归档。
@@ -54,6 +54,8 @@ MySQL 连接、连接池上限、TLS、日志级别、代理信任范围、外�
 应用连接池和隔离迁移已在 MySQL 8.0.46 通过验收。生产身份、服务器 TLS 和发布运行环境仍待部署时配置。库、表和连接的字符约定见[建表规范](../data/database/table-options-and-collations.md)。
 
 本机 `.env.migration.local` 的 `DB_USER`、`DB_PASSWORD` 已调整为现有维护身份并显式加载，未创建账号或增加全局授权；API/任务凭据未改变。该配置是本机维护用途，目标环境须单独配置最小必要身份。详见[收尾记录](../iterations/2026-10-17-goal-completion/README.md)。
+
+2026-10-23 开发库已补充现有 API 身份对 `account_users`、`account_sessions`、`account_libraries` 的 SELECT/INSERT/UPDATE/DELETE；未增加全局权限，任务身份保持原范围。详见[账号功能记录](../iterations/2026-10-23-account-sync/README.md)。
 
 迁移身份还需具备完整元数据可见性；只读 status、历史/表集合核对和初始化条件见[目标预检](../data/migrations/target-preflight.md)。
 

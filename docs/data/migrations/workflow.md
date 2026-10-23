@@ -1,6 +1,6 @@
 # 数据库迁移流程
 
-状态：三条迁移已在开发库 `ha_radio_dev` 执行，当前 11 表、无待执行迁移；新增诊断迁移的隔离 MySQL 8.0.46 验证沿用既有证据。本次先完成原生一致性备份与同盘副本校验，再经 Drizzle Kit 执行新增一条，详见[收尾记录](../../iterations/2026-10-17-goal-completion/README.md)。正式库未创建、未执行。
+状态：四条迁移已在开发库 `ha_radio_dev` 执行，当前 14 表、无待执行迁移。2026-10-23 执行新增账号迁移并完成真实登录与同步验证；本次用户要求仅执行新增迁移，未完成备份，停写、维护锁、迁移状态和旧表行数仍已核对，详见[账号功能记录](../../iterations/2026-10-23-account-sync/README.md)。本次未执行正式环境迁移。
 
 ## 当前入口与清单
 
@@ -18,6 +18,7 @@ pnpm db:migrate
 | `0000_catalog_foundation.sql` | 建立 8 张业务表、外键和索引，机器标识明确采用 ascii_bin |
 | `0001_explicit_table_options.sql` | 自定义迁移，显式补齐 InnoDB、utf8mb4_general_ci、DYNAMIC 及普通文本列配置，保留 ASCII 字段例外 |
 | `0002_playback_diagnostics.sql` | 两张诊断表、约束、固定容量、每日额度初始行及显式表选项 |
+| `0003_accounts.sql` | 账号、会话、收藏历史三张表，唯一约束、外键和索引 |
 
 首条生成 SQL 与后续表选项迁移必须作为完整初始化序列执行，完成前不启动业务。迁移历史表由 Drizzle Kit 创建，本项目在自定义迁移中约束其表选项；不手工伪造迁移记录。JSON 字段使用 MySQL 原生 JSON 语义，不误当普通 varchar 列转换。
 
