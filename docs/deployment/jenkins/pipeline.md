@@ -33,6 +33,8 @@ Jenkins 新产物附带 `buildNumber`，本地标签为 `radio-local/<component>
 
 当前兼容清单允许旧契约摘要 `a371c03455a214cc8addabd4b806a007ba37db0d2706ab96efb2e34484e8b552`：新增国家搜索和语言归一化辅助代码及导出，既有 DTO、接口字段和迁移清单保持不变，新代码保留旧语言值的筛选支持。组件可逐个更新，无需为本次兼容声明执行迁移或修改服务器配置；为使新版目录语言处理在同步时生效，建议 API、后台任务、前端依次发布。未知契约及不兼容结构仍拒绝发布。未来修改契约时必须重新审核清单，不把这项许可视为所有后续版本的兼容保证。
 
+账号功能的兼容窗口另允许线上旧契约摘要 `76709ac485937b849bdd5f40c4fddbb4711a2e431e4fd4b9f73a5fbedcc6816d`，以及前三条迁移组成的结构摘要 `a813e53de86d186b60dc13a5a71aecdfcd0557f7606379c48aa53ee23163e144`。账号接口独立新增，原有接口字段不变；`0003_accounts` 仅新增账号相关表及其内部约束，旧 API 与后台任务访问的表不变。因此，账号 SQL 已执行而组件仍是旧版本时，可以保留真实组件记录，先发布 `radio-api`，成功后再发布 `radio-frontend`；后台任务可保留原版本。不能先发布账号前端依赖尚未上线的新 API，也不需要重跑已完成的 SQL。上线前仍核对新表权限及 Nginx 请求体配置，详见[账号功能记录](../../iterations/2026-10-23-account-sync/README.md)。该声明不豁免实际迁移历史、未知契约或其他结构变更的检查。
+
 只读预检的 `component_plan_failed` 会附带固定原因：`CONTRACT_INCOMPATIBLE` 表示需要审核并声明混合版本兼容性；其他错误为 `TARGET_PREFLIGHT_FAILED`。提示不输出原始异常、配置值或连接信息。
 
 部署、回退和恢复详见[目标阶段](target-stage.md)、[发布与回退](../releases/release-and-rollback.md)。实际上线结果见[正式部署记录](../../iterations/2026-10-17-production-deployment/README.md)。

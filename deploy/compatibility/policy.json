@@ -1,5 +1,8 @@
 {
   "format": 1,
-  "compatibleContracts": ["a371c03455a214cc8addabd4b806a007ba37db0d2706ab96efb2e34484e8b552"],
-  "compatibleSchemas": []
+  "compatibleContracts": [
+    "a371c03455a214cc8addabd4b806a007ba37db0d2706ab96efb2e34484e8b552",
+    "76709ac485937b849bdd5f40c4fddbb4711a2e431e4fd4b9f73a5fbedcc6816d"
+  ],
+  "compatibleSchemas": ["a813e53de86d186b60dc13a5a71aecdfcd0557f7606379c48aa53ee23163e144"]
 }

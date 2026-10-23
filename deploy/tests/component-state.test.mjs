@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { componentFlow, componentRelease, schemaHash } from '../scripts/component-state.mjs';
+import { sourceMigrations } from '../scripts/release/images.mjs';
 const policy = JSON.parse(readFileSync(new URL('../compatibility/policy.json', import.meta.url)));
 const installedContract = 'a371c03455a214cc8addabd4b806a007ba37db0d2706ab96efb2e34484e8b552';
 const migrations = (letter = 'a') => [{ file: '0000_initial.sql', sha256: letter.repeat(64) }];
@@ -179,6 +180,7 @@ it('keeps unknown contracts and schema changes blocked with the reviewed policy'
           release: release('api', 'b', {
             contractHash: 'b'.repeat(64),
             compatibleContracts: policy.compatibleContracts,
+            compatibleSchemas: policy.compatibleSchemas,
           }),
         },
         f.io,
@@ -188,6 +190,49 @@ it('keeps unknown contracts and schema changes blocked with the reviewed policy'
       false,
     );
   }
+});
+it('publishes the account API then frontend after SQL without updating the legacy jobs', async () => {
+  const applied = await sourceMigrations(),
+    legacy = applied.slice(0, 3),
+    legacyContract = '76709ac485937b849bdd5f40c4fddbb4711a2e431e4fd4b9f73a5fbedcc6816d',
+    f = fixture();
+  expect(applied.map(({ file }) => file)).toEqual([
+    '0000_catalog_foundation.sql',
+    '0001_explicit_table_options.sql',
+    '0002_playback_diagnostics.sql',
+    '0003_accounts.sql',
+  ]);
+  for (const value of Object.values(f.state.components))
+    Object.assign(value, { contractHash: legacyContract, migrations: legacy });
+  f.state.schema = { migrations: applied };
+  f.io.status = async () => ({
+    event: 'migration_status',
+    empty: false,
+    applied,
+    pending: [],
+  });
+  const originalJobs = structuredClone(f.state.components.jobs);
+  for (const component of ['api', 'frontend']) {
+    await componentFlow(
+      {
+        component,
+        release: release(component, 'b', {
+          contractHash: '811b6526cd895d599fff54befa403285dbe3d956176d2eeaeb88e852d00abfee',
+          migrations: applied,
+          compatibleContracts: policy.compatibleContracts,
+          compatibleSchemas: policy.compatibleSchemas,
+        }),
+      },
+      f.io,
+    );
+    expect(f.state.components.jobs).toEqual(originalJobs);
+    expect(f.state.attempt).toBeUndefined();
+  }
+  expect(f.events.some(([name]) => ['migrate', 'backup'].includes(name))).toBe(false);
+  expect(f.events.filter(([name]) => name === 'stop').map(([, roles]) => roles)).toEqual([['api']]);
+  expect(
+    f.events.filter(([name]) => name === 'publish').map(([, value]) => value.component),
+  ).toEqual(['api', 'frontend']);
 });
 it('backs up before SQL and restores the unselected writer using its original record', async () => {
   const f = fixture({ pending: 1 }),
