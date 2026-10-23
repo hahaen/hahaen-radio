@@ -974,15 +974,15 @@
   color: var(--color-text);
 }
 .genreBar button[aria-pressed='true'] {
-  background: var(--color-text);
-  border-color: var(--color-text);
-  color: var(--color-bg);
+  background: var(--panel-sheen), var(--color-surface);
+  border-color: var(--color-secondary);
+  color: var(--color-text);
 }
 .genreBar button[aria-expanded='true'] {
   border-color: var(--color-secondary);
 }
 .genreBar button[aria-pressed='true'] small {
-  color: var(--color-bg);
+  color: var(--color-text-muted);
 }
 .genreBar button:first-child {
   border-color: var(--color-border);
@@ -1851,35 +1851,34 @@
 .stationDetailsRow {
   display: contents;
 }
-.mobileCountryPlace {
+.mobilePlace {
   display: none;
 }
 @media (width < 768px) {
-  .player[data-has-station='true'][data-immersive='false']:has(.mobileCountryPlace:not(:empty)) {
-    max-height: min(384px, calc(44dvh + 24px));
+  .player[data-has-station='true'][data-immersive='false']:has(.mobilePlace:not(:empty)) {
+    max-height: min(424px, calc(44dvh + 64px));
   }
-  .stationDetailsRow:has(.mobileCountryPlace:not(:empty)) {
+  .stationDetailsRow:has(.mobilePlace:not(:empty)) {
     display: grid;
     grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
     align-items: start;
     margin-top: 8px;
   }
-  .stationDetailsRow:has(.mobileCountryPlace:not(:empty)) .stationDetails {
-    grid-area: 1 / 1 / 2 / -1;
+  .stationDetailsRow:has(.mobilePlace:not(:empty)) .stationDetails {
+    grid-area: 2 / 1 / 3 / -1;
     margin-top: 0;
   }
-  .stationDetailsRow:has(.mobileCountryPlace:not(:empty)) summary {
+  .stationDetailsRow:has(.mobilePlace:not(:empty)) summary {
     width: calc(40% - 8px);
     min-height: 44px;
     align-content: center;
   }
-  .mobileCountryPlace {
-    display: flex;
-    grid-area: 1 / 2;
-    justify-content: flex-end;
-    min-width: 0;
+  .mobilePlace {
+    display: contents;
   }
-  .mobileCountryPlace button {
+  .mobilePlace button {
+    grid-area: 2 / 2;
+    justify-self: end;
     max-width: 100%;
     min-height: 44px;
     padding: 6px 0;
@@ -1893,4 +1892,15 @@
     text-align: right;
     overflow-wrap: anywhere;
   }
+}
+
+.listeningTime,
+.status,
+.current > h1,
+.location,
+.metadata,
+.mobilePlace {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }

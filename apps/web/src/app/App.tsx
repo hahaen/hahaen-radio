@@ -344,7 +344,7 @@ export function App() {
 
   const pageRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
-  const [countryPlaceTarget, setCountryPlaceTarget] = useState<HTMLSpanElement | null>(null);
+  const [placeTarget, setPlaceTarget] = useState<HTMLSpanElement | null>(null);
   const [mapInfoTarget, setMapInfoTarget] = useState<HTMLSpanElement | null>(null);
   useControlMotion(footerRef, personal.scene.powerSave);
   useEffect(() => {
@@ -632,7 +632,7 @@ export function App() {
               onInteract={closeForMap}
               interactionVersion={interactionVersion}
               mapInfoTarget={mapInfoTarget}
-              countryPlaceTarget={countryPlaceTarget}
+              placeTarget={placeTarget}
               visible={!immersive}
               welcome={intro}
               onSearch={openDirectory}
@@ -987,7 +987,7 @@ export function App() {
                 />
                 <StationFacts station={state.station} detail={state.detail} />
               </details>
-              <span ref={setCountryPlaceTarget} className={styles.mobileCountryPlace} />
+              <span ref={setPlaceTarget} className={styles.mobilePlace} />
             </div>
           )}
           {restoring && (

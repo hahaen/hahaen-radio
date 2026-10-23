@@ -1,5 +1,7 @@
 # 技术文档导航
 
+手机地球拖动、定位说明及焦点与流派配色修复见[任务记录](iterations/2026-10-23-mobile-globe-interaction/README.md)。
+
 手机动态、地图与搜索优化见[任务记录](iterations/2026-10-23-mobile-motion-and-map/README.md)。
 
 电台搜索已改为[滚动加载](iterations/2026-10-23-station-scroll/README.md)，向下追加直到末尾。

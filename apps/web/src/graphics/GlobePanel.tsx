@@ -21,7 +21,7 @@ export function GlobePanel({
   onInteract,
   interactionVersion = 0,
   mapInfoTarget = null,
-  countryPlaceTarget = null,
+  placeTarget = null,
   groups,
   details,
   station,
@@ -38,7 +38,7 @@ export function GlobePanel({
   onInteract?(): void;
   interactionVersion?: number;
   mapInfoTarget?: HTMLElement | null;
-  countryPlaceTarget?: HTMLElement | null;
+  placeTarget?: HTMLElement | null;
   groups: StationGroup[];
   details: ReactNode;
   station: StationPreview | null;
@@ -171,7 +171,13 @@ export function GlobePanel({
   }, [state, t]);
   const groupButton =
     selectedGroup && selectedGroup.stations.length > 1 ? (
-      <button className={styles.groupPlace} onClick={() => onPick(selectedGroup, 'click')}>
+      <button
+        className={styles.groupPlace}
+        onClick={(event) => {
+          event.currentTarget.focus({ preventScroll: true });
+          onPick(selectedGroup, 'click');
+        }}
+      >
         {selectedGroup.precision === 'region'
           ? t('regionPlace', {
               region:
@@ -184,6 +190,14 @@ export function GlobePanel({
             : t('placeStationCount', { count: selectedGroup.stations.length })}
       </button>
     ) : null;
+  const positionHint =
+    station && !position
+      ? t('noCoordinates')
+      : position?.precision === 'region'
+        ? t('regionMapHint')
+        : position?.precision === 'country'
+          ? t('countryMapHint')
+          : null;
   return (
     <div
       className={styles.globePanel}
@@ -260,7 +274,7 @@ export function GlobePanel({
         attention={attention}
         preview={
           <div className={styles.preview}>
-            {preview ? (
+            {!mobile && preview ? (
               <>
                 <span>
                   {preview.precision === 'country'
@@ -289,17 +303,19 @@ export function GlobePanel({
                     : t('placeStationCount', { count: preview.stations.length })}
                 </span>
               </>
-            ) : station && !position ? (
-              t('noCoordinates')
-            ) : position?.precision === 'region' ? (
-              <span>{t('regionMapHint')}</span>
-            ) : position?.precision === 'country' ? (
-              <span>{t('countryMapHint')}</span>
+            ) : positionHint ? (
+              !(mobile && placeTarget) && <span>{positionHint}</span>
             ) : (
               showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
             )}
-            {mobile && countryPlaceTarget && selectedGroup?.precision === 'country'
-              ? createPortal(groupButton, countryPlaceTarget)
+            {mobile && placeTarget
+              ? createPortal(
+                  <>
+                    {positionHint && <span className={styles.mobilePlaceHint}>{positionHint}</span>}
+                    {groupButton}
+                  </>,
+                  placeTarget,
+                )
               : groupButton}
           </div>
         }

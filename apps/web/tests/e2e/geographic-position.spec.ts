@@ -174,7 +174,7 @@ test('places approximate province lights in Guangdong, Sichuan, Beijing, Shangha
   await page.goto('./?station=' + entries[0]!.id);
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', 'ready');
-  await expect(panel.getByText('仅确定省/州；空心圆汇总电台，不表示具体台址。')).toBeVisible();
+  await expect(page.getByText('仅确定省/州；空心圆汇总电台，不表示具体台址。')).toBeVisible();
   const canvas = panel.locator('canvas');
   await expect
     .poll(() =>
@@ -208,7 +208,7 @@ test('places approximate province lights in Guangdong, Sichuan, Beijing, Shangha
     actual.filter((p) => Math.abs(p.lat - 23.13) < 0.00001 && Math.abs(p.lon - 113.26) < 0.00001),
   ).toHaveLength(1);
   await page.screenshot({ path: info.outputPath('province-station-lights.png') });
-  await panel.getByRole('button', { name: '广东省 · 省/州级大致位置', exact: true }).click();
+  await page.getByRole('button', { name: '广东省 · 省/州级大致位置', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: '广东省 · 省/州级大致位置' });
   await expect(dialog.getByText('3 个电台', { exact: true })).toBeVisible();
   await expect(dialog.getByRole('button', { name: '同省/州下一站', exact: true })).toBeVisible();

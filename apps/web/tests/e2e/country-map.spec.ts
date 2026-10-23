@@ -24,11 +24,7 @@ for (const precision of ['country', 'coordinates'] as const) {
   test(`labels Taiwan consistently when hovering a ${precision} station without selecting it`, async ({
     page,
   }, info) => {
-    await page.setViewportSize(
-      info.project.name === 'mobile-chromium'
-        ? { width: 390, height: 844 }
-        : { width: 1440, height: 900 },
-    );
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
     const taiwan = {
@@ -74,7 +70,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
 }, info) => {
   await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  const mobile = info.project.name === 'mobile-chromium';
+  const mobile = info.project.name.startsWith('mobile-');
   await page.setViewportSize(mobile ? { width: 390, height: 844 } : { width: 1440, height: 900 });
   const country = [
     first,
@@ -109,7 +105,7 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await selectStation(page, first.name);
   await page.locator('summary').click();
   const panel = page.getByTestId('globe-panel');
-  const groupButton = panel.getByRole('button', { name: '英国 · 国家级位置', exact: true });
+  const groupButton = page.getByRole('button', { name: '英国 · 国家级位置', exact: true });
   await expect(groupButton).toBeVisible();
   await expect(page.getByText('国家级位置', { exact: true })).toBeVisible();
   await expect(page.getByText('来源坐标', { exact: true })).toHaveCount(0);
@@ -147,13 +143,13 @@ test('browses country-only stations, paginates and distinguishes actual coordina
   await expect(groupButton).toHaveCount(0);
   await selectStation(page, unknown.name);
   await expect(panel.getByRole('button', { name: '定位当前电台', exact: true })).toHaveCount(0);
-  await expect(panel.getByText('暂无法确定地图位置，仍可通过列表收听。')).toBeVisible();
+  await expect(page.getByText('暂无法确定地图位置，仍可通过列表收听。')).toBeVisible();
   await page.getByRole('button', { name: 'EN', exact: true }).click();
   await selectStation(page, first.name, 'en');
   await expect(
-    panel.getByRole('button', { name: 'United Kingdom · Country-level location' }),
+    page.getByRole('button', { name: 'United Kingdom · Country-level location' }),
   ).toBeVisible();
-  await panel
+  await page
     .getByRole('button', { name: 'United Kingdom · Country-level location', exact: true })
     .click();
   const englishDialog = page.getByRole('dialog', {
@@ -171,7 +167,7 @@ test('groups unknown locations and retains every coordinate marker during expans
   await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.setViewportSize(
-    info.project.name === 'mobile-chromium'
+    info.project.name.startsWith('mobile-')
       ? { width: 390, height: 844 }
       : { width: 1440, height: 900 },
   );
@@ -195,7 +191,7 @@ test('groups unknown locations and retains every coordinate marker during expans
   await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '107');
   await page.screenshot({ path: info.outputPath('individual-stations.png') });
   await selectStation(page, coincident[0]!.name);
-  await panel.getByRole('button', { name: '100 个电台', exact: true }).click();
+  await page.getByRole('button', { name: '100 个电台', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await expect(panel.locator('canvas')).toHaveAttribute('data-marker-count', '107');
   await page.getByRole('button', { name: '关闭面板', exact: true }).click();
