@@ -1,5 +1,7 @@
 # 技术文档导航
 
+可选账号登录与收藏、历史自动同步见[任务记录](iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
+
 手机地球拖动、定位说明及焦点与流派配色修复见[任务记录](iterations/2026-10-23-mobile-globe-interaction/README.md)。
 
 手机动态、地图与搜索优化见[任务记录](iterations/2026-10-23-mobile-motion-and-map/README.md)。

@@ -1,3 +1,5 @@
+import { createAccountRepository } from '../modules/accounts/repository.js';
+import { createAccountService } from '../modules/accounts/service.js';
 import { buildApp } from '../app.js';
 import { readEnvironment } from '../config/environment.js';
 import { readDatabaseConfig } from '../config/database.js';
@@ -28,6 +30,7 @@ try {
     true,
     catalog,
     {
+      ...(database ? { accounts: createAccountService(createAccountRepository(database)) } : {}),
       diagnostics: createDiagnosticService(
         catalog,
         database ? createDiagnosticRepository(database) : undefined,

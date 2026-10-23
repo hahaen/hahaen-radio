@@ -30,6 +30,7 @@ export async function getJson<T>(
       ...(request ? { method: request.method, body: JSON.stringify(request.body) } : {}),
       headers: {
         accept: 'application/json',
+        ...(request ? { 'x-haen-request': '1' } : {}),
         ...(request ? { 'content-type': 'application/json' } : {}),
       },
     });

@@ -8,6 +8,11 @@ export type HealthResponse = z.infer<typeof HealthResponseSchema>;
 
 export const ApiErrorSchema = z.object({
   code: z.enum([
+    'UNAUTHORIZED',
+    'FORBIDDEN',
+    'ACCOUNT_RESERVED',
+    'CONFLICT',
+    'RATE_LIMITED',
     'VALIDATION_ERROR',
     'NOT_FOUND',
     'PAYLOAD_TOO_LARGE',
@@ -30,3 +35,5 @@ export * from './diagnostics.js';
 
 export * from './country-search.js';
 export * from './languages.js';
+
+export * from './account.js';

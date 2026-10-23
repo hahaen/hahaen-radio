@@ -12,18 +12,20 @@ import { App } from './App';
 vi.mock('../graphics/GlobePanel', () => ({ GlobePanel: () => null }));
 function withoutScene(fetcher: (input: string | URL | Request) => Promise<Response>) {
   return (input: string | URL | Request) =>
-    String(input).includes('/catalog/scene')
-      ? Promise.resolve(
-          new Response(
-            JSON.stringify({
-              code: 'SERVICE_UNAVAILABLE',
-              message: 'Fixture intentionally uses list fallback',
-              requestId: 'fixture',
-            }),
-            { status: 503 },
-          ),
-        )
-      : fetcher(input);
+    String(input).includes('/account/session')
+      ? Promise.resolve(new Response(JSON.stringify({ user: null })))
+      : String(input).includes('/catalog/scene')
+        ? Promise.resolve(
+            new Response(
+              JSON.stringify({
+                code: 'SERVICE_UNAVAILABLE',
+                message: 'Fixture intentionally uses list fallback',
+                requestId: 'fixture',
+              }),
+              { status: 503 },
+            ),
+          )
+        : fetcher(input);
 }
 
 beforeEach(async () => {

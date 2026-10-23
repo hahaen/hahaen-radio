@@ -14,7 +14,7 @@ import {
   uniqueIndex,
 } from 'drizzle-orm/mysql-core';
 import { sql } from 'drizzle-orm';
-import type { CatalogManifest, StationDetail } from '@haen/contracts';
+import type { AccountCollection, CatalogManifest, StationDetail } from '@haen/contracts';
 const ascii = customType<{
   data: string;
   driverData: string;
@@ -135,3 +135,35 @@ export const playbackReports = mysqlTable(
     ),
   ],
 );
+
+export const accountUsers = mysqlTable(
+  'account_users',
+  {
+    id: ascii('id', { length: 36 }).primaryKey(),
+    username: ascii('username', { length: 32 }).notNull(),
+    passwordHash: ascii('password_hash', { length: 192 }).notNull(),
+    createdAt: instant('created_at').notNull(),
+  },
+  (table) => [uniqueIndex('account_users_username_idx').on(table.username)],
+);
+export const accountSessions = mysqlTable(
+  'account_sessions',
+  {
+    tokenHash: ascii('token_hash', { length: 64 }).primaryKey(),
+    userId: ascii('user_id', { length: 36 })
+      .notNull()
+      .references(() => accountUsers.id, { onDelete: 'cascade' }),
+    expiresAt: instant('expires_at').notNull(),
+  },
+  (table) => [
+    index('account_sessions_expiry_idx').on(table.expiresAt),
+    index('account_sessions_user_idx').on(table.userId),
+  ],
+);
+export const accountLibraries = mysqlTable('account_libraries', {
+  userId: ascii('user_id', { length: 36 })
+    .primaryKey()
+    .references(() => accountUsers.id, { onDelete: 'cascade' }),
+  revision: int('revision', { unsigned: true }).notNull().default(0),
+  collection: json('collection').$type<AccountCollection>().notNull(),
+});

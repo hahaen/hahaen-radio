@@ -84,6 +84,7 @@ try {
       'run',
       'apps/server/src/db/catalog.mysql.test.ts',
       'apps/server/src/db/diagnostics.mysql.test.ts',
+      'apps/server/src/db/accounts.mysql.test.ts',
       '--maxWorkers=1',
     ],
     {

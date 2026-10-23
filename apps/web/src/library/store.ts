@@ -26,7 +26,7 @@ import {
   type SavedSong,
   type SavedStation,
 } from './model';
-import type { StationPreview } from '@haen/contracts';
+import type { AccountCollection, StationPreview } from '@haen/contracts';
 
 export const LIBRARY_PREFIX = 'haen:personal:v1:';
 type StorageLike = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
@@ -69,6 +69,10 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   const favorites = new Map<string, SavedStation>(),
     songs = new Map<string, SavedSong>(),
     history = new Map<string, SavedStation>();
+  let accountMode = false;
+  let guestFallback: AccountCollection | null = null;
+  const isCollectionKey = (key: string) =>
+    /^(favorite:|song:|history:|last$)/.test(key.slice(LIBRARY_PREFIX.length));
   let filters = defaultFilters(),
     preferences = defaultPreferences(),
     audio = defaultAudioOptions(),
@@ -134,20 +138,23 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   }
   function readAll() {
     if (!storage) return;
-    favorites.clear();
-    songs.clear();
-    history.clear();
+    if (!accountMode) {
+      favorites.clear();
+      songs.clear();
+      history.clear();
+    }
     filters = defaultFilters();
     preferences = defaultPreferences();
     audio = defaultAudioOptions();
     scene = defaultSceneOptions();
     sleep = null;
-    lastStation = null;
+    if (!accountMode) lastStation = null;
     try {
       if (storage.length > 25000) throw new Error('STORAGE_LIMIT');
       for (let index = 0; index < storage.length; index++) {
         const key = storage.key(index);
-        if (key?.startsWith(LIBRARY_PREFIX)) accept(key, storage.getItem(key));
+        if (key?.startsWith(LIBRARY_PREFIX) && !(accountMode && isCollectionKey(key)))
+          accept(key, storage.getItem(key));
       }
     } catch {
       problem('unavailable');
@@ -185,7 +192,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   }
   function write(key: string, value: unknown | null) {
     const text = value === null ? null : JSON.stringify({ version: 1, value });
-    if (storage && writable) {
+    if (storage && writable && !(accountMode && isCollectionKey(key))) {
       try {
         if (text === null) storage.removeItem(key);
         else storage.setItem(key, text);
@@ -196,7 +203,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     accept(key, text);
   }
   function refresh(key: string) {
-    if (!storage || !writable) return;
+    if (!storage || !writable || (accountMode && isCollectionKey(key))) return;
     try {
       accept(key, storage.getItem(key));
     } catch {
@@ -208,6 +215,38 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   }
   return {
     store,
+    setAccountCollection(value: AccountCollection | null) {
+      if (!accountMode && value)
+        guestFallback = {
+          favorites: newest(favorites.values()),
+          songs: newest(songs.values()),
+          history: newest(history.values()).slice(0, 100),
+        };
+      accountMode = value !== null;
+      if (!value && !writable && guestFallback) value = guestFallback;
+      favorites.clear();
+      songs.clear();
+      history.clear();
+      lastStation = null;
+      if (value) {
+        for (const item of value.favorites) favorites.set(item.id, item);
+        for (const item of value.songs) songs.set(songKey(item), item);
+        for (const item of value.history) history.set(item.id, item);
+        lastStation = newest(history.values())[0] ?? null;
+      } else readAll();
+      publish();
+    },
+    guestCollection(): AccountCollection {
+      if (!accountMode)
+        return {
+          favorites: newest(favorites.values()),
+          songs: newest(songs.values()),
+          history: newest(history.values()).slice(0, 100),
+        };
+      if (!writable && guestFallback) return guestFallback;
+      const guest = createLibrary(options).store.getState();
+      return { favorites: guest.favorites, songs: guest.songs, history: guest.history };
+    },
     attach() {
       const events = options.events ?? window;
       if (writable) readAll();
@@ -229,7 +268,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
           publish();
           return;
         }
-        if (!change.key.startsWith(LIBRARY_PREFIX)) return;
+        if (!change.key.startsWith(LIBRARY_PREFIX) || (accountMode && isCollectionKey(change.key)))
+          return;
         refresh(change.key);
         const suffix = change.key.slice(LIBRARY_PREFIX.length).split(':')[0];
         if (suffix === 'history') trimHistory();

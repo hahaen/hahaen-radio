@@ -1,25 +1,18 @@
 import { z } from 'zod';
-import { GenreSchema, StationIdSchema, type StationPreview } from '@haen/contracts';
+import {
+  GenreSchema,
+  CollectionStationSchema,
+  CollectionSongSchema,
+  type StationPreview,
+} from '@haen/contracts';
 import { normalizeGenreSelection } from '../catalog/genres';
 
 export const MAX_LIBRARY_ITEMS = 5000;
 export const MAX_TRANSFER_BYTES = 2 * 1024 * 1024;
 const timestamp = z.number().int().nonnegative().max(8640000000000000);
-export const SavedStationSchema = z.strictObject({
-  id: StationIdSchema.transform((id) => id.toLowerCase()),
-  name: z.string().trim().min(1).max(512),
-  countryCode: z
-    .string()
-    .regex(/^[A-Z]{2}$/)
-    .nullable(),
-  savedAt: timestamp,
-});
+export const SavedStationSchema = CollectionStationSchema;
 export type SavedStation = z.infer<typeof SavedStationSchema>;
-export const SavedSongSchema = z.strictObject({
-  artist: z.string().trim().min(1).max(512),
-  title: z.string().trim().min(1).max(512),
-  savedAt: timestamp,
-});
+export const SavedSongSchema = CollectionSongSchema;
 export type SavedSong = z.infer<typeof SavedSongSchema>;
 export const FilterSchema = z.strictObject({
   q: z.string().max(200),

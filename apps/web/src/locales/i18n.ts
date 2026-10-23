@@ -4,6 +4,8 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   zh: {
     translation: {
+      accountPanelUnavailable: '账号面板暂不可用，请刷新后重试。',
+
       browseUnlocated: '{{count}} 台位置未知，可在列表查找',
       stationDetails: '电台详情',
       stationDial: '拨动选择当前范围内的电台',
@@ -21,14 +23,14 @@ const resources = {
         help: '使用帮助',
         aboutIntro: '嗯，听听世界。',
         aboutBody:
-          '声屿 HAEN 是一个免登录的全球电台收听工具。在地球上探索，听见不同地方此刻的声音。',
+          '声屿 HAEN 是一个无需登录也能使用的全球电台收听工具。在地球上探索，听见不同地方此刻的声音。',
         aboutLive:
           '节目由电台实时播出；上一站与下一站切换的是电台，不能跳过直播中的歌曲。电台数据与可播放状态可能变化。',
         aboutLocal:
-          '收藏、最近收听和偏好留在当前浏览器。换设备前，请在“我的收听”中导出收藏，再到新设备导入。',
+          '未登录时，收藏、最近收听和偏好留在当前浏览器。可在“我的收听”登录以同步收藏和历史，也可导出、导入收藏文件。',
         privacyLocalTitle: '保存在这台设备上',
         privacyLocal:
-          '电台收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。曾保存或导入的歌曲收藏作为历史数据保留，可随收藏文件导出。电台目录也会缓存到本机。没有云端收藏或账号同步。',
+          '电台收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。曾保存或导入的歌曲收藏作为历史数据保留，可随收藏文件导出。电台目录也会缓存到本机。登录为可选功能：账号、密码哈希、登录会话、收藏和最近收听保存在服务器。密码不以明文保存。登录会设置用于身份验证的 Cookie；本机设置不参与同步。登录时自动合并本机新增或更新的收藏与历史，并记录已合并项目以避免重复恢复已删除的收藏。待同步账号数据暂存在当前标签页，退出后恢复本机数据。',
         privacyClear:
           '清除浏览器中的本站数据会删除本地内容。请先导出收藏；导出文件也包含你的收藏，应自行保管。共享设备上的其他使用者可能看到这些内容。',
         privacyRequestsTitle: '何时会发出请求',
@@ -38,7 +40,7 @@ const resources = {
           '播放时，本站服务器按需读取电台曲目信息，用于系统媒体控制和锁屏标题。当前页面不提供歌词查询或片段识曲入口，不使用你的麦克风。',
         privacyOperationsTitle: '运行与排障',
         privacyOperations:
-          '本站不接入广告或访客行为统计，不设置访客跟踪标识。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。',
+          '本站不接入广告或访客行为统计，不设置广告跟踪标识。登录 Cookie 只用于身份验证。服务端处理请求以提供目录与歌曲信息；应用运行日志不记录原始 IP、收藏内容或音频。',
         helpStartTitle: '开始探索',
         helpStart:
           '点击开始或电台列表后才播放。拖动地球、滚轮或双指缩放；准星稳定约 650 毫秒后选择电台。暂停时移动场景只选台，不恢复声音。',
@@ -211,7 +213,7 @@ const resources = {
       noHistory: '开始播放后，这里会保留最近收听的 100 个电台。',
       transferFavorites: '迁移收藏',
       transferDescription:
-        '收藏保存在此浏览器。导出文件可在另一台设备导入合并，既有收藏会保留。每个导入文件不超过 2MiB。',
+        '未登录时收藏保存在此浏览器，登录后同步到账号。导出文件可在另一台设备导入合并，既有收藏会保留。每个导入文件不超过 2MiB。',
       retainedSongs: '保留 {{count, number}} 首历史歌曲收藏，导出时一并包含。',
       exportFavorites: '导出收藏',
       importFavorites: '导入收藏',
@@ -397,6 +399,8 @@ const resources = {
   },
   en: {
     translation: {
+      accountPanelUnavailable: 'Account panel unavailable. Refresh to retry.',
+
       browseUnlocated: 'Find {{count}} unlocated stations in the list',
       stationDetails: 'Station details',
       stationDial: 'Tune within the current selection',
@@ -418,10 +422,10 @@ const resources = {
         aboutLive:
           'Programs are broadcast live by each station. Previous and next switch stations; they cannot skip a song within a live broadcast. Directory details and stream availability can change.',
         aboutLocal:
-          'Your favorites, recent listening, and preferences stay in this browser. Before changing devices, export favorites from My listening and import the file on the new device.',
+          'Without signing in, favorites, recent listening and preferences stay in this browser. Sign in from My listening to sync favorites and history, or export and import favorites files.',
         privacyLocalTitle: 'Stored on this device',
         privacyLocal:
-          'Station favorites, recent listening, filters, language, and settings stay in this browser. Previously saved or imported song favorites are retained as historical data and included in exports. A local directory cache reduces downloads. There are no cloud favorites or account sync.',
+          'Station favorites, recent listening, filters, language, and settings stay in this browser. Previously saved or imported song favorites are retained as historical data and included in exports. A local directory cache reduces downloads. Optional accounts store usernames, password hashes, login sessions, favorites and recent listening on the server. Passwords are never stored as plain text. Signing in sets an authentication cookie. Device settings stay local. Signing in automatically merges new or changed guest collection items. Already imported items are remembered so deleted account favorites are not restored on each login. Pending account changes stay in this tab; signing out restores guest data.',
         privacyClear:
           'Clearing this site’s browser data removes local content. Export favorites first and keep the file private. Other people using the same browser may be able to see this content.',
         privacyRequestsTitle: 'When requests are made',
@@ -431,7 +435,7 @@ const resources = {
           'While you listen, our server reads station track metadata on demand for system media controls and lock-screen titles. This interface has no lyrics lookup or sample identification entry. Your microphone is not used.',
         privacyOperationsTitle: 'Operation and troubleshooting',
         privacyOperations:
-          'HAEN has no advertising or visitor behavior analytics and sets no visitor tracking identifier. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio.',
+          'HAEN has no advertising or visitor behavior analytics and uses no advertising tracking identifier. An optional login cookie authenticates your account. The server processes requests to provide directory and song information. Application logs do not record raw IP addresses, favorites, or audio.',
         helpStartTitle: 'Start exploring',
         helpStart:
           'Click start or a station to begin playback. Drag the globe and zoom with a wheel or pinch. A steady crosshair selects a station after about 650 milliseconds. Exploring while paused selects without resuming audio.',
@@ -618,7 +622,7 @@ const resources = {
       noHistory: 'Your last 100 stations will appear here after playback starts.',
       transferFavorites: 'Move your favorites',
       transferDescription:
-        'Favorites stay in this browser. Export a file to merge on another device while keeping existing favorites. Each import file must be no larger than 2MiB.',
+        'Guest favorites stay in this browser; account favorites sync after sign-in. You can also export a file to merge on another device while keeping existing favorites. Each import file must be no larger than 2MiB.',
       retainedSongs:
         '{{count, number}} historical song favorites are retained and included in exports.',
       exportFavorites: 'Export favorites',

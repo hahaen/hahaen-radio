@@ -62,6 +62,7 @@ it('loads the application migration history without a database connection', asyn
     '0000_catalog_foundation.sql',
     '0001_explicit_table_options.sql',
     '0002_playback_diagnostics.sql',
+    '0003_accounts.sql',
   ]);
   expect(plan.at(-1)!.tables).toContain('playback_reports');
 });

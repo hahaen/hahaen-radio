@@ -1017,6 +1017,8 @@
   display: none;
 }
 .storageWarning {
+  pointer-events: none;
+  right: var(--edge);
   position: absolute;
   top: 76px;
   left: var(--edge);
@@ -1903,4 +1905,10 @@
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
+}
+
+@media (width < 768px) {
+  .storageWarning {
+    top: calc(148px + env(safe-area-inset-top));
+  }
 }

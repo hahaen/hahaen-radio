@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import type { AccountController } from '../account/controller';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
 import { Star, Play, Trash2, Download, Upload, History } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -8,6 +9,15 @@ import { EmptyState } from '../app/EmptyState';
 import { exportFavorites, readTransfer, LibraryError, type SavedStation } from './model';
 import type { Library } from './store';
 import styles from './library.module.css';
+const AccountPanel = lazy(() =>
+  import('../account/AccountPanel')
+    .then((module) => ({ default: module.AccountPanel }))
+    .catch(() => ({ default: AccountUnavailable })),
+);
+function AccountUnavailable() {
+  const { t } = useTranslation();
+  return <p role="status">{t('accountPanelUnavailable')}</p>;
+}
 interface Lookup {
   items: StationDetail[];
   missing: string[];
@@ -15,6 +25,7 @@ interface Lookup {
 const definitelyUnavailable = (station: StationDetail | undefined) =>
   station?.availability === 'blocked' || station?.availability === 'unavailable';
 export function LibraryPanel({
+  account,
   library,
   lookup,
   lookupError,
@@ -23,6 +34,7 @@ export function LibraryPanel({
   onOpen,
   onClose,
 }: {
+  account?: AccountController;
   library: Library;
   lookup: Lookup | undefined;
   lookupError: boolean;
@@ -75,6 +87,11 @@ export function LibraryPanel({
   };
   return (
     <Modal title={t('myListening')} onClose={onClose}>
+      {account && (
+        <Suspense fallback={null}>
+          <AccountPanel account={account} />
+        </Suspense>
+      )}
       <div className={styles.libraryTabs} role="group" aria-label={t('listeningLists')}>
         <button
           aria-label={t('favoriteStations', { count: state.favorites.length })}

@@ -51,6 +51,7 @@ export async function continuousFixture(page: Page) {
 }
 export async function install(page: Page, scene = true) {
   await continuousFixture(page);
+  await page.route('**/api/v1/account/session', (route) => route.fulfill({ json: { user: null } }));
   await page.addInitScript(() => {
     try {
       sessionStorage.setItem('haen:exploring:v1', 'true');

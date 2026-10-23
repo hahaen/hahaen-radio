@@ -1,3 +1,5 @@
+import { registerAccountRoutes } from './modules/accounts/routes.js';
+import { AccountError, type AccountService } from './modules/accounts/service.js';
 import { randomUUID } from 'node:crypto';
 import { registerRecognitionRoutes } from './modules/recognition/routes.js';
 import { registerDiagnosticRoutes } from './modules/diagnostics/routes.js';
@@ -33,6 +35,7 @@ export function buildApp(
     lyrics?: LyricsService;
     recognition?: RecognitionService;
     diagnostics?: DiagnosticService;
+    accounts?: AccountService;
   },
   logStream?: { write: (message: string) => void },
 ) {
@@ -65,25 +68,30 @@ export function buildApp(
   app.setErrorHandler((error, request, reply) => {
     const failure = error as { statusCode?: number; code?: string };
     const status =
-      error instanceof CatalogUnavailableError
-        ? 503
-        : error instanceof CatalogNotFoundError
-          ? 404
-          : failure.statusCode === 413
-            ? 413
-            : failure.statusCode === 400
-              ? 400
-              : 500;
+      error instanceof AccountError
+        ? error.status
+        : error instanceof CatalogUnavailableError
+          ? 503
+          : error instanceof CatalogNotFoundError
+            ? 404
+            : failure.statusCode === 413
+              ? 413
+              : failure.statusCode === 400
+                ? 400
+                : 500;
     const code: ApiError['code'] =
-      status === 503
-        ? 'SERVICE_UNAVAILABLE'
-        : status === 404
-          ? 'NOT_FOUND'
-          : status === 413
-            ? 'PAYLOAD_TOO_LARGE'
-            : status === 400
-              ? 'VALIDATION_ERROR'
-              : 'INTERNAL_ERROR';
+      error instanceof AccountError
+        ? error.code
+        : status === 503
+          ? 'SERVICE_UNAVAILABLE'
+          : status === 404
+            ? 'NOT_FOUND'
+            : status === 413
+              ? 'PAYLOAD_TOO_LARGE'
+              : status === 400
+                ? 'VALIDATION_ERROR'
+                : 'INTERNAL_ERROR';
+    if (status === 429) reply.header('retry-after', '900');
     if (status === 500)
       request.log.error({ event: 'request_failed', errorCode: failure.code }, 'Request failed');
     void reply.code(status).send({
@@ -110,6 +118,7 @@ export function buildApp(
     void app.register(swaggerUi, { routePrefix: '/api/v1/docs' });
   }
   void app.register(async (routes) => {
+    registerAccountRoutes(routes, tracks?.accounts, config.mode === 'production');
     registerCatalogRoutes(routes, catalog);
     registerTrackRoutes(routes, catalog, tracks);
     registerRecognitionRoutes(routes, tracks?.recognition);

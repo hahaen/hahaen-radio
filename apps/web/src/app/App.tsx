@@ -1,3 +1,4 @@
+import { createAccountController } from '../account/controller';
 import {
   useCallback,
   useEffect,
@@ -119,6 +120,8 @@ export function App() {
   const state = useStore(player.store);
   const track = useNowPlaying(state);
   const library = useListeningLibrary(player);
+  const [account] = useState(() => createAccountController(library));
+  useEffect(() => account.attach(), [account]);
   const personal = useStore(library.store);
   const [lastEntry] = useState(personal.lastStation);
   const route = useLocation();
@@ -865,6 +868,7 @@ export function App() {
       )}
       {libraryOpen && (
         <LibraryPanel
+          account={account}
           library={library}
           lookup={savedLookup.data}
           lookupError={savedLookup.isError}
