@@ -54,8 +54,7 @@ for (const mode of ['animated', 'reduced', 'power-save'] as const) {
     const offset = () =>
       label.evaluate((element) => {
         const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
-        const canvas = element.parentElement!.querySelector('canvas')!;
-        const bounds = canvas.getBoundingClientRect();
+        const bounds = element.parentElement!.getBoundingClientRect();
         return Math.hypot(
           matrix.m41 - bounds.width * (innerWidth >= 1024 ? 0.59 : 0.5),
           matrix.m42 - bounds.height / 2,
@@ -138,7 +137,7 @@ test('centers an already playing station when the globe finishes loading', async
     .poll(() =>
       label.evaluate((element) => {
         const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
-        const bounds = element.parentElement!.querySelector('canvas')!.getBoundingClientRect();
+        const bounds = element.parentElement!.getBoundingClientRect();
         return Math.hypot(
           matrix.m41 - bounds.width * (innerWidth >= 1024 ? 0.59 : 0.5),
           matrix.m42 - bounds.height / 2,

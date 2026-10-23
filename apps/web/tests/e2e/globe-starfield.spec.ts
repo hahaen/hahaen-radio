@@ -25,7 +25,7 @@ test('keeps the decorative sky behind the globe and controls at every layout siz
   ] as const) {
     await page.setViewportSize({ width, height });
     const canvas = panel.locator('canvas');
-    const bounds = (await canvas.boundingBox())!;
+    const bounds = (await canvas.locator('..').locator('..').boundingBox())!;
     expect(
       await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.tagName, {
         x: bounds.x + bounds.width / 2,

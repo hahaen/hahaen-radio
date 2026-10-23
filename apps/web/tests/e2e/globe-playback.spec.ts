@@ -57,7 +57,7 @@ test('animates selected sound waves and gently settles when paused', async ({ pa
   const report = async () => (await glReport(page))[0]!;
   const start = (await report()).draws;
   await expect.poll(async () => (await report()).draws).toBeGreaterThan(start + 3);
-  const bounds = (await panel.locator('canvas').boundingBox())!;
+  const bounds = (await panel.locator('canvas').locator('..').locator('..').boundingBox())!;
   const clip = {
     x: bounds.x + bounds.width * (page.viewportSize()!.width >= 1024 ? 0.59 : 0.5) - 48,
     y: bounds.y + bounds.height / 2 - 48,
@@ -145,7 +145,7 @@ test('ripples outside the entire globe even without plotted stations', async ({ 
     content: 'body * { visibility: hidden !important; } canvas { visibility: visible !important; }',
   });
   await page.waitForTimeout(1000);
-  const bounds = (await canvas.boundingBox())!;
+  const bounds = (await canvas.locator('..').locator('..').boundingBox())!;
   const centerX = page.viewportSize()!.width >= 1024 ? 0.59 : 0.5;
   const framingWidth = bounds.width * (1 - 2 * (centerX - 0.5));
   const focal = Math.min(framingWidth, bounds.height) / (2 * Math.tan((19 * Math.PI) / 180));

@@ -100,15 +100,17 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
         if(depth>0.0){
           float perspective=1.0/(depth+0.10);
           vec2 sea=vec2((uv.x-0.5)*perspective,perspective);
-          float drift=time*0.18;
-          float swell=sin(sea.y*12.0-drift+sin(sea.x*2.2+drift*0.3)*0.7);
-          float detail=noise(vec2(sea.x*28.0+drift,sea.y*18.0));
+          float drift=time*1.10;
+          float swell=sin(sea.y*12.0+drift+sin(sea.x*2.2+time*0.24)*0.7);
+          float detail=noise(vec2(sea.x*28.0+time*0.65,sea.y*18.0+drift*0.8));
           float crest=pow(max(0.0,swell),12.0);
-          float reflection=exp(-square((uv.x-0.72)/(0.028+depth*0.70)));
+          float reflectedMoon=0.72+0.016*sin(time*0.45)+0.008*sin(time*1.05);
+          float reflection=exp(-square((uv.x-reflectedMoon)/(0.028+depth*0.70)));
           float glints=smoothstep(0.48,0.82,detail)*crest;
           float fade=exp(-depth*6.0)*smoothstep(0.0,0.018,depth);
           col=mix(terrain*0.42,ink*0.72,smoothstep(0.0,0.48,depth));
-          col+=mistColor*(crest*0.012+glints*(0.024+reflection*0.30))*fade;
+          float shimmer=0.86+0.14*sin(sea.y*2.4+time*1.2);
+          col+=mistColor*(crest*0.016+glints*(0.030+reflection*0.34)*shimmer)*fade;
           col+=mistColor*reflection*fade*0.016;
         }
         return col;
@@ -126,9 +128,13 @@ export function createImmersionScene(host: HTMLElement, initial: ImmersionOption
           float below=ridge-uv.y;
           float edge=1.5/resolution.y;
           vec3 tint=mix(mix(terrain,mistColor,0.12),ink*0.82,f/4.0);
-          float valley=exp(-square((below-0.045)*23.0));
-          float mistDrift=0.8+0.2*noise(vec2(uv.x*5.0+time*0.018,f));
-          tint+=mistColor*valley*mistDrift*(0.040-f*0.007);
+          float wind=uv.x*4.0-time*(0.10+f*0.015)+f*1.7;
+          float billow=0.010*sin(uv.x*6.0-time*0.32+f);
+          float valley=exp(-square((below-0.045-billow)*23.0));
+          float vapor=noise(vec2(wind,uv.y*9.0+f*2.3));
+          float wisps=noise(vec2(wind*2.1+time*0.04,uv.y*26.0+f));
+          float mistDrift=smoothstep(0.18,0.82,vapor*0.72+wisps*0.28);
+          tint+=mistColor*valley*(0.12+mistDrift*0.88)*(0.105-f*0.018);
           col=mix(col,tint,smoothstep(-edge,edge,below));
         }
         return col;

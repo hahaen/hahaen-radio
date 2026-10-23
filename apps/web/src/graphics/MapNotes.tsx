@@ -1,15 +1,20 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { Info, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import styles from './exploration.module.css';
 
 export function MapNotes({
   interactionVersion = 0,
+  mapInfoTarget = null,
+  mobile = false,
   preview,
   attention = false,
   children,
 }: {
   interactionVersion?: number;
+  mapInfoTarget?: HTMLElement | null;
+  mobile?: boolean;
   preview?: ReactNode;
   attention?: boolean;
   children: ReactNode;
@@ -28,11 +33,30 @@ export function MapNotes({
   useEffect(() => {
     if (!open) return;
     const outside = (event: PointerEvent) => {
-      if (event.target instanceof Node && !root.current?.contains(event.target)) setOpenedAt(null);
+      if (
+        event.target instanceof Node &&
+        !root.current?.contains(event.target) &&
+        !trigger.current?.contains(event.target)
+      )
+        setOpenedAt(null);
     };
     document.addEventListener('pointerdown', outside);
     return () => document.removeEventListener('pointerdown', outside);
   }, [open]);
+  const toggle = (
+    <button
+      ref={trigger}
+      className={styles.mapToggle}
+      aria-label={t('mapInformation')}
+      title={t('mapInformation')}
+      aria-controls={id}
+      aria-expanded={expanded}
+      disabled={attention}
+      onClick={() => setOpenedAt(open ? null : interactionVersion)}
+    >
+      <Info size={18} aria-hidden="true" />
+    </button>
+  );
   return (
     <div
       ref={root}
@@ -47,18 +71,7 @@ export function MapNotes({
     >
       <div className={styles.mapSummary}>
         {preview}
-        <button
-          ref={trigger}
-          className={styles.mapToggle}
-          aria-label={t('mapInformation')}
-          title={t('mapInformation')}
-          aria-controls={id}
-          aria-expanded={expanded}
-          disabled={attention}
-          onClick={() => setOpenedAt(open ? null : interactionVersion)}
-        >
-          <Info size={18} aria-hidden="true" />
-        </button>
+        {mobile && mapInfoTarget ? createPortal(toggle, mapInfoTarget) : toggle}
       </div>
       <section
         id={id}

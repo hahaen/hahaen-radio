@@ -344,6 +344,8 @@ export function App() {
 
   const pageRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLElement>(null);
+  const [countryPlaceTarget, setCountryPlaceTarget] = useState<HTMLSpanElement | null>(null);
+  const [mapInfoTarget, setMapInfoTarget] = useState<HTMLSpanElement | null>(null);
   useControlMotion(footerRef, personal.scene.powerSave);
   useEffect(() => {
     player.setExplorer(async (signal, exclude) =>
@@ -629,6 +631,8 @@ export function App() {
               ref={exploration}
               onInteract={closeForMap}
               interactionVersion={interactionVersion}
+              mapInfoTarget={mapInfoTarget}
+              countryPlaceTarget={countryPlaceTarget}
               visible={!immersive}
               welcome={intro}
               onSearch={openDirectory}
@@ -971,17 +975,20 @@ export function App() {
             />
           )}
           {state.station && (
-            <details className={styles.stationDetails}>
-              <summary>{t('stationDetails')}</summary>
-              <StationDial
-                stations={candidates ?? EMPTY_STATIONS}
-                station={state.station}
-                onSelect={(station) => {
-                  void player.select(station, player.store.getState().intent);
-                }}
-              />
-              <StationFacts station={state.station} detail={state.detail} />
-            </details>
+            <div className={styles.stationDetailsRow}>
+              <details className={styles.stationDetails}>
+                <summary>{t('stationDetails')}</summary>
+                <StationDial
+                  stations={candidates ?? EMPTY_STATIONS}
+                  station={state.station}
+                  onSelect={(station) => {
+                    void player.select(station, player.store.getState().intent);
+                  }}
+                />
+                <StationFacts station={state.station} detail={state.detail} />
+              </details>
+              <span ref={setCountryPlaceTarget} className={styles.mobileCountryPlace} />
+            </div>
           )}
           {restoring && (
             <div className={styles.stationDetails} aria-hidden="true">
@@ -1124,6 +1131,7 @@ export function App() {
             >
               <Share2 size={20} aria-hidden="true" />
             </button>
+            <span ref={setMapInfoTarget} className={styles.mobileMapInfo} />
           </div>
         )}
         {restoring && (

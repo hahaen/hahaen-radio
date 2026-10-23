@@ -553,7 +553,11 @@ export function createGlobe(
   const startPointers = new Map<number, { x: number; y: number; moved: boolean }>();
   let width = 1,
     height = 1,
-    centerX = 0.5;
+    centerX = 0.5,
+    centerY = 0.5,
+    framingHeight = 1,
+    frameOffsetX = 0,
+    frameOffsetY = 0;
   function listen(
     target: EventTarget,
     name: string,
@@ -585,7 +589,8 @@ export function createGlobe(
       projected.project(camera);
       if (projected.z > 1 || projected.z < -1) continue;
       const d =
-        (((projected.x + 1) / 2 - centerX) * width) ** 2 + ((projected.y * height) / 2) ** 2;
+        (((projected.x + 1) / 2 - centerX) * width) ** 2 +
+        (((1 - projected.y) / 2 - centerY) * height) ** 2;
       if (d < distance) {
         distance = d;
         closest = group;
@@ -702,15 +707,15 @@ export function createGlobe(
       (2 *
         camera.position.distanceTo(selection.position) *
         Math.tan((camera.fov * Math.PI) / 360)) /
-      height;
+      framingHeight;
     selection.scale.setScalar(((width < 768 ? 23 : 30) * pixel) / 0.052);
     selection.lookAt(camera.position);
     if (label) {
       projected.copy(selection.position).project(camera);
-      const x = ((projected.x + 1) * width) / 2,
-        y = ((1 - projected.y) * height) / 2;
+      const x = ((projected.x + 1) * width) / 2 + frameOffsetX,
+        y = ((1 - projected.y) * height) / 2 + frameOffsetY;
       const visible =
-        front && projected.z < 1 && x > 20 && x < width - 20 && y > 32 && y < height - 32;
+        front && projected.z < 1 && x > 20 && x < width - 20 && y > 32 && y < framingHeight - 32;
       label.dataset.visible = String(visible);
       label.dataset.side = x + (width < 768 ? 168 : 256) > width ? 'left' : 'right';
       label.style.transform = `translate3d(${x}px, ${y}px, 0)`;
@@ -718,7 +723,7 @@ export function createGlobe(
   }
   function updateMarkerSize() {
     const zoom = Math.min(1.7, 3.8 / camera.position.length());
-    const viewportScale = Math.min(1, Math.min(width, height) / 600);
+    const viewportScale = Math.min(1, Math.min(width, framingHeight) / 600);
     const size = Math.max(5.8, 8.0 * viewportScale) * zoom;
     // A compact globe packs the same coordinates into fewer pixels.
     markers.material.uniforms.zoom!.value = zoom * Math.max(0.4, viewportScale);
@@ -736,17 +741,30 @@ export function createGlobe(
     renderer.setSize(width, height, false);
     mainland.material.uniforms.pointSize!.value = ratio * 1.2;
     oceanDots.material.uniforms.pointSize!.value = ratio * 1.2;
-    updateMarkerSize();
-    centerX =
+    const stage = container.parentElement?.getBoundingClientRect() ?? bounds;
+    const compositionX =
       (parseFloat(getComputedStyle(container).getPropertyValue('--globe-center')) || 50) / 100;
-    // Keep the original composition and scale while drawing into the formerly cropped left area.
-    const framingWidth = width * (1 - 2 * (centerX - 0.5));
-    camera.aspect = framingWidth / height;
+    framingHeight = Math.max(1, stage.height);
+    frameOffsetX = bounds.left - stage.left;
+    frameOffsetY = bounds.top - stage.top;
+    centerX = (stage.width * compositionX - frameOffsetX) / width;
+    centerY = (framingHeight / 2 - frameOffsetY) / height;
+    updateMarkerSize();
+    // Extend the drawing surface without changing the stage's composition or globe scale.
+    const framingWidth = stage.width * (1 - 2 * (compositionX - 0.5));
+    camera.aspect = framingWidth / framingHeight;
     camera.fov =
       camera.aspect < 1
         ? (Math.atan(Math.tan((19 * Math.PI) / 180) / camera.aspect) * 360) / Math.PI
         : 38;
-    camera.setViewOffset(framingWidth, height, framingWidth - width, 0, width, height);
+    camera.setViewOffset(
+      framingWidth,
+      framingHeight,
+      framingWidth - stage.width + frameOffsetX,
+      frameOffsetY,
+      width,
+      height,
+    );
     invalidate();
   }
   function moveTo(position: Vector3) {
@@ -1043,7 +1061,8 @@ export function createGlobe(
       (-(clientY - bounds.top) / height) * 2 + 1,
     );
     ray.params.Points!.threshold =
-      ((2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.length()) / height) * 14;
+      ((2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.length()) / framingHeight) *
+      14;
     camera.updateMatrixWorld();
     ray.setFromCamera(mouse, camera);
     const surface = ray.intersectObject(body, false)[0]?.distance ?? Infinity;
@@ -1134,6 +1153,7 @@ export function createGlobe(
   });
   const observer = new ResizeObserver(resize);
   observer.observe(container);
+  if (container.parentElement) observer.observe(container.parentElement);
   container.append(canvas);
   resize();
   invalidate();

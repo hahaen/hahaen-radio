@@ -28,6 +28,8 @@ export interface ExplorationHandle {
 export function Exploration({
   onInteract,
   interactionVersion = 0,
+  mapInfoTarget = null,
+  countryPlaceTarget = null,
   stations,
   station,
   playing = false,
@@ -47,6 +49,8 @@ export function Exploration({
 }: {
   onInteract?(): void;
   interactionVersion?: number;
+  mapInfoTarget?: HTMLElement | null;
+  countryPlaceTarget?: HTMLElement | null;
   stations: StationPreview[];
   station: StationPreview | null;
   playing?: boolean;
@@ -169,6 +173,8 @@ export function Exploration({
     >
       <GlobePanel
         interactionVersion={interactionVersion}
+        mapInfoTarget={mapInfoTarget}
+        countryPlaceTarget={countryPlaceTarget}
         onInteract={() => {
           setSelection(null);
           onInteract?.();

@@ -1,5 +1,6 @@
+import { createPortal } from 'react-dom';
 import { applicationPath } from '../platform/paths';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
 import type { GlobeController, PickReason } from './globe';
@@ -9,9 +10,18 @@ import { mapPosition, countryName } from './location';
 import styles from './exploration.module.css';
 import { MapNotes } from './MapNotes';
 import { Starfield } from './Starfield';
+function subscribeMobile(onChange: () => void) {
+  const query = matchMedia('(width < 768px)');
+  query.addEventListener('change', onChange);
+  return () => query.removeEventListener('change', onChange);
+}
+const mobileSnapshot = () => matchMedia('(width < 768px)').matches;
+
 export function GlobePanel({
   onInteract,
   interactionVersion = 0,
+  mapInfoTarget = null,
+  countryPlaceTarget = null,
   groups,
   details,
   station,
@@ -27,6 +37,8 @@ export function GlobePanel({
 }: {
   onInteract?(): void;
   interactionVersion?: number;
+  mapInfoTarget?: HTMLElement | null;
+  countryPlaceTarget?: HTMLElement | null;
   groups: StationGroup[];
   details: ReactNode;
   station: StationPreview | null;
@@ -41,6 +53,7 @@ export function GlobePanel({
   attention?: boolean;
 }) {
   const { t, i18n } = useTranslation();
+  const mobile = useSyncExternalStore(subscribeMobile, mobileSnapshot);
   const host = useRef<HTMLDivElement>(null),
     engine = useRef<GlobeController | null>(null);
   const selectionLabel = useRef<HTMLDivElement>(null);
@@ -156,6 +169,21 @@ export function GlobePanel({
     if (!canvas) return;
     canvas.setAttribute('aria-label', t('globeCanvas'));
   }, [state, t]);
+  const groupButton =
+    selectedGroup && selectedGroup.stations.length > 1 ? (
+      <button className={styles.groupPlace} onClick={() => onPick(selectedGroup, 'click')}>
+        {selectedGroup.precision === 'region'
+          ? t('regionPlace', {
+              region:
+                i18n.language === 'en' ? selectedGroup.regionNameEn : selectedGroup.regionName,
+            })
+          : selectedGroup.precision === 'country'
+            ? t('countryPlace', {
+                country: countryName(station?.countryCode ?? null, i18n.language),
+              })
+            : t('placeStationCount', { count: selectedGroup.stations.length })}
+      </button>
+    ) : null;
   return (
     <div
       className={styles.globePanel}
@@ -227,6 +255,8 @@ export function GlobePanel({
       </div>
       <MapNotes
         interactionVersion={interactionVersion}
+        mapInfoTarget={mapInfoTarget}
+        mobile={mobile}
         attention={attention}
         preview={
           <div className={styles.preview}>
@@ -268,22 +298,9 @@ export function GlobePanel({
             ) : (
               showHints && <span>{t(pinned ? 'globePinnedHint' : 'globeMoveHint')}</span>
             )}
-            {selectedGroup && selectedGroup.stations.length > 1 && (
-              <button onClick={() => onPick(selectedGroup, 'click')}>
-                {selectedGroup.precision === 'region'
-                  ? t('regionPlace', {
-                      region:
-                        i18n.language === 'en'
-                          ? selectedGroup.regionNameEn
-                          : selectedGroup.regionName,
-                    })
-                  : selectedGroup.precision === 'country'
-                    ? t('countryPlace', {
-                        country: countryName(station?.countryCode ?? null, i18n.language),
-                      })
-                    : t('placeStationCount', { count: selectedGroup.stations.length })}
-              </button>
-            )}
+            {mobile && countryPlaceTarget && selectedGroup?.precision === 'country'
+              ? createPortal(groupButton, countryPlaceTarget)
+              : groupButton}
           </div>
         }
       >

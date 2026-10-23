@@ -29,13 +29,26 @@ test('keeps search, filters and results together without moving the navigation',
     expect(field!.x).toBeGreaterThan(surface!.x);
     expect(field!.x + field!.width).toBeLessThan(surface!.x + surface!.width);
     expect(field!.y).toBeGreaterThan(surface!.y);
-    await expect(panel.getByRole('button', { name: '关闭面板', exact: true })).toBeInViewport();
+    const close = panel.getByRole('button', { name: '关闭面板', exact: true });
+    await expect(close).toBeInViewport();
+    if (width! < 768) {
+      const closeBounds = (await close.boundingBox())!;
+      const title = (await panel.getByRole('heading', { name: '探索电台' }).boundingBox())!;
+      const inputRow = (await search.locator('..').boundingBox())!;
+      expect(closeBounds.y + closeBounds.height).toBeLessThan(inputRow.y);
+      expect(
+        Math.abs(title.y + title.height / 2 - closeBounds.y - closeBounds.height / 2),
+      ).toBeLessThan(2);
+      expect(inputRow.width).toBeGreaterThan(surface!.width - 40);
+      expect(closeBounds.width).toBeGreaterThanOrEqual(44);
+      expect(closeBounds.height).toBeGreaterThanOrEqual(44);
+    }
     const trigger = page.getByRole('button', { name: '查找电台', exact: true });
     const openBounds = await trigger.boundingBox();
     await panel.locator('summary').click();
     await expect(panel.getByRole('checkbox', { name: '爵士', exact: true })).toBeVisible();
     await panel.locator('summary').click();
-    await page.screenshot({ path: info.outputPath(`search-${width}.png`) });
+    await page.screenshot({ path: info.outputPath(`search-${width}.png`), scale: 'css' });
     await trigger.click();
     await expect(panel).toHaveCount(0);
     expect(await trigger.boundingBox()).toEqual(openBounds);

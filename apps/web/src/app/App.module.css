@@ -1744,3 +1744,134 @@
     height: 48px;
   }
 }
+
+.mobileMapInfo {
+  display: none;
+}
+@media (width < 768px) {
+  .mobileMapInfo {
+    display: flex;
+  }
+
+  .directoryPanel {
+    left: max(12px, env(safe-area-inset-left));
+    right: max(12px, env(safe-area-inset-right));
+    width: auto;
+    border-radius: 24px;
+    background: var(--color-panel);
+  }
+  .searchHeading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 12px 8px;
+    padding: 14px 16px 6px;
+  }
+  .directoryTitle {
+    grid-area: 1 / 1;
+    margin: 0;
+    letter-spacing: 0.02em;
+  }
+  .closeSearch {
+    grid-area: 1 / 2;
+    background: var(--color-selected-bg);
+  }
+  .searchField {
+    grid-area: 2 / 1 / 3 / -1;
+    min-height: 50px;
+    gap: 10px;
+    padding-inline: 16px 4px;
+    border-radius: 999px;
+    background: var(--color-selected-bg);
+  }
+  .searchField > svg {
+    width: 18px;
+    height: 18px;
+  }
+  .searchField:focus-within {
+    border-color: var(--color-secondary);
+    background: var(--color-surface);
+  }
+  .searchField input {
+    padding-block: 12px;
+    font-weight: 400;
+  }
+  .directory {
+    padding: 0 16px 16px;
+  }
+  .directoryTools {
+    margin-bottom: 2px;
+  }
+  .station {
+    gap: 12px;
+    padding: 16px 4px;
+    border-radius: 12px;
+  }
+  .station[aria-current='true'] {
+    padding-inline: 12px 8px;
+  }
+  .stationName {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .stationMeta {
+    column-gap: 8px;
+  }
+  .stationPlay {
+    width: 36px;
+    height: 36px;
+    border-color: transparent;
+    background: var(--color-selected-bg);
+  }
+}
+@media (width < 390px) {
+  .player[data-immersive='false'] .volume input {
+    width: 44px;
+  }
+}
+
+.stationDetailsRow {
+  display: contents;
+}
+.mobileCountryPlace {
+  display: none;
+}
+@media (width < 768px) {
+  .player[data-has-station='true'][data-immersive='false']:has(.mobileCountryPlace:not(:empty)) {
+    max-height: min(384px, calc(44dvh + 24px));
+  }
+  .stationDetailsRow:has(.mobileCountryPlace:not(:empty)) {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    margin-top: 8px;
+  }
+  .stationDetailsRow:has(.mobileCountryPlace:not(:empty)) .stationDetails {
+    grid-area: 1 / 1 / 2 / -1;
+    margin-top: 0;
+  }
+  .stationDetailsRow:has(.mobileCountryPlace:not(:empty)) summary {
+    width: calc(40% - 8px);
+    min-height: 44px;
+    align-content: center;
+  }
+  .mobileCountryPlace {
+    display: flex;
+    grid-area: 1 / 2;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+  .mobileCountryPlace button {
+    max-width: 100%;
+    min-height: 44px;
+    padding: 6px 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    backdrop-filter: none;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    line-height: 16px;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+}

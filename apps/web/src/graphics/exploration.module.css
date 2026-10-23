@@ -173,7 +173,7 @@
 .preview span:first-child {
   color: var(--color-text);
 }
-.preview button {
+.groupPlace {
   min-height: 44px;
   padding: 4px 8px;
   border: 1px solid var(--color-border);
@@ -316,7 +316,7 @@
       min(280px, calc(100dvh - var(--player-height, 260px) - var(--dock-bottom) - 170px))
     );
   }
-  .preview button {
+  .groupPlace {
     pointer-events: auto;
   }
   .dataState {
@@ -458,5 +458,12 @@
 @media (width <= 360px), (height <= 500px) {
   .selectionCopy {
     display: none;
+  }
+}
+
+@media (width < 768px) {
+  .exploration[data-welcome='false'] .canvasHost {
+    position: fixed;
+    inset: 0;
   }
 }
