@@ -1060,6 +1060,7 @@ export function App() {
             <span className={styles.nextLabel}>{t('nextStation')}</span>
           </button>
           <button
+            className={styles.pinButton}
             aria-label={state.pinned ? t('unpin') : t('pin')}
             data-control-motion="press"
             aria-pressed={state.pinned}
