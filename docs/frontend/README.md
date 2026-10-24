@@ -41,6 +41,8 @@
 
 电影感夜航构图、连续陆地与全系统控件调整见[任务记录](../iterations/2026-10-21-cinematic-night/README.md)。
 
+地球鼠标、触屏与键盘的连续球面旋转见[任务记录](../iterations/2026-10-24-globe-free-rotation/README.md)。
+
 磨砂界面、夜航动效与沉浸收听调整见[任务记录](../iterations/2026-10-21-search-surface/README.md)。
 
 全屏沉浸环境与地图地点说明见[任务记录](../iterations/2026-10-21-immersive-environments/README.md)。

@@ -51,7 +51,7 @@ ViewModel、分层和 Compose 的设计依据见 [Android 架构建议](https://
 | compile / target / min SDK | 36 / 36 / 26 |
 | Build Tools | 36.0.0 |
 | namespace / applicationId | `xyz.hahaen.radio` |
-| 版本 | `0.1.0`（versionCode 4） |
+| 版本 | `0.1.0`（versionCode 5） |
 
 依据 [AGP 9.1 兼容说明](https://developer.android.com/build/releases/agp-9-1-0-release-notes)选择 Gradle 9.3.1、JDK 17 和 Build Tools 36.0.0。具体插件和依赖集中在 `gradle/libs.versions.toml`，Compose 使用 BOM，Media3 模块版本一致；不使用动态版本。Wrapper 固定分发 SHA-256，应用与构建设置的解析结果写入 Gradle 锁文件。
 

@@ -1,5 +1,7 @@
 # 技术文档导航
 
+网页与 Android 地球支持[跨越南北极的连续旋转](iterations/2026-10-24-globe-free-rotation/README.md)。
+
 Android 搜索及账号输入框的[软键盘修复与检查](iterations/2026-10-24-android-keyboard/README.md)。
 
 Android 分发页介绍与兼容图标见[任务记录](iterations/2026-10-24-android-distribution/README.md)。

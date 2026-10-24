@@ -12,7 +12,7 @@ for (const refreshRate of [60, 120]) {
     await page.route('**/frame-pacing-harness', (route) =>
       route.fulfill({
         contentType: 'text/html',
-        body: '<!doctype html><html><body><div id="host" style="width:360px;height:360px"></div></body></html>',
+        body: '<!doctype html><html><body><div style="width:360px;height:360px"><div id="host" style="width:360px;height:360px"></div></div></body></html>',
       }),
     );
     await page.goto('/frame-pacing-harness');

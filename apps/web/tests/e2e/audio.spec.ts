@@ -305,6 +305,7 @@ test('pins automatic selection and preserves paused intent after a globe dwell',
   const first = {
     ...fixture(1, 'mp3'),
     name: '测试音源 初始位置',
+    countryCode: null,
     latitude: 25,
     longitude: 80,
     locationPrecision: 'coordinates' as const,
@@ -312,10 +313,12 @@ test('pins automatic selection and preserves paused intent after a globe dwell',
   const second = {
     ...fixture(2, 'aac'),
     name: '测试音源 稳定位置',
+    countryCode: null,
     latitude: 25,
     longitude: 60,
     locationPrecision: 'coordinates' as const,
   };
+  await page.route('**/api/v1/account/session', (route) => route.fulfill({ json: { user: null } }));
   await install(page, [first, second], undefined, undefined, true);
   const panel = page.getByTestId('globe-panel');
   await expect(panel).toHaveAttribute('data-state', /ready|unavailable/, { timeout: 15000 });

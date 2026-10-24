@@ -13,6 +13,7 @@ import {
   LineBasicMaterial,
   LineSegments,
   Material,
+  Matrix4,
   Mesh,
   MeshBasicMaterial,
   PerspectiveCamera,
@@ -24,13 +25,12 @@ import {
   Scene,
   ShaderMaterial,
   SphereGeometry,
-  Spherical,
   Texture,
   Vector2,
   Vector3,
   WebGLRenderer,
 } from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GlobeControls } from './globe-controls.js';
 import { applicationPath } from '../platform/paths.js';
 import type { StationPreview } from '@haen/contracts';
 import type { LandData } from './land.js';
@@ -86,8 +86,7 @@ export function createGlobe(
     camera = new PerspectiveCamera(38, 1, 0.05, 20);
   camera.position.fromArray(globePosition(25, 80, 3.8));
   camera.lookAt(0, 0, 0);
-  const controls = new OrbitControls(camera, canvas);
-  controls.enablePan = false;
+  const controls = new GlobeControls(camera, canvas);
   controls.minDistance = 1.22;
   controls.maxDistance = 5.5;
   controls.dampingFactor = 0.09;
@@ -124,7 +123,8 @@ export function createGlobe(
   let centeredStationId: string | null = null;
   let playbackLevel = 0;
   let playbackFade: { from: number; to: number; start: number } | undefined;
-  let transition: { from: Vector3; to: Vector3; rotation: Quaternion; start: number } | undefined;
+  let transition:
+    { from: Vector3; up: Vector3; to: Vector3; rotation: Quaternion; start: number } | undefined;
   const easingRotation = new Quaternion();
   const motion = matchMedia('(prefers-reduced-motion: reduce)');
   let reduced = motion.matches;
@@ -658,6 +658,7 @@ export function createGlobe(
         .normalize()
         .applyQuaternion(easingRotation)
         .multiplyScalar(fromRadius + (toRadius - fromRadius) * eased);
+      camera.up.copy(transition.up).applyQuaternion(easingRotation).normalize();
       camera.lookAt(0, 0, 0);
       if (t === 1) transition = undefined;
     }
@@ -767,24 +768,31 @@ export function createGlobe(
     );
     invalidate();
   }
-  function moveTo(position: Vector3) {
+  function moveTo(position: Vector3, upright = false) {
     allowDwell = false;
     dwell.cancel();
-    controls.enableDamping = false;
-    controls.update();
-    controls.enableDamping = !reduced && !powerSave;
+    controls.stop();
+    const rotation = upright
+      ? new Quaternion()
+          .setFromRotationMatrix(
+            new Matrix4().lookAt(position, new Vector3(), new Vector3(0, 1, 0)),
+          )
+          .multiply(camera.quaternion.clone().invert())
+      : new Quaternion().setFromUnitVectors(
+          camera.position.clone().normalize(),
+          position.clone().normalize(),
+        );
     if (reduced || powerSave) {
       transition = undefined;
+      camera.up.applyQuaternion(rotation).normalize();
       camera.position.copy(position);
       controls.update();
     } else
       transition = {
         from: camera.position.clone(),
+        up: camera.up.clone(),
         to: position,
-        rotation: new Quaternion().setFromUnitVectors(
-          camera.position.clone().normalize(),
-          position.clone().normalize(),
-        ),
+        rotation,
         start: performance.now(),
       };
     invalidate();
@@ -901,6 +909,7 @@ export function createGlobe(
           : null,
       );
       if (powerSave && transition) {
+        camera.up.copy(transition.up).applyQuaternion(transition.rotation).normalize();
         camera.position.copy(transition.to);
         transition = undefined;
         controls.update();
@@ -938,6 +947,7 @@ export function createGlobe(
       active = value;
       controls.enabled = value;
       if (!value) {
+        startPointers.clear();
         allowDwell = false;
         dwell.cancel();
         if (frame) cancelAnimationFrame(frame);
@@ -962,7 +972,7 @@ export function createGlobe(
     },
     reset() {
       showPreview(null);
-      moveTo(new Vector3().fromArray(globePosition(25, 80, 3.8)));
+      moveTo(new Vector3().fromArray(globePosition(25, 80, 3.8)), true);
     },
     focus(station) {
       const position = stationPosition(station);
@@ -1041,6 +1051,9 @@ export function createGlobe(
     dragging = false;
     dwell.cancel();
   });
+  listen(canvas, 'lostpointercapture', (event) => {
+    startPointers.delete((event as PointerEvent).pointerId);
+  });
   listen(canvas, 'pointerup', (event) => {
     const e = event as PointerEvent,
       start = startPointers.get(e.pointerId);
@@ -1080,20 +1093,21 @@ export function createGlobe(
   listen(canvas, 'keydown', (event) => {
     const e = event as KeyboardEvent;
     if (e.altKey || e.ctrlKey || e.metaKey || e.isComposing) return;
-    const spherical = new Spherical().setFromVector3(camera.position);
+    let x = 0,
+      y = 0;
     let handled = true;
     switch (e.key) {
       case 'ArrowLeft':
-        spherical.theta -= 0.15;
+        x = 0.15;
         break;
       case 'ArrowRight':
-        spherical.theta += 0.15;
+        x = -0.15;
         break;
       case 'ArrowUp':
-        spherical.phi = Math.max(0.08, spherical.phi - 0.12);
+        y = 0.12;
         break;
       case 'ArrowDown':
-        spherical.phi = Math.min(Math.PI - 0.08, spherical.phi + 0.12);
+        y = -0.12;
         break;
       case '+':
       case '=':
@@ -1115,8 +1129,11 @@ export function createGlobe(
     if (e.key.startsWith('Arrow')) {
       transition = undefined;
       allowDwell = true;
-      camera.position.setFromSpherical(spherical);
-      controls.update();
+      const damping = controls.enableDamping;
+      controls.enableDamping = false;
+      controls.stop();
+      controls.rotate(x, y);
+      controls.enableDamping = damping;
       armDwell();
       invalidate();
     }
@@ -1124,6 +1141,8 @@ export function createGlobe(
   listen(canvas, 'webglcontextlost', (event) => {
     event.preventDefault();
     lost = true;
+    controls.cancel();
+    startPointers.clear();
     allowDwell = false;
     dwell.cancel();
     if (frame) cancelAnimationFrame(frame);
@@ -1137,6 +1156,8 @@ export function createGlobe(
     allowDwell = false;
     dwell.cancel();
     if (document.hidden) {
+      controls.cancel();
+      startPointers.clear();
       if (frame) cancelAnimationFrame(frame);
       frame = 0;
     } else invalidate();
@@ -1145,6 +1166,7 @@ export function createGlobe(
     reduced = motion.matches;
     controls.enableDamping = !reduced && !powerSave;
     if (reduced && transition) {
+      camera.up.copy(transition.up).applyQuaternion(transition.rotation).normalize();
       camera.position.copy(transition.to);
       transition = undefined;
       controls.update();

@@ -58,6 +58,39 @@ async function openScene(page: Page, initialScene = 'globe', landGate?: Promise<
   await expect.poll(async () => (await glReport(page))[0]?.draws ?? 0).toBeGreaterThan(0);
 }
 
+test('keeps the packaged globe rotating through repeated vertical touch drags', async ({
+  page,
+}) => {
+  await openScene(page);
+  await page.evaluate(
+    (value) => window.haenReceive?.({ version: 1, type: 'snapshot', snapshot: value }),
+    { ...snapshot, playing: false, pinned: true, powerSave: true },
+  );
+  const canvas = page.locator('#scene canvas');
+  const session = await page.context().newCDPSession(page);
+  try {
+    for (let drag = 0; drag < 12; drag++) {
+      const before = await canvas.screenshot();
+      await session.send('Input.dispatchTouchEvent', {
+        type: 'touchStart',
+        touchPoints: [{ x: 190, y: 300 }],
+      });
+      for (let y = 290; y >= 200; y -= 10)
+        await session.send('Input.dispatchTouchEvent', {
+          type: 'touchMove',
+          touchPoints: [{ x: 190, y }],
+        });
+      await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      expect(
+        (await canvas.screenshot()).equals(before),
+        `drag ${drag + 1} must change the globe`,
+      ).toBe(false);
+    }
+  } finally {
+    await session.detach();
+  }
+});
+
 test('returns from immersion using the existing globe and bounded graphics resources', async ({
   page,
 }, info) => {

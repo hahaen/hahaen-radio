@@ -2,6 +2,8 @@
 
 Android 客户端采用 Kotlin 原生路线，目标是延续声屿手机网页的夜航设计与收听体验，并由原生服务承载后台音频。
 
+共享地球的连续旋转修复与 versionCode 5 产物验证见[任务记录](../iterations/2026-10-24-globe-free-rotation/README.md)。
+
 搜索、用户名和密码输入框的软键盘处理见[键盘修复与检查记录](../iterations/2026-10-24-android-keyboard/README.md)。
 
 ## 当前状态
