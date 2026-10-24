@@ -50,6 +50,7 @@ import { createSleepController, formatRemaining } from '../platform/sleep';
 import { connectMediaSession } from '../platform/media-session';
 import { connectShortcuts } from '../platform/shortcuts';
 import { connectIdleImmersion } from '../platform/idle';
+import { connectFocusInput } from '../platform/focus-input';
 import { usePlaybackFavicon } from '../platform/use-playback-favicon';
 import { SettingsPanel } from './SettingsPanel';
 import { Immersive } from './Immersive';
@@ -226,6 +227,7 @@ export function App() {
   const sleep = useStore(sleepController.store);
   useEffect(() => sleepController.attach(), [sleepController]);
   useEffect(() => observeLanguage(), []);
+  useEffect(() => connectFocusInput(), []);
   useEffect(
     () =>
       connectMediaSession(player, {

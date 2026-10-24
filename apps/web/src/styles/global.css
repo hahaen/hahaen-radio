@@ -109,6 +109,10 @@ a {
   outline: 2px solid var(--color-secondary);
   outline-offset: 4px;
 }
+:root[data-touch-focus]
+  :where(button, a, summary, [tabindex]):not(input, textarea, select, [contenteditable]):focus {
+  outline: none;
+}
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
