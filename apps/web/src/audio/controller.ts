@@ -58,6 +58,7 @@ export function createPlayerController(
   let networkOnline = true;
   let explorer: Explorer | undefined;
   let exploring = false;
+  let scopedExploration = false;
   let automaticExploration = false;
   const failedStations = new Set<string>();
   const visits: { id: string; preview: StationPreview | null }[] = [];
@@ -74,6 +75,7 @@ export function createPlayerController(
     request = undefined;
     store.setState({ requestedStationId: null });
     exploring = false;
+    scopedExploration = false;
     automaticExploration = false;
   };
   const onPlayback = () => {
@@ -173,8 +175,9 @@ export function createPlayerController(
   }
   const select = (station: StationPreview, autoplay = true, automatic = false) =>
     resolveStation(station.id, autoplay, automatic, station);
-  async function explore(autoplay: boolean, automatic = false) {
-    if (!engine || !explorer) return;
+  async function explore(autoplay: boolean, automatic = false, scope?: Explorer) {
+    const choose = scope ?? explorer;
+    if (!engine || !choose) return;
     if (autoplay) engine.activateAudio();
     cancel();
     if (!networkOnline) {
@@ -185,6 +188,7 @@ export function createPlayerController(
     request = new AbortController();
     const signal = request.signal;
     exploring = true;
+    scopedExploration = scope !== undefined;
     automaticExploration = automatic;
     if (!automatic) {
       failedStations.clear();
@@ -196,7 +200,7 @@ export function createPlayerController(
       const excluded = new Set(failedStations);
       const currentId = store.getState().station?.id;
       if (currentId) excluded.add(currentId);
-      const station = await explorer(signal, [...excluded]);
+      const station = await choose(signal, [...excluded]);
       if (selectedToken !== token || signal.aborted) return;
       exploring = false;
       if (!station) {
@@ -241,7 +245,7 @@ export function createPlayerController(
     setExplorer(value: Explorer) {
       explorer = value;
       invalidateSelection();
-      if (exploring) {
+      if (exploring && !scopedExploration) {
         cancel();
         store.setState({ resolving: false });
       }
@@ -271,6 +275,7 @@ export function createPlayerController(
     open: (id: string, autoplay = false) => resolveStation(id, autoplay, false, null),
     invalidateSelection,
     next: () => explore(wantsPlayback || !store.getState().station),
+    prepare: (scope?: Explorer) => explore(false, false, scope),
     start: () => explore(true),
     previous() {
       const index = visits[cursor]?.id === targetId ? cursor - 1 : cursor;

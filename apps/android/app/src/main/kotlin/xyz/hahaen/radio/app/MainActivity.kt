@@ -28,6 +28,6 @@ import javax.inject.Inject
         setContent { RadioApp(model, playback) }
         if (Build.VERSION.SDK_INT >= 33) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
-    override fun onStart() { super.onStart(); playback.connect(); model.library.refresh() }
+    override fun onStart() { super.onStart(); playback.connect(); playback.prepare(); model.library.refresh() }
     override fun onStop() { playback.disconnect(); super.onStop() }
 }

@@ -14,7 +14,7 @@ android {
         applicationId = "xyz.hahaen.radio"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
+        versionCode = 3
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"https://hahaen.xyz/radio/api/v1/\"")

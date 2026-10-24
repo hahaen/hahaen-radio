@@ -1,5 +1,7 @@
 # 技术文档导航
 
+网页与 Android 初次选台统一为[中国区随机电台并保持暂停](iterations/2026-10-24-initial-china-station/README.md)，播放需用户主动操作。
+
 Safari 分享面板、主屏幕与程序坞的深色耳机图标见[当前修正](iterations/2026-10-24-safari-dark-icon/README.md)，早期实现见[图标记录](iterations/2026-10-18-favicon-concepts/README.md)。
 
 Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)、[入口建立记录](iterations/2026-10-23-android-development-foundation/README.md)和[目录骨架记录](iterations/2026-10-23-android-directory-layout/README.md)；原生工程已交付 Debug APK 并完成本轮核心真机验收，耳机专项按用户要求暂缓，具体证据见 [Android 验证](android/verification.md)。

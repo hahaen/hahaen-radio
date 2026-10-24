@@ -83,6 +83,38 @@ function mount(strict = false) {
   render(strict ? <StrictMode>{app}</StrictMode> : app);
 }
 describe('radio application entry', () => {
+  it('preselects a random China station on a fresh entry without autoplay, including strict replay', async () => {
+    sessionStorage.removeItem('haen:exploring:v1');
+    const china = { ...testStation(2), countryCode: 'CN', name: '中国测试电台' };
+    vi.stubGlobal(
+      'fetch',
+      withoutScene(
+        vi.fn(async (input) => {
+          const url = new URL(String(input), 'https://haen.test');
+          return url.pathname.endsWith('/stations')
+            ? new Response(
+                JSON.stringify({
+                  items: url.searchParams.get('q') === '中国' ? [china] : [testStation(1), china],
+                  total: 1,
+                  offset: 0,
+                  limit: 100,
+                }),
+              )
+            : new Response(JSON.stringify(china));
+        }),
+      ),
+    );
+    mount(true);
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(china.name),
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('已暂停');
+    expect(document.querySelectorAll('audio')).toHaveLength(0);
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: /^播放$/ }));
+    await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('正在收听'));
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(china.name);
+  });
   it('survives strict lifecycle replay, loads stations without autoplay and preserves language', async () => {
     vi.stubGlobal('fetch', withoutScene(vi.fn(async () => response())));
     mount(true);

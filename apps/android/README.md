@@ -1,6 +1,6 @@
 # 声屿 HAEN Android
 
-Kotlin / Compose 原生客户端，应用 ID 与 namespace 为 `xyz.hahaen.radio`，版本 `0.1.0`（versionCode 2），最低 Android 8（API 26），compile/target API 36。当前为 Debug 交付，本轮核心真机验收已通过，耳机专项按用户要求暂缓，见 [验证状态](../../docs/android/verification.md)。
+Kotlin / Compose 原生客户端，应用 ID 与 namespace 为 `xyz.hahaen.radio`，版本 `0.1.0`（versionCode 3），最低 Android 8（API 26），compile/target API 36。当前为 Debug 交付，本轮核心真机验收已通过，耳机专项按用户要求暂缓，见 [验证状态](../../docs/android/verification.md)。初始中国区电台预选保持暂停，本轮变更与验证见[任务记录](../../docs/iterations/2026-10-24-initial-china-station/README.md)。
 
 ## 可复现构建
 

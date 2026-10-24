@@ -34,6 +34,48 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('playback coordination', () => {
+  it('keeps initial country selection pending when account hydration refreshes directory filters', async () => {
+    const { controller, media } = harness();
+    let finish!: (station: StationDetail) => void;
+    const preparing = controller.prepare(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    controller.setExplorer(async () => testStation(2));
+    finish(testStation(1));
+    await preparing;
+    expect(controller.store.getState().station?.id).toBe(testStation(1).id);
+    expect(media).toHaveLength(0);
+  });
+  it('prepares a random station silently and waits for an explicit play command', async () => {
+    const { controller, media } = harness();
+    controller.setExplorer(async () => testStation(1));
+    await controller.prepare();
+    expect(controller.store.getState().station?.id).toBe(testStation(1).id);
+    expect(controller.store.getState().playback.status).toBe('paused');
+    expect(controller.store.getState().intent).toBe(false);
+    expect(media).toHaveLength(0);
+    controller.play();
+    expect(media).toHaveLength(1);
+  });
+  it('does not let a late default choice overwrite a manual station', async () => {
+    const { controller, media } = harness();
+    let finish!: (station: StationDetail) => void;
+    controller.setExplorer(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        }),
+    );
+    const preparing = controller.prepare();
+    await controller.select(testStation(2), false);
+    finish(testStation(1));
+    await preparing;
+    expect(controller.store.getState().station?.id).toBe(testStation(2).id);
+    expect(media).toHaveLength(0);
+  });
   it('restores previous-station navigation by ID without inventing station details or autoplay', async () => {
     const { controller, media } = harness();
     controller.seedHistory([testStation(3).id, testStation(2).id, testStation(1).id]);

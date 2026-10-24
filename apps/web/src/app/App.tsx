@@ -36,7 +36,7 @@ import { useTranslation } from 'react-i18next';
 import { normalizeLanguages, type StationPreview } from '@haen/contracts';
 import { observeLanguage, setLanguage } from '../locales/i18n';
 import { createPlayerController, type PlayerState } from '../audio/controller';
-import { lookupStations, randomStation } from '../services/catalog';
+import { lookupStations, randomStation, randomChinaStation } from '../services/catalog';
 import { useListeningLibrary } from '../library/use-library';
 import { defaultFilters, type ListeningFilters } from '../library/model';
 import { sharedStation, shareStation } from '../library/share';
@@ -142,6 +142,7 @@ export function App() {
       return false;
     }
   });
+  const [initialWelcome] = useState(!exploring);
   const intro = !state.station && !exploring && !restoreId;
   const browse = () => {
     setExploring(true);
@@ -352,11 +353,17 @@ export function App() {
   useControlMotion(footerRef, personal.scene.powerSave);
   useEffect(() => {
     player.setExplorer(async (signal, exclude) =>
-      candidatesRef.current
-        ? pickStation(candidatesRef.current, exclude)
-        : await randomStation(filters, signal, exclude),
+      !player.store.getState().station
+        ? await randomChinaStation(signal, exclude)
+        : candidatesRef.current
+          ? pickStation(candidatesRef.current, exclude)
+          : await randomStation(filters, signal, exclude),
     );
   }, [player, filters]);
+  useEffect(() => {
+    if (initialWelcome && !restoreId && !shared.invalid && !player.store.getState().station)
+      void player.prepare(randomChinaStation);
+  }, [player, initialWelcome, restoreId, shared.invalid]);
   useEffect(() => {
     const page = pageRef.current;
     const footer = footerRef.current;
@@ -925,7 +932,7 @@ export function App() {
             className={[styles.status, failed ? styles.error : ''].join(' ')}
             data-state={state.playback.status}
           >
-            {intro
+            {intro && !failed
               ? sceneManifest
                 ? t('welcomeCountries', { count: sceneManifest.countryCount })
                 : t('welcomeLead')

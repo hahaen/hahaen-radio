@@ -33,6 +33,7 @@ import kotlin.random.Random
         check(count.total > 0) { "NO_STATIONS" }
         return api.stations(limit = 1, offset = Random.nextInt(count.total.coerceAtMost(200001)), excludeIds = exclude).items.first().model()
     }
+    suspend fun randomChina(): Station = randomChinaStation(api)
 
     suspend fun lookup(ids: List<String>): List<Station> = withContext(Dispatchers.IO) {
         lookupStations(api, ids)
@@ -122,6 +123,21 @@ import kotlin.random.Random
             catch (error: Exception) { if (loadedIdentity == null) throw error }
         }
     }
+}
+
+internal suspend fun randomChinaStation(api: RadioApi): Station {
+    val candidates = LinkedHashMap<String, Station>()
+    for (offset in 0..200000 step 100) {
+        currentCoroutineContext().ensureActive()
+        val page = api.stations(q = "中国", offset = offset, limit = 100)
+        for (station in page.items) {
+            if (station.countryCode == "CN" && station.availability == "available" && station.genre != "religious")
+                candidates[station.id] = station.model()
+        }
+        if (page.items.isEmpty() || offset + 100 >= page.total) break
+    }
+    currentCoroutineContext().ensureActive()
+    return candidates.values.randomOrNull() ?: error("NO_STATIONS")
 }
 
 /** Contract-bounded lookup also lets the favorite filter operate without a downloaded globe. */

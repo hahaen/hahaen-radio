@@ -109,6 +109,7 @@ import xyz.hahaen.radio.domain.PlaybackState
         }
     }
     fun select(id: String) = command(SELECT, Bundle().apply { putString("id", id) })
+    fun prepare() = command(PREPARE)
     fun toggle() = command(TOGGLE)
     fun next() = command(NEXT)
     fun previous() = command(PREVIOUS)
@@ -117,6 +118,7 @@ import xyz.hahaen.radio.domain.PlaybackState
     companion object {
         const val SELECT = "haen.select"; const val TOGGLE = "haen.toggle"; const val NEXT = "haen.next"
         const val PREVIOUS = "haen.previous"; const val SLEEP = "haen.sleep"; const val VOLUME = "haen.volume"
-        val COMMANDS = listOf(SELECT, TOGGLE, NEXT, PREVIOUS, SLEEP, VOLUME)
+        const val PREPARE = "haen.prepare"
+        val COMMANDS = listOf(SELECT, TOGGLE, NEXT, PREVIOUS, SLEEP, VOLUME, PREPARE)
     }
 }

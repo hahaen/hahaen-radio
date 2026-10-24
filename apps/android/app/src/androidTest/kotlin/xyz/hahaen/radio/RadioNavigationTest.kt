@@ -80,9 +80,9 @@ class RadioNavigationTest {
         assertEquals("Navigation must not change the service volume", before.volume, after.volume, 0f)
         assertEquals("Navigation must not change the pin preference", before.pinned, after.pinned)
         // An already-playing live station can change state independently because of its network.
-        // Idle playback has no such external dependency: navigation must never start a station.
+        // Initial country selection may complete while navigating, but never starts audio.
         if (before.station == null && !before.playing && !before.connecting) {
-            assertEquals(null, after.station)
+            after.station?.let { assertEquals("CN", it.countryCode) }
             assertFalse(after.playing)
             assertFalse(after.connecting)
         }

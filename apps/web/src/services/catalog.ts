@@ -96,3 +96,24 @@ export async function randomStation(
       : (await searchStations(filters, offset, 1, signal, excludeIds)).items[0];
   return selected && !excludeIds.includes(selected.id) ? selected : null;
 }
+
+export async function randomChinaStation(signal: AbortSignal, excluded: readonly string[] = []) {
+  const candidates = new Map<string, StationSummary>();
+  // Country text search can also match names abroad; check the actual region code.
+  for (let offset = 0; offset <= 200000; offset += 100) {
+    signal.throwIfAborted();
+    const page = await searchStations({ q: '中国' }, offset, 100, signal, excluded);
+    for (const station of page.items)
+      if (
+        station.countryCode === 'CN' &&
+        station.availability === 'available' &&
+        station.genre !== 'religious' &&
+        !excluded.includes(station.id)
+      )
+        candidates.set(station.id, station);
+    if (!page.items.length || offset + 100 >= page.total) break;
+  }
+  signal.throwIfAborted();
+  const stations = [...candidates.values()];
+  return stations[Math.floor(Math.random() * stations.length)] ?? null;
+}

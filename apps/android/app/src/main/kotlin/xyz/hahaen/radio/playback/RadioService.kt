@@ -87,6 +87,7 @@ import javax.inject.Inject
             override fun onCustomCommand(session: MediaSession, controller: MediaSession.ControllerInfo, customCommand: SessionCommand, args: Bundle): ListenableFuture<SessionResult> {
                 if (controller.packageName != packageName) return Futures.immediateFuture(SessionResult(SessionError.ERROR_PERMISSION_DENIED))
                 when (customCommand.customAction) {
+                    PlaybackConnection.PREPARE -> prepareInitialStation()
                     PlaybackConnection.SELECT -> args.getString("id")?.takeIf { ID.matches(it) }?.let { recoveryStations = 0; select(it) }
                     PlaybackConnection.TOGGLE -> if (intent || player.isPlaying) pausePlayback() else resume()
                     PlaybackConnection.NEXT -> { recoveryStations = 0; nextStation() }
@@ -208,6 +209,22 @@ import javax.inject.Inject
         if (!connection.state.value.pinned && recoveryStations++ < 2) nextStation() else fail("stream")
     }
     private fun fail(code: String) { pausePlayback(); connection.mutable.update { it.copy(error = code) }; publish() }
+    private fun prepareInitialStation() {
+        if (connection.state.value.station != null || resolving != null || requestedStationId != null || intent) return
+        val expected = generation
+        resolving = scope.launch {
+            try {
+                val station = catalog.randomChina()
+                ensureActive()
+                if (expected != generation) return@launch
+                requestedStationId = station.id; connection.requestedStationId = station.id
+                resolving = null
+                connection.mutable.update { it.copy(station = station, error = null) }
+                publish()
+            } catch (cancelled: CancellationException) { throw cancelled }
+            catch (_: Exception) { if (expected == generation) { resolving = null; fail("network") } }
+        }
+    }
     private fun nextStation() {
         pausePlayback()
         val expected = ++generation
@@ -218,7 +235,7 @@ import javax.inject.Inject
         connection.mutable.update { it.copy(connecting = true, error = null) }
         publish()
         resolving = scope.launch {
-            try { val station = catalog.random(connection.state.value.station?.id); ensureActive(); if (expected == generation && intent) { resolving = null; select(station.id) } }
+            try { val station = if (connection.state.value.station == null) catalog.randomChina() else catalog.random(connection.state.value.station?.id); ensureActive(); if (expected == generation && intent) { resolving = null; select(station.id) } }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { if (expected == generation) fail("network") }
         }

@@ -40,7 +40,7 @@ for (const [width, height] of [
   });
 }
 
-test('starts listening directly from the welcome action', async ({ page }) => {
+test('does not start a foreign station when the initial China pool is empty', async ({ page }) => {
   await install(page);
   await page.addInitScript(() => {
     sessionStorage.removeItem('haen:exploring:v1');
@@ -49,8 +49,9 @@ test('starts listening directly from the welcome action', async ({ page }) => {
   await page.goto('/');
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   await page.getByRole('button', { name: '开始收听', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
-  await expect(page.getByRole('button', { name: '先逛逛星图', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('status')).toHaveText('没有其他可尝试的电台，可手动选择或重试。');
+  await expect(page.locator('audio')).toHaveCount(0);
+  await page.getByRole('button', { name: '先逛逛星图', exact: true }).click();
   await expect(page.getByRole('button', { name: '查找电台', exact: true })).toBeVisible();
 });
 
