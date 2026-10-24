@@ -1,6 +1,6 @@
 # 声屿 HAEN Android
 
-Kotlin / Compose 原生客户端，应用 ID 与 namespace 为 `xyz.hahaen.radio`，版本 `0.1.0`（versionCode 3），最低 Android 8（API 26），compile/target API 36。当前为 Debug 交付，本轮核心真机验收已通过，耳机专项按用户要求暂缓，见 [验证状态](../../docs/android/verification.md)。初始中国区电台预选保持暂停，本轮变更与验证见[任务记录](../../docs/iterations/2026-10-24-initial-china-station/README.md)。
+Kotlin / Compose 原生客户端，应用 ID 与 namespace 为 `xyz.hahaen.radio`，版本 `0.1.0`（versionCode 3），最低 Android 8（API 26），compile/target API 36。当前提供 Debug 与独立正式签名的 Release 构建，既有 Debug 核心真机验收已通过，耳机专项按用户要求暂缓，见 [验证状态](../../docs/android/verification.md)。初始中国区电台预选保持暂停，本轮变更与验证见[任务记录](../../docs/iterations/2026-10-24-initial-china-station/README.md)。
 
 ## 可复现构建
 
@@ -17,7 +17,9 @@ cd apps/android
 
 Gradle `preBuild` 自动构建图形，不需要手工复制网页产物。公开 API 地址由 `app/build.gradle.kts` 的 `BuildConfig.API_BASE_URL` 注入，当前为第一方 HTTPS API；不加载根目录服务端 `.env.local`，不需要客户端服务账号或密码。
 
-APK：`app/build/outputs/apk/debug/app-debug.apk`。签名使用本机 Android debug key，正式签名及商店分发未配置。保留当前签名材料和应用 ID，后续递增 versionCode 后覆盖安装；不能靠卸载来完成升级测试。
+Debug APK：`app/build/outputs/apk/debug/app-debug.apk`，使用本机 Android debug key。Release 使用独立正式签名，构建与私有配置见下节。保留各自签名材料和应用 ID，后续递增 versionCode 后覆盖安装；不能靠卸载来完成升级测试。
+
+本机执行 `assembleDebug` 后，Gradle 自动将最新安装包同步到仓库根目录的 `android-packages/debug/app-debug.apk`；其他构建变体使用各自子目录（如 `android-packages/release/`），Debug 保留原始文件名，Release 的主包命名为 `声屿HAEN.apk`。目录只保留对应变体的当前 APK，不收集测试 APK，也不受 Gradle `clean` 影响。`android-packages/` 已通过本机 `.git/info/exclude` 排除，安装包不进入 Git；归集与签名构建配置纳入版本管理，安装包、私有密钥及签名配置继续仅保留在本地。说明与验证见 [本地安装包归集](../../docs/android/README.md#本地安装包归集)。
 
 ```sh
 adb install -r app/build/outputs/apk/debug/app-debug.apk
@@ -34,6 +36,18 @@ adb shell am start -a android.intent.action.MAIN -c android.intent.category.LAUN
 ```
 
 然后检查锁文件差异并重跑适用构建；普通构建不要添加 `--write-locks`。
+
+## 正式签名与 Release APK
+
+在 `apps/android` 执行（先让 `JAVA_HOME` 指向 JDK 17）：
+
+```sh
+./gradlew :app:lintRelease :app:assembleRelease
+```
+
+Gradle 显式读取仓库根目录 `.local/signing/release.properties`，必填键为 `storeFile`、`storePassword`、`keyAlias`、`keyPassword`；`storeFile` 相对该配置文件解析。密钥位于 `.local/signing/haen-release.jks`（PKCS12 格式），密码仅保存在私有配置，不写入源码、命令参数或安装包。签名目录权限 `700`，配置和密钥权限 `600`，均已被 Git 排除。缺少签名配置时 Release 构建明确失败，不输出未签名包；Debug 保持原签名。更换电脑时需安全迁移现有密钥和配置，不重新生成签名替代。
+
+产物为 `app/build/outputs/apk/release/app-release.apk`，构建后自动同步到仓库根目录 `android-packages/release/声屿HAEN.apk`。Release 禁用调试，正式签名与 Debug 签名不同，不能直接覆盖已有 Debug 安装；本次不执行卸载、清除数据或手机安装。商店上传与 AAB 未执行。构建和验证记录见 [Android 本地 Release 交付](../../docs/android/README.md#正式-release-交付)。
 
 ## 保留用户数据的设备测试
 
