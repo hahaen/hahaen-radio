@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { expect, test } from '@playwright/test';
 import { emptyCollection, type AccountLibrary } from '@haen/contracts';
-import { install, first } from './listening-fixture.js';
+import { install, first, second } from './listening-fixture.js';
 const user = { id: '00000000-0000-4000-8000-000000000099', username: 'listener_alpha' };
 for (const viewport of [
   { width: 1440, height: 900 },
@@ -62,6 +62,7 @@ for (const viewport of [
       if (body) remote = { revision: body.revision + 1, collection: body.collection };
       return route.fulfill({ json: remote });
     });
+    await page.clock.install();
     await page.goto('/');
     await page.getByRole('button', { name: '我的收听', exact: true }).click();
     const panel = page.getByRole('dialog', { name: '我的收听' });
@@ -87,6 +88,25 @@ for (const viewport of [
     await expect(panel.getByText('已与账号同步', { exact: true })).toBeVisible();
     expect(remote.collection.favorites[0]?.id).toBe(first.id);
     expect(remote.collection.history[0]?.id).toBe(first.id);
+    remote = {
+      revision: remote.revision + 1,
+      collection: {
+        ...remote.collection,
+        favorites: [
+          ...remote.collection.favorites,
+          {
+            id: second.id,
+            name: second.name,
+            countryCode: second.countryCode,
+            savedAt: 2,
+          },
+        ],
+      },
+    };
+    await page.clock.fastForward(30000);
+    await expect(panel.getByRole('button', { name: '电台收藏（2）', exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: '取消收藏 ' + second.name, exact: true }).click();
+    await expect.poll(() => remote.collection.favorites.map((item) => item.id)).toEqual([first.id]);
     await page.reload();
     await page.getByRole('button', { name: '我的收听', exact: true }).click();
     await expect(panel.getByText(user.username, { exact: true })).toBeVisible();

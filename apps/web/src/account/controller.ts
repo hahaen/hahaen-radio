@@ -203,25 +203,36 @@ export function createAccountController(library: Library, request = getJson) {
           void sync();
         }, 400);
       });
-      let live = true;
+      let live = true,
+        restoring = false,
+        restorePending = true;
       const initialize = async () => {
+        if (restoring) return;
+        restoring = true;
         const epoch = generation;
         try {
           const result = await request('/account/session', AccountSessionSchema);
           if (!live || epoch !== generation) return;
           if (result.user) await enter(result.user);
           else store.setState({ status: 'guest' });
+          restorePending = false;
         } catch {
-          if (live) store.setState({ status: 'guest' });
+          if (live && !store.getState().user && store.getState().status === 'checking')
+            store.setState({ status: 'guest' });
+        } finally {
+          restoring = false;
         }
       };
       void initialize();
       const refresh = () => {
-        if (document.visibilityState !== 'hidden') void sync();
+        if (document.visibilityState === 'hidden') return;
+        if (restorePending && !store.getState().user) void initialize();
+        else void sync();
       };
       const interval = setInterval(refresh, 30000);
       window.addEventListener('online', refresh);
       window.addEventListener('focus', refresh);
+      document.addEventListener('visibilitychange', refresh);
       const leaving = (event: BeforeUnloadEvent) => {
         if (base && !sameCollection(base.collection, collectionOf(library.store.getState()))) {
           event.preventDefault();
@@ -237,6 +248,7 @@ export function createAccountController(library: Library, request = getJson) {
         if (timer) clearTimeout(timer);
         window.removeEventListener('online', refresh);
         window.removeEventListener('focus', refresh);
+        document.removeEventListener('visibilitychange', refresh);
         window.removeEventListener('beforeunload', leaving);
       };
     },

@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID, scrypt, timingSafeEqual } from 'node:crypto';
 import type { AccountRepository } from './repository.js';
+import { accountSessionExpiry } from './session.js';
 import { isReservedUsername, type AccountLibrary, type AccountUser } from '@haen/contracts';
 
 export class AccountError extends Error {
@@ -74,11 +75,7 @@ export function createAccountService(repository: AccountRepository) {
         } else if (!(await verifyPassword(credentials.password, user?.passwordHash)))
           throw new AccountError(401, 'UNAUTHORIZED');
         const token = randomBytes(32).toString('hex');
-        await repository.createSession(
-          user!.id,
-          digest(token),
-          new Date(Date.now() + 30 * 86400000),
-        );
+        await repository.createSession(user!.id, digest(token), accountSessionExpiry());
         if (oldToken) await repository.deleteSession(digest(oldToken));
         return { user: publicUser(user!), token };
       } finally {
@@ -86,7 +83,9 @@ export function createAccountService(repository: AccountRepository) {
       }
     },
     async session(token?: string) {
-      const user = token ? await repository.findSession(digest(token)) : undefined;
+      const user = token
+        ? await repository.findSession(digest(token), accountSessionExpiry())
+        : undefined;
       return user ? publicUser(user) : null;
     },
     async logout(token?: string) {

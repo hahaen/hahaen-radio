@@ -1,4 +1,4 @@
-import { and, eq, gt, lte, asc } from 'drizzle-orm';
+import { and, eq, gt, lte, asc, sql } from 'drizzle-orm';
 import { AccountCollectionSchema, emptyCollection, type AccountLibrary } from '@haen/contracts';
 import type { Database } from '../../db/connection.js';
 import { accountUsers, accountSessions, accountLibraries } from '../../db/schema.js';
@@ -12,7 +12,7 @@ export interface AccountRepository {
   findUser(username: string): Promise<StoredUser | undefined>;
   createUser(user: StoredUser): Promise<void>;
   createSession(userId: string, tokenHash: string, expiresAt: Date): Promise<void>;
-  findSession(tokenHash: string): Promise<StoredUser | undefined>;
+  findSession(tokenHash: string, renewUntil: Date): Promise<StoredUser | undefined>;
   deleteSession(tokenHash: string): Promise<void>;
   readLibrary(userId: string): Promise<AccountLibrary>;
   saveLibrary(userId: string, value: AccountLibrary): Promise<boolean>;
@@ -56,23 +56,34 @@ export function createAccountRepository(database: Database): AccountRepository {
           await tx.insert(accountSessions).values({ userId, tokenHash, expiresAt });
         }),
       ),
-    findSession: (tokenHash) =>
-      database.run(
-        async (db) =>
-          (
-            await db
-              .select({ user: accountUsers })
-              .from(accountSessions)
-              .innerJoin(accountUsers, eq(accountSessions.userId, accountUsers.id))
-              .where(
-                and(
-                  eq(accountSessions.tokenHash, tokenHash),
-                  gt(accountSessions.expiresAt, new Date()),
-                ),
-              )
-              .limit(1)
-          )[0]?.user,
-      ),
+    findSession: (tokenHash, renewUntil) =>
+      database.run(async (db) => {
+        // Update existing, unexpired sessions only; concurrent requests cannot shorten the lease.
+        await db
+          .update(accountSessions)
+          .set({
+            expiresAt: sql`GREATEST(${accountSessions.expiresAt}, ${sql.param(renewUntil, accountSessions.expiresAt)})`,
+          })
+          .where(
+            and(
+              eq(accountSessions.tokenHash, tokenHash),
+              gt(accountSessions.expiresAt, new Date()),
+            ),
+          );
+        return (
+          await db
+            .select({ user: accountUsers })
+            .from(accountSessions)
+            .innerJoin(accountUsers, eq(accountSessions.userId, accountUsers.id))
+            .where(
+              and(
+                eq(accountSessions.tokenHash, tokenHash),
+                gt(accountSessions.expiresAt, new Date()),
+              ),
+            )
+            .limit(1)
+        )[0]?.user;
+      }),
     deleteSession: (tokenHash) =>
       database.run(async (db) => {
         await db.delete(accountSessions).where(eq(accountSessions.tokenHash, tokenHash));

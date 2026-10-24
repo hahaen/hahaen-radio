@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ACCOUNT_SESSION_MAX_AGE } from './session.js';
 import { emptyCollection } from '@haen/contracts';
 import { buildApp } from '../../app.js';
 import { readEnvironment } from '../../config/environment.js';
@@ -7,6 +8,7 @@ import { memoryAccountRepository } from '../../testing/account-repository.js';
 import { createAccountService } from './service.js';
 const opened: ReturnType<typeof buildApp>[] = [];
 afterEach(async () => {
+  vi.useRealTimers();
   await Promise.all(opened.splice(0).map((app) => app.close()));
 });
 function setup(production = false) {
@@ -27,6 +29,60 @@ const credentials = () => ({
 });
 const cookieOf = (value: string | string[] | number | undefined) => String(value).split(';')[0]!;
 describe('account routes', () => {
+  it.each(['session', 'read', 'save'] as const)(
+    'renews both the cookie and server deadline on %s, but never revives an idle session',
+    async (kind) => {
+      vi.useFakeTimers({ toFake: ['Date'] });
+      vi.setSystemTime(new Date('2026-10-24T00:00:00Z'));
+      const { app, sessions } = setup(true);
+      const login = await app.inject({
+        method: 'POST',
+        url: '/api/v1/account/login',
+        headers,
+        payload: credentials(),
+      });
+      const user = login.json().user;
+      const cookie = cookieOf(login.headers['set-cookie']);
+      const lifetime = ACCOUNT_SESSION_MAX_AGE * 1000;
+      vi.setSystemTime(Date.now() + 29 * 86400000);
+      const renewal = await app.inject(
+        kind === 'session'
+          ? { url: '/api/v1/account/session', headers: { cookie } }
+          : kind === 'read'
+            ? { url: '/api/v1/account/library?userId=' + user.id, headers: { cookie } }
+            : {
+                method: 'POST',
+                url: '/api/v1/account/library',
+                headers: { ...headers, cookie },
+                payload: { userId: user.id, revision: 0, collection: emptyCollection() },
+              },
+      );
+      expect(renewal.statusCode).toBe(200);
+      expect(renewal.headers['set-cookie']).toBe(
+        `${cookie}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000; Secure`,
+      );
+      expect([...sessions.values()][0]!.expiresAt.getTime()).toBe(Date.now() + lifetime);
+      vi.setSystemTime(Date.now() + 2 * 86400000);
+      expect(
+        (await app.inject({ url: '/api/v1/account/session', headers: { cookie } })).json(),
+      ).toEqual({ user });
+      const deadline = [...sessions.values()][0]!.expiresAt.getTime();
+      vi.setSystemTime(deadline);
+      const expired = await app.inject({ url: '/api/v1/account/session', headers: { cookie } });
+      expect(expired.json()).toEqual({ user: null });
+      expect(expired.headers['set-cookie']).toBeUndefined();
+      expect([...sessions.values()][0]!.expiresAt.getTime()).toBe(deadline);
+      expect(
+        (
+          await app.inject({
+            url: '/api/v1/account/library?userId=' + user.id,
+            headers: { cookie },
+          })
+        ).statusCode,
+      ).toBe(401);
+    },
+  );
+
   it.each(['favorites', 'history'] as const)(
     'serializes nonempty %s after saving and reading the account library',
     async (kind) => {
@@ -115,16 +171,16 @@ describe('account routes', () => {
       (await app.inject({ url: '/api/v1/account/session', headers: { cookie } })).json().user,
     ).toBeNull();
     const nextCookie = cookieOf(login.headers['set-cookie']);
-    expect(
-      (
-        await app.inject({
-          method: 'POST',
-          url: '/api/v1/account/logout',
-          headers: { ...headers, cookie: nextCookie },
-          payload: { userId: user.id },
-        })
-      ).statusCode,
-    ).toBe(200);
+    const logout = await app.inject({
+      method: 'POST',
+      url: '/api/v1/account/logout',
+      headers: { ...headers, cookie: nextCookie },
+      payload: { userId: user.id },
+    });
+    expect(logout.statusCode).toBe(200);
+    expect(logout.headers['set-cookie']).toContain(
+      'haen_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0',
+    );
     expect(
       (await app.inject({ url: '/api/v1/account/session', headers: { cookie: nextCookie } })).json()
         .user,

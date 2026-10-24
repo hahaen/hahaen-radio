@@ -17,9 +17,11 @@ export function memoryAccountRepository() {
     async createSession(userId, tokenHash, expiresAt) {
       sessions.set(tokenHash, { userId, expiresAt });
     },
-    async findSession(tokenHash) {
+    async findSession(tokenHash, renewUntil) {
       const value = sessions.get(tokenHash);
-      return value && value.expiresAt > new Date() ? users.get(value.userId) : undefined;
+      if (!value || value.expiresAt <= new Date()) return undefined;
+      if (renewUntil > value.expiresAt) value.expiresAt = renewUntil;
+      return users.get(value.userId);
     },
     async deleteSession(tokenHash) {
       sessions.delete(tokenHash);

@@ -78,6 +78,14 @@ data class AccountState(val user: AccountUser? = null, val syncing: Boolean = fa
     private fun save(owner: String, library: Library) = LibraryEntity(owner, library.revision, json.encodeToString(library.collection))
     fun refresh() { requests.trySend(Unit) }
 
+    /** The Activity owns this loop; leaving the foreground cancels periodic pulls. */
+    suspend fun syncWhileActive() {
+        while (currentCoroutineContext().isActive) {
+            if (account.value.user != null) refresh()
+            delay(30_000)
+        }
+    }
+
     private suspend fun beginTransition() = gate.withLock {
         transitioning = true
         identityGeneration++

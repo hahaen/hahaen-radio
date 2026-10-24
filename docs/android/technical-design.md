@@ -175,10 +175,10 @@ Android 图形入口在同一个 WebView 文档内最多保留地球与一个沉
 Room 保存收藏、历史、账号快照、待同步操作与必要的有界目录缓存；DataStore 保存 `power_save`、`reduce_motion`、`scene`、`graphics` 和 `pinned` 五项偏好，不将大型集合序列化到设置。语言使用 AppCompat 的应用语言 API 与 `autoStoreLocales` 持久化；当前没有可选主题，界面统一使用夜航主题。选择依据见 [DataStore 与 Room 的适用范围](https://developer.android.com/topic/libraries/architecture/datastore)。
 
 - 游客库与账号库按身份隔离，切号取消旧请求，待同步操作绑定用户及版本。收藏删除、版本冲突与失败重试保持现有服务端语义，具体上限由共享契约读取并在 Kotlin 中对应。
-- 账号同步由 Repository/原生协程协调，待处理操作持久化，前台进入、网络恢复和显式刷新触发同步；必要的可延迟后台同步再评估 WorkManager，不拿它执行持续播放或精准计时。
+- 账号同步由 Repository/原生协程协调，待处理操作持久化；登录、本机变更、前台进入及网络恢复自动触发同步，前台每 30 秒拉取其他设备的变更，无需手动刷新。离开前台取消周期拉取，原待同步队列的有限重试继续保留；必要的可延迟后台同步再评估 WorkManager，不拿它执行持续播放或精准计时。
 - 登出前完成同步，或明确让用户选择处理未同步数据；退出后恢复游客数据。浏览器 localStorage 不自动与 App Room 共享，迁移使用兼容的导入导出或登录后的服务端同步。
 - 数据库 Schema 导出并版本化，升级提供 Room 迁移与数据保留测试；不采用生产破坏性回退重建。设置变更和数据库写入不得阻塞主线程。
-- Cookie 会话按有效期、来源、路径及 Secure 语义处理。持久会话采用 [Android Keystore](https://developer.android.com/privacy-and-security/keystore)中的密钥执行 AES-GCM，唯一随机 nonce 与密文一起保存，登录密码不持久化。
+- Cookie 会话为 30 天滑动有效期；服务端有效账号请求自动续期，客户端接收并加密保存新期限，连续 30 天无有效请求才过期；已过期或撤销的会话需重新登录。按来源、路径及 Secure 语义处理。持久会话采用 [Android Keystore](https://developer.android.com/privacy-and-security/keystore)中的密钥执行 AES-GCM，唯一随机 nonce 与密文一起保存，登录密码不持久化。
 - 当前应用关闭系统备份，数据提取规则同时排除云备份和设备迁移中的 root、database、sharedpref、file 全部路径，覆盖会话、游客与账号集合及偏好。密钥丢失或解密失败时清理会话并重新登录；不把 DataStore/Room 的存在等同于数据已加密。
 - 日志隐藏认证头、Cookie、签名配置、带敏感查询的 URL 和个人集合；错误记录状态与 requestId，避免输出完整网络响应。
 

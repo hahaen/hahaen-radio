@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import { ACCOUNT_SESSION_MAX_AGE } from './session.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
   AccountCredentialsSchema,
@@ -54,7 +55,12 @@ export function registerAccountRoutes(
     routes.get(
       '/api/v1/account/session',
       { schema: { response: { 200: AccountSessionSchema, ...errors } } },
-      async (request) => ({ user: service ? await service.session(tokenFrom(request)) : null }),
+      async (request, reply) => {
+        const token = tokenFrom(request);
+        const user = service ? await service.session(token) : null;
+        if (user) reply.header('set-cookie', cookie(token!, ACCOUNT_SESSION_MAX_AGE));
+        return { user };
+      },
     );
     routes.post(
       '/api/v1/account/login',
@@ -67,7 +73,7 @@ export function registerAccountRoutes(
       },
       async (request, reply) => {
         const result = await required().authenticate(request.body, request.ip, tokenFrom(request));
-        reply.header('set-cookie', cookie(result.token, 30 * 86400));
+        reply.header('set-cookie', cookie(result.token, ACCOUNT_SESSION_MAX_AGE));
         return { user: result.user };
       },
     );
@@ -90,7 +96,11 @@ export function registerAccountRoutes(
           response: { 200: AccountLibrarySchema, ...errors },
         },
       },
-      async (request) => required().read(await authenticated(request), request.query.userId),
+      async (request, reply) => {
+        const result = await required().read(await authenticated(request), request.query.userId);
+        reply.header('set-cookie', cookie(tokenFrom(request)!, ACCOUNT_SESSION_MAX_AGE));
+        return result;
+      },
     );
     routes.post(
       '/api/v1/account/library',
@@ -104,8 +114,15 @@ export function registerAccountRoutes(
           response: { 200: AccountLibrarySchema, ...errors },
         },
       },
-      async (request) =>
-        required().save(await authenticated(request), request.body.userId, request.body),
+      async (request, reply) => {
+        const result = await required().save(
+          await authenticated(request),
+          request.body.userId,
+          request.body,
+        );
+        reply.header('set-cookie', cookie(tokenFrom(request)!, ACCOUNT_SESSION_MAX_AGE));
+        return result;
+      },
     );
   });
 }

@@ -10,6 +10,10 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 import xyz.hahaen.radio.feature.RadioViewModel
 import xyz.hahaen.radio.feature.RadioApp
@@ -26,8 +30,11 @@ import javax.inject.Inject
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent { RadioApp(model, playback) }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) { model.library.syncWhileActive() }
+        }
         if (Build.VERSION.SDK_INT >= 33) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
-    override fun onStart() { super.onStart(); playback.connect(); playback.prepare(); model.library.refresh() }
+    override fun onStart() { super.onStart(); playback.connect(); playback.prepare() }
     override fun onStop() { playback.disconnect(); super.onStop() }
 }

@@ -42,6 +42,21 @@ class SessionCookieInterceptorTest {
         }
     }
 
+    @Test fun authenticatedResponseRefreshesExistingCookieDeadline() {
+        MockWebServer().use { server ->
+            val store = CookieFixture()
+            val client = OkHttpClient.Builder().cookieJar(CookieJar.NO_COOKIES)
+                .addInterceptor(SessionCookieInterceptor(store)).build()
+            server.enqueue(MockResponse().setHeader("Set-Cookie", "haen_session=fixture; Path=/; HttpOnly; Max-Age=60").setBody("{}"))
+            client.newCall(Request.Builder().url(server.url("/account/login")).build()).execute().close()
+            val originalDeadline = store.cookies.single().expiresAt
+            server.enqueue(MockResponse().setHeader("Set-Cookie", "haen_session=fixture; Path=/; HttpOnly; Max-Age=2592000").setBody("{}"))
+            client.newCall(Request.Builder().url(server.url("/account/library")).build()).execute().close()
+            assertEquals("fixture", store.cookies.single().value)
+            assertTrue(store.cookies.single().expiresAt > originalDeadline + TimeUnit.DAYS.toMillis(29))
+        }
+    }
+
     private class CookieFixture : VersionedSessionCookies {
         private var generation = 0L
         var cookies: List<Cookie> = emptyList()

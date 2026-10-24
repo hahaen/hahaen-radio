@@ -12,6 +12,8 @@ Android 分发页介绍与兼容图标见[任务记录](iterations/2026-10-24-an
 
 Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)、[入口建立记录](iterations/2026-10-23-android-development-foundation/README.md)和[目录骨架记录](iterations/2026-10-23-android-directory-layout/README.md)；原生工程已交付 Debug APK 并完成本轮核心真机验收，耳机专项按用户要求暂缓，具体证据见 [Android 验证](android/verification.md)。
 
+30 天登录自动续期与双端自动同步见[更新记录](iterations/2026-10-23-account-sync/README.md#自动续期与自动同步2026-10-24)。
+
 可选账号登录与收藏、历史自动同步见[任务记录](iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
 
 手机地球拖动、定位说明及焦点与流派配色修复见[任务记录](iterations/2026-10-23-mobile-globe-interaction/README.md)。

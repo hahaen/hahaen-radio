@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { z } from 'zod';
 import { emptyCollection, type AccountLibrary } from '@haen/contracts';
@@ -10,6 +10,7 @@ const user = { id: '00000000-0000-4000-8000-000000000099', username: 'listener_a
 function setup() {
   let signedIn = false,
     offline = false;
+  let failLibraryRead = false;
   let remote: AccountLibrary = { revision: 0, collection: emptyCollection() };
   const calls: string[] = [];
   const request = (async (
@@ -26,6 +27,7 @@ function setup() {
     }
     if (path.endsWith('/session')) return schema.parse({ user: signedIn ? user : null });
     if (!signedIn) throw new HttpError(401, 'UNAUTHORIZED');
+    if (failLibraryRead && path.startsWith('/account/library')) throw new Error('offline');
     if (path.endsWith('/logout')) {
       signedIn = false;
       return schema.parse({ user: null });
@@ -44,8 +46,14 @@ function setup() {
     request,
     calls,
     remote: () => remote,
+    updateRemote: (value: AccountLibrary) => {
+      remote = value;
+    },
     offline: (value: boolean) => {
       offline = value;
+    },
+    failLibraryRead: (value: boolean) => {
+      failLibraryRead = value;
     },
     expire: () => {
       signedIn = false;
@@ -56,7 +64,64 @@ beforeEach(() => {
   localStorage.clear();
   sessionStorage.clear();
 });
+afterEach(() => {
+  vi.useRealTimers();
+});
 describe('optional account controller', () => {
+  it('uploads edits and pulls other-device changes automatically without a manual sync', async () => {
+    vi.useFakeTimers();
+    const state = setup();
+    const detach = state.account.attach();
+    try {
+      await vi.advanceTimersByTimeAsync(0);
+      await state.account.authenticate('listener_alpha', 'test-only-password');
+      state.library.toggleFavorite(testStation(4));
+      await vi.advanceTimersByTimeAsync(400);
+      expect(state.remote().collection.favorites[0]?.id).toBe(testStation(4).id);
+      state.updateRemote({
+        revision: state.remote().revision + 1,
+        collection: {
+          ...state.remote().collection,
+          history: [
+            { id: testStation(5).id, name: testStation(5).name, countryCode: 'CN', savedAt: 1 },
+          ],
+        },
+      });
+      await vi.advanceTimersByTimeAsync(30000);
+      expect(state.library.store.getState().history[0]?.id).toBe(testStation(5).id);
+      expect(state.account.store.getState().status).toBe('synced');
+    } finally {
+      detach();
+    }
+  });
+  it.each(['session', 'library'] as const)(
+    'automatically retries restoration after an offline %s read',
+    async (stage) => {
+      const state = setup();
+      const detach = state.account.attach();
+      await waitFor(() => expect(state.account.store.getState().status).toBe('guest'));
+      await state.account.authenticate('listener_alpha', 'test-only-password');
+      state.library.toggleFavorite(testStation(6));
+      await waitFor(() => expect(state.remote().collection.favorites).toHaveLength(1));
+      detach();
+      if (stage === 'session') state.offline(true);
+      else state.failLibraryRead(true);
+      const library = createLibrary();
+      const restored = createAccountController(library, state.request);
+      const off = restored.attach();
+      try {
+        await waitFor(() => expect(restored.store.getState().status).toBe('guest'));
+        state.offline(false);
+        state.failLibraryRead(false);
+        window.dispatchEvent(new Event('online'));
+        await waitFor(() => expect(restored.store.getState().status).toBe('synced'));
+        expect(library.store.getState().favorites[0]?.id).toBe(testStation(6).id);
+      } finally {
+        off();
+      }
+    },
+  );
+
   it('keeps guests local, automatically merges once per account, saves removals and restores guests after logout', async () => {
     const { account, library, remote, calls } = setup();
     library.toggleFavorite(testStation(1));

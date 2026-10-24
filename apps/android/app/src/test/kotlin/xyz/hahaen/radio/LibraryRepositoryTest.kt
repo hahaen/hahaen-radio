@@ -33,6 +33,44 @@ class LibraryRepositoryTest {
     }
     private fun FakeStorage.collection(owner: String) = libraries.value[owner]?.let { json.decodeFromString<ListeningCollection>(it.json) } ?: ListeningCollection()
 
+    @Test fun loginAndLocalEditsAutomaticallySynchronizeWithoutManualRequests() = runTest {
+        val storage = FakeStorage()
+        var remote = Library(2, ListeningCollection(favorites = listOf(stationA.saved())))
+        val api = FakeApi().apply {
+            onLogin = { SessionDto(accountA) }
+            onLibrary = { remote }
+            onSave = { Library(it.revision + 1, it.collection).also { result -> remote = result } }
+        }
+        val repository = LibraryRepository(storage, api, FakeSession(null), json, backgroundScope)
+        assertTrue(repository.login("listener_a", "test-only-password"))
+        runCurrent()
+        assertEquals(listOf(stationA.id), storage.collection(accountA.id).favorites.map { it.id })
+        assertTrue(repository.favorite(stationB))
+        runCurrent()
+        assertEquals(setOf(stationA.id, stationB.id), remote.collection.favorites.map { it.id }.toSet())
+        assertTrue(storage.pending(accountA.id).isEmpty())
+    }
+
+    @Test fun foregroundPollingPullsRemoteChangesWithNoPendingEditsAndStopsWhenCancelled() = runTest {
+        val storage = FakeStorage()
+        var remote = Library()
+        var reads = 0
+        val api = FakeApi().apply { onLibrary = { reads++; remote } }
+        val repository = LibraryRepository(storage, api, FakeSession(accountA), json, backgroundScope)
+        val polling = backgroundScope.launch { repository.syncWhileActive() }
+        runCurrent()
+        assertEquals(1, reads)
+        remote = Library(1, ListeningCollection(favorites = listOf(stationB.saved())))
+        advanceTimeBy(30_000)
+        runCurrent()
+        assertEquals(listOf(stationB.id), storage.collection(accountA.id).favorites.map { it.id })
+        assertEquals(2, reads)
+        polling.cancelAndJoin()
+        advanceTimeBy(60_000)
+        runCurrent()
+        assertEquals(2, reads)
+    }
+
     @Test fun localEditDuringSlowSyncReturnsAndIsReplayedWithoutAcknowledgingIt() = runTest {
         val storage = FakeStorage()
         storage.seed(accountA.id, ListeningCollection(favorites = listOf(stationA.saved())))
