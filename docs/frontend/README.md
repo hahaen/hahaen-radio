@@ -1,6 +1,6 @@
 # 前端技术文档
 
-Safari 分享面板、主屏幕与 Mac 程序坞深色图标见[当前修正](../iterations/2026-10-24-safari-dark-icon/README.md)及[平台说明](platform/browser-and-storage.md)，早期实现见[图标记录](../iterations/2026-10-18-favicon-concepts/README.md)。
+标签页、Safari 分享面板、主屏幕与 Mac 程序坞深色图标见[当前修正](../iterations/2026-10-24-safari-dark-icon/README.md)及[平台说明](platform/browser-and-storage.md)，早期实现见[图标记录](../iterations/2026-10-18-favicon-concepts/README.md)。
 
 可选账号登录与收藏、历史自动同步见[任务记录](../iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
 
@@ -20,7 +20,7 @@ Safari 分享面板、主屏幕与 Mac 程序坞深色图标见[当前修正](..
 
 | 子目录 | 文档 | 负责范围 |
 | --- | --- | --- |
-| `design/` | [夜航页面整体优化](../iterations/2026-10-18-visual-polish/README.md)、[全屏地球与紧凑播放器](../iterations/2026-10-18-celestial-layout/README.md)、 [夜航设计规范](design/night-voyage.md)、[本地字体](design/fonts.md)、[标签页图标](../iterations/2026-10-18-favicon-concepts/README.md)、[Safari 深色图标](../iterations/2026-10-24-safari-dark-icon/README.md) | 已确认概念图、设计变量、构图与双端视觉验收；标签页图标透明，Safari 应用图标使用不透明深色底 |
+| `design/` | [夜航页面整体优化](../iterations/2026-10-18-visual-polish/README.md)、[全屏地球与紧凑播放器](../iterations/2026-10-18-celestial-layout/README.md)、 [夜航设计规范](design/night-voyage.md)、[本地字体](design/fonts.md)、[标签页图标](../iterations/2026-10-18-favicon-concepts/README.md)、[Safari 深色图标](../iterations/2026-10-24-safari-dark-icon/README.md) | 已确认概念图、设计变量、构图与双端视觉验收；标签页与 Safari 应用图标统一使用不透明深色底 |
 | `application/` | [应用结构与状态](application/structure-and-state.md) | React、路由、查询、状态和样式 |
 | `application/` | [收听入口与播放器](application/player-flow.md)、[探索界面](application/exploration.md)、[个人收听工具](application/listening-tools.md)、[收听设置](application/listening-controls.md)、[曲目与歌词](application/tracks-and-lyrics.md)、[手动识曲](application/recognition.md)、[产品说明与帮助](application/information-and-help.md)、[精简故障报告](application/playback-diagnostics.md) | 本阶段构图、真实状态与恢复边界 |
 | `rendering/` | [Three.js 渲染](rendering/threejs.md)、[探索目录](rendering/exploration-data.md) | 场景、帧循环、交互与资源 |

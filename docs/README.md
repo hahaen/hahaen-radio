@@ -6,7 +6,7 @@ Android 分发页介绍与兼容图标见[任务记录](iterations/2026-10-24-an
 
 网页与 Android 初次选台统一为[中国区随机电台并保持暂停](iterations/2026-10-24-initial-china-station/README.md)，播放需用户主动操作。
 
-Safari 分享面板、主屏幕与程序坞的深色耳机图标见[当前修正](iterations/2026-10-24-safari-dark-icon/README.md)，早期实现见[图标记录](iterations/2026-10-18-favicon-concepts/README.md)。
+标签页、Safari 分享面板、主屏幕与程序坞的深色耳机图标见[当前修正](iterations/2026-10-24-safari-dark-icon/README.md)，早期实现见[图标记录](iterations/2026-10-18-favicon-concepts/README.md)。
 
 Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)、[入口建立记录](iterations/2026-10-23-android-development-foundation/README.md)和[目录骨架记录](iterations/2026-10-23-android-directory-layout/README.md)；原生工程已交付 Debug APK 并完成本轮核心真机验收，耳机专项按用户要求暂缓，具体证据见 [Android 验证](android/verification.md)。
 
@@ -72,7 +72,7 @@ Android 开发目录与技术路线见 [Android 导航](android/README.md)、[�
 
 ## 阅读顺序
 
-标签页图标的候选、尺寸对照及接入见[图标设计记录](iterations/2026-10-18-favicon-concepts/README.md)，当前 C「耳机海湾」已改为透明背景 v2 并接入前端源码，本次修正待发布。
+标签页图标的候选、尺寸对照及接入见[图标设计记录](iterations/2026-10-18-favicon-concepts/README.md)，当前标签页已改为与应用图标一致的深色背景 v3，静态及播放动效图源均已接入，尚未发布；透明 v2 为历史资源。
 
 1. 阅读[项目协作规范](../AGENTS.md)，明确开发、验证和自动提交顺序。
 2. 阅读[项目总览](overview/README.md)和[技术选型](overview/technology-stack.md)，了解技术基线。

@@ -75,7 +75,7 @@ export function usePlaybackFavicon(playing: boolean, powerSave: boolean) {
         restore();
       }
     };
-    source.src = applicationPath('haen-favicon-v2.png');
+    source.src = applicationPath('haen-favicon-v3.png');
     motion.addEventListener('change', sync);
     document.addEventListener('visibilitychange', sync);
     return () => {

@@ -6,7 +6,7 @@
 
 ## 桌面与主屏幕图标
 
-Safari 添加到主屏幕使用 `index.html` 的 180px `apple-touch-icon`；Mac 添加到程序坞可读取 `haen.webmanifest` 内的 192px / 512px PNG 图标。当前 v2 资源与 Android App 共用耳机、太阳与海浪原图，背景直接绘入不透明的 `#0B2019` 深墨绿，主体位置按 Android 自适应图标中央 72dp 区域导出。系统自行处理外轮廓；标签页继续使用独立透明图标及原有播放动效。
+Safari 添加到主屏幕使用 `index.html` 的 180px `apple-touch-icon`；Mac 添加到程序坞可读取 `haen.webmanifest` 内的 192px / 512px PNG 图标。当前 v2 资源与 Android App 共用耳机、太阳与海浪原图，背景直接绘入不透明的 `#0B2019` 深墨绿，主体位置按 Android 自适应图标中央 72dp 区域导出。系统自行处理外轮廓；标签页使用同款不透明深色图标导出的 v3 PNG / ICO，播放动效也读取 v3 图源，暂停、省电或减少动态效果时恢复深色静态图标。
 
 Safari 分享预览另以静态 `og:image` 指向 512px 深色图，并声明宽高；只有 Apple Touch Icon 时，已测 iPhone 会将其缩小后放进白色底框。明确预览图片后，实际分享面板显示完整深色图块。路径使用 `%BASE_URL%`，由浏览器按当前站点解析；不将生产域名写死到本地测试页。
 

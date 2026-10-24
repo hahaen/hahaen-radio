@@ -12,7 +12,7 @@
 | --- | --- | --- |
 | 2026-10-24 | [Android 分发页介绍与图标](2026-10-24-android-distribution/README.md) | 介绍与墨绿耳机图标已生效，兼容图标包已发布为 Build 2，双端页面已核对 |
 | 2026-10-24 | [首次选中中国区电台](2026-10-24-initial-china-station/README.md) | 随机预选并暂停；双端网页与安卓验证通过，APK 已覆盖安装，网页未发布 |
-| 2026-10-24 | [Safari 深色耳机图标](2026-10-24-safari-dark-icon/README.md) | 与 Android App 共用原图和不透明深色底；真机分享面板、资源与双路径构建通过，未发布 |
+| 2026-10-24 | [Safari 深色耳机图标](2026-10-24-safari-dark-icon/README.md) | 与 Android App 共用原图和不透明深色底；追加统一标签页静态与播放图标，未发布 |
 | 2026-10-23 | [Android 开发目录骨架](2026-10-23-android-directory-layout/README.md) | 源码职责、资源、测试、Schema 与 Wrapper 目录已建立，Gradle 工程待初始化 |
 | 2026-10-23 | [Android 开发目录与技术方案](2026-10-23-android-development-foundation/README.md) | 目录、协作规范、完整技术方案与 ADR 已建立，原生工程待初始化 |
 | 2026-10-23 | [手机地球交互与控件配色](2026-10-23-mobile-globe-interaction/README.md) | 定位入口与精度说明归位、拖动防选字、灰绿焦点与流派选中态；未发布 |

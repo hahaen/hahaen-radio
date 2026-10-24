@@ -77,7 +77,7 @@ test('favicon follows actual playback and motion preferences', async ({ page }) 
 test('missing favicon image does not interrupt playback', async ({ page }) => {
   await install(page, false);
   await page.addInitScript(() => localStorage.setItem('haen:language:v1', 'zh'));
-  await page.route('**/haen-favicon-v2.png', (route) => route.abort());
+  await page.route('**/haen-favicon-v3.png', (route) => route.abort());
   await page.goto('/');
   await selectStation(page, first.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
