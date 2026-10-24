@@ -1,6 +1,6 @@
 # 技术文档导航
 
-Safari 添加到主屏幕／程序坞的耳机图标配置见[图标记录](iterations/2026-10-18-favicon-concepts/README.md)。
+Safari 分享面板、主屏幕与程序坞的深色耳机图标见[当前修正](iterations/2026-10-24-safari-dark-icon/README.md)，早期实现见[图标记录](iterations/2026-10-18-favicon-concepts/README.md)。
 
 Android 开发目录与技术路线见 [Android 导航](android/README.md)、[完整技术方案](android/technical-design.md)、[入口建立记录](iterations/2026-10-23-android-development-foundation/README.md)和[目录骨架记录](iterations/2026-10-23-android-directory-layout/README.md)；原生工程已交付 Debug APK 并完成本轮核心真机验收，耳机专项按用户要求暂缓，具体证据见 [Android 验证](android/verification.md)。
 

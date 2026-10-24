@@ -6,9 +6,11 @@
 
 ## 桌面与主屏幕图标
 
-Safari 添加到主屏幕使用 `index.html` 的 180px `apple-touch-icon`；Mac 添加到程序坞可读取 `haen.webmanifest` 内的 192px / 512px PNG 图标。均由现有透明耳机海湾高清源图等比导出，保留主体与透明留白，不把标签页的播放动画用于桌面图标。
+Safari 添加到主屏幕使用 `index.html` 的 180px `apple-touch-icon`；Mac 添加到程序坞可读取 `haen.webmanifest` 内的 192px / 512px PNG 图标。当前 v2 资源与 Android App 共用耳机、太阳与海浪原图，背景直接绘入不透明的 `#0B2019` 深墨绿，主体位置按 Android 自适应图标中央 72dp 区域导出。系统自行处理外轮廓；标签页继续使用独立透明图标及原有播放动效。
 
-HTML 图标与清单入口使用 Vite `%BASE_URL%`，清单内图标、启动地址和作用域均为相对路径，兼容开发根路径与正式 `/radio/`。清单保持 `display: browser`，不引入离线缓存或安装提示。资源随前端静态文件发布，已有桌面快捷方式可能需要重新添加；实际系统呈现待 Safari 与 iPhone 真机确认。实现及验证见[图标记录](../../iterations/2026-10-18-favicon-concepts/README.md)。
+Safari 分享预览另以静态 `og:image` 指向 512px 深色图，并声明宽高；只有 Apple Touch Icon 时，已测 iPhone 会将其缩小后放进白色底框。明确预览图片后，实际分享面板显示完整深色图块。路径使用 `%BASE_URL%`，由浏览器按当前站点解析；不将生产域名写死到本地测试页。
+
+HTML 图标与清单入口使用 Vite `%BASE_URL%`，清单内图标、启动地址和作用域均为相对路径，兼容开发根路径与正式 `/radio/`。清单保持 `display: browser`，不引入离线缓存或安装提示。v2 图标采用新文件名，清单入口带版本参数，供刷新后重新获取；已有桌面快捷方式可能需要重新添加。资源随前端静态文件发布，具体实际呈现以真机验收为准。当前修正见[Safari 深色图标](../../iterations/2026-10-24-safari-dark-icon/README.md)，早期实现见[图标记录](../../iterations/2026-10-18-favicon-concepts/README.md)。
 
 ## 本地数据
 
