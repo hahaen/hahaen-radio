@@ -1,6 +1,6 @@
 # 技术选型
 
-状态：Web/Server 技术基线与现有实现按对应专题记录；Android 技术路线于 2026-10-23 确定，目前只建立开发目录与文档，依赖组合及原生工程待初始化验证。
+状态：Web/Server 技术基线与现有实现按对应专题记录；Android 原生工程与固定依赖已建立，本轮核心真机功能及视觉验收已通过，耳机专项按用户要求暂缓。
 
 ## 前端与浏览器
 
@@ -44,7 +44,7 @@
 | 构建 | Android Studio、Gradle Kotlin DSL、Wrapper、Version Catalog | 独立于 pnpm 的 Android 工具链 |
 | 测试 | JUnit、协程测试、MockWebServer、Room 迁移测试、Compose UI Test、Espresso/UIAutomator | 业务、数据、页面及必要系统交互，后台音频须实机验证 |
 
-具体版本与 SDK 范围在工程初始化时核对并冻结，当前没有 Gradle、原生播放、图形设备或 APK/AAB 构建验收结果。既有网页 Android 浏览器验收不等于原生客户端验收。
+固定组合：JDK 17、Gradle 9.3.1、AGP 9.1.1、Kotlin/Compose 编译器 2.2.21、KSP 2.3.4、Hilt 2.59.2、Compose BOM 2025.11.01、Media3 1.9.3、Room 2.8.4、Navigation 3 1.0.1，min/target/compile SDK 为 26/36/36，Build Tools 36.0.0。完整版本见 `apps/android/gradle/libs.versions.toml`，传递依赖使用 Gradle 锁文件。构建与真机结果分别记录于 [Android 验证](../android/verification.md)，既有网页 Android 浏览器验收不替代原生验收。
 
 ## 后端与数据
 

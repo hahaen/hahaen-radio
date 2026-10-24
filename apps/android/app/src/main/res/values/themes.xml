@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.Haen" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">#071A18</item>
+        <item name="android:colorAccent">#F18A73</item>
+    </style>
+</resources>

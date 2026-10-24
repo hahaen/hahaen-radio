@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="media_channel_name">Radio playback</string>
+    <string name="media_playback_error">Playback failed</string>
+    <string name="media_status_location">%1$s · %2$s</string>
+    <string name="media_description">%1$s · Live radio · %2$s</string>
+</resources>

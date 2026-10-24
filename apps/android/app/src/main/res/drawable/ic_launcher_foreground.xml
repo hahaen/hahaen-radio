@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="16%"
+    android:insetRight="16%"
+    android:insetTop="18.5%"
+    android:insetBottom="13.5%">
+    <!-- Keep the approved artwork intact; insets align its visible center and safe area. -->
+    <bitmap
+        android:src="@drawable/ic_launcher_artwork"
+        android:gravity="fill"
+        android:filter="true" />
+</inset>

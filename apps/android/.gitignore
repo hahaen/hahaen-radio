@@ -1,0 +1,10 @@
+.gradle/
+.kotlin/
+.idea/
+**/build/
+local.properties
+*.jks
+*.keystore
+app/src/main/assets/graphics/*
+!app/src/main/assets/graphics/.gitkeep
+captures/

@@ -6,8 +6,8 @@
 
 - 先阅读根规范、本文件、[Android 技术方案](../../docs/android/technical-design.md)及任务涉及的专题文档。
 - 检查分支、工作区、暂存区和现有实现，保留其他任务改动，只提交本次任务内容。
-- 当前已有开发入口、文档及源码/资源/测试目录骨架，Gradle 工程尚未初始化。空目录用 `.gitkeep` 保留，出现实际文件后移除占位文件；不得把目录骨架、技术选型或网页的 Android 浏览器验收当作原生客户端已实现、已编译或已验证。
-- Kotlin 目录目前仅按职责分区，初始化 namespace 后统一归入包前缀；不要把目录占位当作已有包声明或注册完成的 Gradle 模块。
+- 当前已有单应用 Gradle 工程、原生页面、播放、存储、账号与局部图形实现。实际构建和设备验证以 Android 专题记录为准；不得把技术选型、编译或网页 Android 浏览器验收等同于原生真机验收。
+- Kotlin 职责目录统一位于 `app/src/main/kotlin/xyz/hahaen/radio`，namespace/applicationId 均为 `xyz.hahaen.radio`；保留应用身份与签名连续性。
 - 技术调整同步[集中技术基线](../../docs/overview/technology-stack.md)、Android 专题文档和相关架构决策。
 
 ## 2. 技术与工具链

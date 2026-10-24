@@ -1,0 +1,20 @@
+{
+  "conversion": "fonttools 4.67.0; brotli 1.2.1; sfnt TrueType; original subset coverage preserved",
+  "fonts": [
+    {
+      "source": "apps/web/public/fonts/noto-serif-sc-ui.woff2",
+      "output": "noto_serif_sc_ui.ttf",
+      "sha256": "197831485bcec2d41287e85f210ca5f8c660ed071f72872e9fa9817cc77d882e"
+    },
+    {
+      "source": "apps/web/public/fonts/inter-ui.woff2",
+      "output": "inter_ui.ttf",
+      "sha256": "b07c1eaa3737f496e434325d8f5126af0f9259e71171d16267292da3fcd7f280"
+    },
+    {
+      "source": "apps/web/public/fonts/jetbrains-mono-ui.woff2",
+      "output": "jetbrains_mono_ui.ttf",
+      "sha256": "36c51656a2edacb2af5e617472413f8822cf4522c9722bf99c7c4817bfa55b38"
+    }
+  ]
+}
