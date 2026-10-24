@@ -18,15 +18,16 @@ const path = `/api/v1/stations/${station.id}/playback-reports`,
     failure: 'timeout' as const,
   };
 it('validates ownership, a small strict body and cross-site rejection without accepting logs, URLs or identity fields', async () => {
+  const now = Date.parse('2026-10-17T00:00:00Z');
   const record = vi.fn(async () => ({
     status: 'accepted' as const,
     reportId: input.reportId,
     stationId: station.id,
     streamId: input.streamId,
-    expiresAt: '2026-10-24T00:00:00Z',
+    expiresAt: new Date(now + 7 * 86400_000).toISOString(),
   }));
   const app = buildApp(readEnvironment({}), false, undefined, {
-    diagnostics: createDiagnosticService({ station: async () => station }, { record }),
+    diagnostics: createDiagnosticService({ station: async () => station }, { record }, () => now),
   });
   try {
     for (const payload of [

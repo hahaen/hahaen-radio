@@ -1,5 +1,7 @@
 # 技术文档导航
 
+诊断报告路由测试的固定时钟修复见[验证记录](iterations/2026-10-17-playback-diagnostics/README.md#路由测试时钟修复2026-10-24)。
+
 网页与 Android 初次选台统一为[中国区随机电台并保持暂停](iterations/2026-10-24-initial-china-station/README.md)，播放需用户主动操作。
 
 Safari 分享面板、主屏幕与程序坞的深色耳机图标见[当前修正](iterations/2026-10-24-safari-dark-icon/README.md)，早期实现见[图标记录](iterations/2026-10-18-favicon-concepts/README.md)。
