@@ -258,13 +258,13 @@ export class AudioEngine {
         media.pause();
         return;
       }
-      const changed = this.snapshot.status !== 'playing';
-      this.clearTimer();
-      this.update({ status: 'playing', failure: null });
-      if (changed) this.startNormalization();
+      this.markPlaying();
     });
     for (const event of ['waiting', 'stalled'])
       on(event, () => {
+        // A stalled download can coexist with uninterrupted buffered playback.
+        if (event === 'stalled' && this.snapshot.status === 'playing' && this.canOutput(media))
+          return;
         if (this.wantsPlayback) {
           this.normalizer.stop(this.audioOptions.normalize ? 'waiting' : 'off');
           this.update({ status: 'buffering' });
@@ -351,10 +351,26 @@ export class AudioEngine {
     this.release();
     this.update({ status: 'failed', failure });
   }
+  private canOutput(media: HTMLAudioElement) {
+    return !media.paused && !media.ended && media.readyState >= media.HAVE_FUTURE_DATA;
+  }
+  private markPlaying() {
+    const changed = this.snapshot.status !== 'playing';
+    this.clearTimer();
+    this.update({ status: 'playing', failure: null });
+    if (changed) this.startNormalization();
+  }
   private startTimer(resource: Resource) {
     if (this.timer) return;
+    const position = resource.media.currentTime;
     this.timer = setTimeout(() => {
+      if (!this.current(resource) || !this.wantsPlayback) return;
       this.timer = undefined;
+      // Background task queues may deliver this timeout before a queued playing event.
+      if (this.canOutput(resource.media) && resource.media.currentTime > position) {
+        this.markPlaying();
+        return;
+      }
       this.next(resource, 'timeout');
     }, this.options.timeoutMs ?? 8000);
   }

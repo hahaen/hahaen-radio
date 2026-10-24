@@ -67,6 +67,68 @@ describe('independent audio engine', () => {
     engine.destroy();
     expect(vi.getTimerCount()).toBe(0);
   });
+  it('keeps buffered audio playing when a background network stall does not interrupt output', async () => {
+    vi.useFakeTimers();
+    const { engine, elements, event } = harness();
+    engine.select('station-a', [stream(1)], true);
+    const media = elements[0]!;
+    Object.defineProperties(media, {
+      paused: { configurable: true, value: false },
+      readyState: { configurable: true, value: 4 },
+    });
+    event('playing');
+    event('stalled');
+    await vi.advanceTimersByTimeAsync(8001);
+    expect(engine.getSnapshot().status).toBe('playing');
+    expect(media.pause).not.toHaveBeenCalled();
+    expect(media.getAttribute('src')).not.toBeNull();
+    engine.destroy();
+  });
+
+  it('does not let a delayed buffering timeout tear down audio that has resumed', async () => {
+    vi.useFakeTimers();
+    const { engine, elements, event } = harness();
+    engine.select('station-a', [stream(1)], true);
+    const media = elements[0]!;
+    Object.defineProperties(media, {
+      paused: { configurable: true, value: false },
+      readyState: { configurable: true, value: 2 },
+    });
+    event('playing');
+    event('waiting');
+    // Media playback can resume while the page's JS task queue is suspended.
+    media.currentTime = 12;
+    Object.defineProperty(media, 'readyState', { configurable: true, value: 4 });
+    await vi.advanceTimersByTimeAsync(8001);
+    expect(engine.getSnapshot().status).toBe('playing');
+    expect(media.pause).not.toHaveBeenCalled();
+    engine.destroy();
+  });
+
+  it.each([
+    { readyState: 2, currentTime: 0 },
+    { readyState: 2, currentTime: 12 },
+    { readyState: 4, currentTime: 0 },
+  ])(
+    'still times out a stopped stream with $readyState readiness and $currentTime position',
+    async (state) => {
+      vi.useFakeTimers();
+      const { engine, elements, event } = harness();
+      engine.select('station-a', [stream(1)], true);
+      const media = elements[0]!;
+      Object.defineProperties(media, {
+        paused: { configurable: true, value: false },
+        readyState: { configurable: true, value: 2 },
+      });
+      event('playing');
+      event('stalled');
+      media.currentTime = state.currentTime;
+      Object.defineProperty(media, 'readyState', { configurable: true, value: state.readyState });
+      await vi.advanceTimersByTimeAsync(8001);
+      expect(engine.getSnapshot()).toMatchObject({ status: 'failed', failure: 'timeout' });
+      engine.destroy();
+    },
+  );
   it('ignores old media events and a late play rejection after a rapid switch', async () => {
     const { engine, elements, event } = harness();
     engine.select('station-a', [stream(1)]);

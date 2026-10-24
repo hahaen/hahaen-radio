@@ -158,6 +158,41 @@ for (const format of ['mp3', 'aac', 'm3u8'] as const) {
     await expectPlaying(page);
   });
 }
+test('keeps decoded audio playing beyond the watchdog after a hidden-page network stall signal', async ({
+  page,
+}) => {
+  await install(page, [fixture(1, 'mp3')]);
+  await selectStation(page, '测试音源 MP3');
+  await expectPlaying(page);
+  const audio = page.locator('audio');
+  const position = await audio.evaluate((element) => {
+    const media = element as HTMLAudioElement;
+    media.playbackRate = 0.5;
+    // Start well before this looping fixture wraps its playback position.
+    media.currentTime = 0;
+    return media.currentTime;
+  });
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });
+    document.dispatchEvent(new Event('visibilitychange'));
+    // The lifecycle/network signals are controlled; decoding and time advancement remain native.
+    document.querySelector('audio')!.dispatchEvent(new Event('stalled'));
+  });
+  await page.waitForTimeout(8200);
+  await expectPlaying(page);
+  expect(
+    await audio.evaluate((element) => (element as HTMLAudioElement).currentTime),
+  ).toBeGreaterThan(position + 3);
+  await page.getByRole('button', { name: '暂停', exact: true }).click();
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
+  expect(await audio.evaluate((element) => (element as HTMLAudioElement).paused)).toBe(true);
+});
 test('switches to a working backup after an invalid stream', async ({ page }) => {
   const station = fixture(1, 'mp3');
   station.streams.unshift({
