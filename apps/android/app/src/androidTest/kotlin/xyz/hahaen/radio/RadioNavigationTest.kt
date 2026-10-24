@@ -91,8 +91,9 @@ class RadioNavigationTest {
     private fun isKeyboardVisible(): Boolean {
         var visible = false
         compose.activityRule.scenario.onActivity { activity ->
-            visible = ViewCompat.getRootWindowInsets(activity.window.decorView)
-                ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+            val insets = ViewCompat.getRootWindowInsets(activity.window.decorView)
+            visible = insets?.isVisible(WindowInsetsCompat.Type.ime()) == true &&
+                insets.getInsets(WindowInsetsCompat.Type.ime()).bottom > 1
         }
         return visible
     }

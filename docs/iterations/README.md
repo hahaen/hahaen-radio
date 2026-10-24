@@ -10,6 +10,7 @@
 
 | 日期 | 任务 | 状态 |
 | --- | --- | --- |
+| 2026-10-24 | [Android 输入框软键盘](2026-10-24-android-keyboard/README.md) | 三个输入入口统一恢复与回归，验证结果见记录 |
 | 2026-10-24 | [Android 分发页介绍与图标](2026-10-24-android-distribution/README.md) | 介绍与墨绿耳机图标已生效，兼容图标包已发布为 Build 2，双端页面已核对 |
 | 2026-10-24 | [首次选中中国区电台](2026-10-24-initial-china-station/README.md) | 随机预选并暂停；双端网页与安卓验证通过，APK 已覆盖安装，网页未发布 |
 | 2026-10-24 | [Safari 深色耳机图标](2026-10-24-safari-dark-icon/README.md) | 与 Android App 共用原图和不透明深色底；追加统一标签页静态与播放图标，未发布 |

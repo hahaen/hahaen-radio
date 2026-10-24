@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.PowerManager
+import android.view.inputmethod.InputMethodManager
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -16,6 +17,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.FocusInteraction
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
@@ -36,6 +40,9 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.VisualTransformation
@@ -47,6 +54,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.currentStateAsState
 import kotlin.math.PI
 import kotlin.math.sin
+import kotlinx.coroutines.flow.collectLatest
 import xyz.hahaen.radio.R
 import xyz.hahaen.radio.app.theme.*
 
@@ -84,11 +92,34 @@ import xyz.hahaen.radio.app.theme.*
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
+    val interactions = remember { MutableInteractionSource() }
+    var focused by remember { mutableStateOf(false) }
+    val keyboard = LocalSoftwareKeyboardController.current
+    val view = LocalView.current
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(interactions, keyboard, view, lifecycle) {
+        interactions.interactions.collectLatest { interaction ->
+            if (interaction is FocusInteraction.Focus || interaction is PressInteraction.Release) {
+                withFrameNanos { }
+                fun canShow() = focused && view.hasWindowFocus() &&
+                    lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
+                if (canShow()) {
+                    if (interaction is PressInteraction.Release) {
+                        // Match TextView's tap notification: some IMEs use it to leave hardware mode.
+                        @Suppress("DEPRECATION")
+                        view.context.getSystemService(InputMethodManager::class.java).viewClicked(view)
+                    }
+                    keyboard?.show()
+                }
+            }
+        }
+    }
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
         label = { Text(stringResource(label)) },
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused },
+        interactionSource = interactions,
         singleLine = true,
         shape = RoundedCornerShape(10.dp),
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = Warm),

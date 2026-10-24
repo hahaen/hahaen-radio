@@ -1,5 +1,7 @@
 # 技术文档导航
 
+Android 搜索及账号输入框的[软键盘修复与检查](iterations/2026-10-24-android-keyboard/README.md)。
+
 Android 分发页介绍与兼容图标见[任务记录](iterations/2026-10-24-android-distribution/README.md)。
 
 诊断报告路由测试的固定时钟修复见[验证记录](iterations/2026-10-17-playback-diagnostics/README.md#路由测试时钟修复2026-10-24)。
