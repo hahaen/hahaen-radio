@@ -134,6 +134,10 @@ install -m 600 "$incoming/next.env" "$base/release.env"
 install -m 600 "$incoming/compose.yaml" "$base/compose.yaml"
 printf '%s %s %s\n' "$scope" "$revision" "$(date -Is)" > "$base/latest-release.txt"
 success=1
+if [[ $project == radio && ( $scope == api || $scope == all ) && -f $base/backup-version/current ]]; then
+  # Keep the existing backup helper's application revision aligned with the API.
+  printf '%s\n' "$revision" > "$base/backup-version/current"
+fi
 # Remove only old images from the selected services, after success. Shared images
 # still used by another container remain. Never prune volumes or unrelated images.
 for image in "${old_images[@]}"; do
