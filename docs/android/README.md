@@ -1,5 +1,7 @@
 # Android 客户端文档
 
+Android 当前安装包为 0.1.1 / versionCode 7，图钉即时反馈修复与原机回归见[任务记录](../iterations/2026-10-25-account-pin-sync/README.md#android-图钉状态即时刷新修复2026-10-25)。
+
 Android 客户端采用 Kotlin 原生路线，目标是延续声屿手机网页的夜航设计与收听体验，并由原生服务承载后台音频。
 
 共享地球的连续旋转修复与 versionCode 5 产物验证见[任务记录](../iterations/2026-10-24-globe-free-rotation/README.md)。
@@ -24,7 +26,7 @@ Android 客户端采用 Kotlin 原生路线，目标是延续声屿手机网页�
 
 - 需求与变更：将每次 App 更新递增显示版本号的规则写入 [Android 协作规范](../../apps/android/AGENTS.md#7-review验证与交付)，避免仅递增 `versionCode`。
 - Review 与验证：本次仅修改规则与说明，核对版本字段位置、示例递增语义、文档链接及差异格式；不涉及 App 代码、构建或设备验证。
-- 未完成事项与服务影响：无；当前源码保持 `0.1.0` / versionCode 6，下次 App 更新从 `0.1.1` 开始。本次无需更新服务，也无需重建 APK。
+- 未完成事项与服务影响：无；该次规范更新未改动当时的 `0.1.0` / versionCode 6，后续 App 更新从 `0.1.1` 开始。本次无需更新服务，也无需重建 APK。
 
 ## 本地安装包归集
 

@@ -1,6 +1,6 @@
 # 声屿 HAEN Android
 
-Kotlin / Compose 原生客户端，应用 ID 与 namespace 为 `xyz.hahaen.radio`，版本 `0.1.0`（versionCode 6），最低 Android 8（API 26），compile/target API 36。当前提供 Debug 与独立正式签名的 Release 构建，既有 Debug 核心真机验收已通过，耳机专项按用户要求暂缓，见 [验证状态](../../docs/android/verification.md)。初始中国区电台预选保持暂停，见[选台记录](../../docs/iterations/2026-10-24-initial-china-station/README.md)；连续球面旋转见[本轮记录](../../docs/iterations/2026-10-24-globe-free-rotation/README.md)。
+Kotlin / Compose 原生客户端，应用 ID 与 namespace 为 `xyz.hahaen.radio`，版本 `0.1.1`（versionCode 7），最低 Android 8（API 26），compile/target API 36。当前提供 Debug 与独立正式签名的 Release 构建，既有 Debug 核心真机验收已通过，耳机专项按用户要求暂缓，见 [验证状态](../../docs/android/verification.md)。初始中国区电台预选保持暂停，见[选台记录](../../docs/iterations/2026-10-24-initial-china-station/README.md)；连续球面旋转见[本轮记录](../../docs/iterations/2026-10-24-globe-free-rotation/README.md)。
 
 搜索、用户名与密码共用输入框的键盘恢复处理见[键盘修复记录](../../docs/iterations/2026-10-24-android-keyboard/README.md)。
 
@@ -101,6 +101,15 @@ adb shell am instrument -w -r \
 标准音频焦点已有独立 UID 临时真机探针与上述同 UID instrumentation 两种通过证据：临时关闭多声音共存后，HAEN 响应焦点中断并在释放后恢复播放；原同 UID 用例在 build16 复验用时 34.84 秒通过，包含 25 秒临时焦点请求。测试后均恢复并核对设备原设置，具体轮次与范围见验证状态。
 
 构建成功与设备专项通过分别记录；新增测试及最新 APK 的未验证项仍以 [验证状态](../../docs/android/verification.md) 为准。
+
+## 固定电台按钮真机回归
+
+`LivePinDeviceTest` 仅在传入 `haenLivePin=true` 时执行。在已选台的首页和沉浸页检查图钉连续开关的即时选中状态、文案与服务状态，并恢复原开关，不切换账号或电台。它会暂时修改当前账号或游客的图钉设置；默认套件跳过此用例。账号同步与本轮刷新修复见[任务记录](../../docs/iterations/2026-10-25-account-pin-sync/README.md#android-图钉状态即时刷新修复2026-10-25)。
+
+```sh
+adb shell am instrument -w -r -e class xyz.hahaen.radio.LivePinDeviceTest \
+  -e haenLivePin true xyz.hahaen.radio.test/androidx.test.runner.AndroidJUnitRunner
+```
 
 ## 收听界面与音量
 

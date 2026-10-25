@@ -77,7 +77,8 @@ import java.time.format.DateTimeFormatter
     val playback by controls.state.collectAsStateWithLifecycle()
     val localPreferences by model.preferences.state.collectAsStateWithLifecycle(ListeningPreferences())
     val accountPinned by model.library.pinned.collectAsStateWithLifecycle()
-    val preferences = localPreferences.copy(pinned = accountPinned ?: localPreferences.pinned)
+    // Retained navigation entries must observe State, including the merged account preference.
+    val preferences by rememberUpdatedState(localPreferences.copy(pinned = accountPinned ?: localPreferences.pinned))
     val account by model.library.account.collectAsStateWithLifecycle()
     val ownedCollection by model.library.ownedCollections.collectAsStateWithLifecycle()
     val pending by model.library.pending.collectAsStateWithLifecycle()
