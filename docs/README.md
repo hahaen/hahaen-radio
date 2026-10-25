@@ -2,6 +2,7 @@
 
 > 当前部署已于 2026-10-25 改为[本机编译上传与 Docker 更新](deployment/local-upload.md)；本文中 Jenkins 配置及服务器源码路径为历史说明。
 
+完成代码修改后[自动发版并逐项报告结果](iterations/2026-10-25-automatic-release/README.md)，不备份旧版本；当前入口见[本机上传](deployment/local-upload.md)。
 
 电脑网页、手机网页与 Android 的[固定电台开关账号同步与安卓即时反馈修复](iterations/2026-10-25-account-pin-sync/README.md)。
 

@@ -1,5 +1,7 @@
 # 任务归档
 
+[完成修改后自动发版与逐项结果交付](2026-10-25-automatic-release/README.md)：提交推送核对后自动更新受影响服务，不备份旧版本。
+
 网页与 Android [首次起播等待优化](2026-10-25-initial-playback-latency/README.md)。
 
 电脑网页、手机网页与 Android 的[固定电台开关账号同步与安卓即时反馈修复](2026-10-25-account-pin-sync/README.md)。
