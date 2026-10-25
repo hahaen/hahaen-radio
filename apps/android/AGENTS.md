@@ -58,6 +58,8 @@
 
 ## 7. Review、验证与交付
 
+- 每次更新 Android App 并交付新安装包时，必须在 `app/build.gradle.kts` 中递增 `versionName` 的补丁版本号，例如 `0.1.0 → 0.1.1 → 0.1.2`，同时将 `versionCode` 至少加 1；不能只增加 `versionCode` 而沿用显示版本号。小 bug 修复始终只加最后一段，例如 `0.1.9 → 0.1.10 → 0.1.11`，不向中间或第一段进位。同一次更新的重复构建、验证或 Debug / Release 构建复用同一组版本号，不因单次构建自动加号；仅修改文档且不更新 App 时无需递增。
+- 交付前核对 APK 的 `versionName`、`versionCode` 与源码一致，同步当前版本说明与本轮交付记录；应用 ID 和正式签名保持连续。
 - 遵循根规范：完成实现和必要文档后先 Review、修复并复审，再执行适用检查；同步远端后复审与复验，最后提交并分别推送两远端。
 - 纯文档任务检查内容、链接、目录、状态一致性及 `git diff --check`；应用任务在工程初始化后执行实际存在的 Android lint、单元测试与 Debug 构建。
 - 协程、播放策略与 Repository 用单元测试，网络边界用 MockWebServer，Room 用迁移测试，核心界面用 Compose UI Test；系统媒体交互按需使用 Espresso/UIAutomator。
