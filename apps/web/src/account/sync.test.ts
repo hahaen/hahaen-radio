@@ -4,6 +4,20 @@ import { mergeCollection } from './sync';
 const a = { id: '00000000-0000-4000-8000-000000000001', name: 'A', countryCode: null, savedAt: 1 };
 const b = { ...a, id: '00000000-0000-4000-8000-000000000002', name: 'B' };
 describe('account collection merge', () => {
+  it('keeps pin changes independent of collection edits and accepts older snapshots', () => {
+    const base = emptyCollection();
+    const remote = { ...base, pinned: true, favorites: [a] };
+    expect(mergeCollection(base, base, remote)).toEqual(remote);
+    expect(mergeCollection({ ...base, pinned: true }, { ...base, pinned: false }, remote)).toEqual({
+      ...remote,
+      pinned: false,
+    });
+    expect(mergeCollection(base, { ...base, pinned: true }, { ...base, history: [b] })).toEqual({
+      ...base,
+      history: [b],
+      pinned: true,
+    });
+  });
   it('preserves remote additions and local removals, including response-loss retry', () => {
     const base = { ...emptyCollection(), favorites: [a] };
     const local = emptyCollection();

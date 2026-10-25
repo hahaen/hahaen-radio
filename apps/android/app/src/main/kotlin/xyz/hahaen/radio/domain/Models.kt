@@ -22,10 +22,11 @@ data class Station(
     val favorites: List<SavedStation> = emptyList(),
     val songs: List<SavedSong> = emptyList(),
     val history: List<SavedStation> = emptyList(),
+    val pinned: Boolean = false,
 )
 @Serializable data class AccountUser(val id: String, val username: String)
 @Serializable data class Library(val revision: Int = 0, val collection: ListeningCollection = ListeningCollection())
-@Serializable data class LibraryOperation(val kind: String, val station: SavedStation? = null)
+@Serializable data class LibraryOperation(val kind: String, val station: SavedStation? = null, val pinned: Boolean? = null)
 
 fun applyOperations(base: ListeningCollection, operations: List<LibraryOperation>): ListeningCollection {
     var result = base
@@ -38,6 +39,7 @@ fun applyOperations(base: ListeningCollection, operations: List<LibraryOperation
             "history.add" -> if (station == null) result else result.copy(history =
                 (result.history + station).groupBy { it.id }.values.map { group -> group.maxBy { it.savedAt } }
                     .sortedByDescending { it.savedAt }.take(100))
+            "pin.set" -> result.copy(pinned = requireNotNull(operation.pinned))
             "history.clear" -> result.copy(history = emptyList())
             else -> result
         }
@@ -65,8 +67,9 @@ fun AccountUser.validated(): AccountUser = also {
 }
 
 fun LibraryOperation.validated(): LibraryOperation = also {
-    if (kind !in setOf("favorite.add", "favorite.remove", "history.add", "history.clear") ||
-        (kind != "history.clear" && station?.valid() != true)) throw InvalidLibraryData()
+    if (kind !in setOf("favorite.add", "favorite.remove", "history.add", "history.clear", "pin.set") ||
+        (kind !in setOf("history.clear", "pin.set") && station?.valid() != true) ||
+        (kind == "pin.set" && pinned == null)) throw InvalidLibraryData()
 }
 
 fun Library.validated(): Library = also {

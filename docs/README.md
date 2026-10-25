@@ -1,5 +1,7 @@
 # 技术文档导航
 
+电脑网页、手机网页与 Android 的[固定电台开关账号同步](iterations/2026-10-25-account-pin-sync/README.md)。
+
 网页与 Android 地球支持[跨越南北极的连续旋转](iterations/2026-10-24-globe-free-rotation/README.md)。
 
 Android 搜索及账号输入框的[软键盘修复与检查](iterations/2026-10-24-android-keyboard/README.md)。

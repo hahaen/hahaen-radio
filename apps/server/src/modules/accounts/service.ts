@@ -97,8 +97,17 @@ export function createAccountService(repository: AccountRepository) {
     },
     async save(user: AccountUser, expectedId: string, value: AccountLibrary) {
       if (user.id !== expectedId) throw new AccountError(401, 'UNAUTHORIZED');
-      if (!(await repository.saveLibrary(user.id, value))) throw new AccountError(409, 'CONFLICT');
-      return { revision: value.revision + 1, collection: value.collection };
+      // Legacy clients omit pinned; preserve the account preference on their collection writes.
+      const previous = await repository.readLibrary(user.id);
+      const collection = {
+        ...value.collection,
+        ...(value.collection.pinned === undefined && previous.collection.pinned !== undefined
+          ? { pinned: previous.collection.pinned }
+          : {}),
+      };
+      if (!(await repository.saveLibrary(user.id, { ...value, collection })))
+        throw new AccountError(409, 'CONFLICT');
+      return { revision: value.revision + 1, collection };
     },
   };
 }

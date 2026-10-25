@@ -33,6 +33,45 @@ class LibraryRepositoryTest {
     }
     private fun FakeStorage.collection(owner: String) = libraries.value[owner]?.let { json.decodeFromString<ListeningCollection>(it.json) } ?: ListeningCollection()
 
+    @Test fun pinEditsSurviveOfflineRestartAndStayBoundToTheAccount() = runTest {
+        val storage = FakeStorage()
+        var offline = true
+        var remote = Library(1, ListeningCollection(favorites = listOf(stationA.saved())))
+        val api = FakeApi().apply {
+            onLibrary = { if (offline) throw IOException("OFFLINE") else remote }
+            onSave = { Library(it.revision + 1, it.collection).also { result -> remote = result } }
+            onLogin = { SessionDto(accountB) }
+        }
+        val firstScope = CoroutineScope(backgroundScope.coroutineContext + Job())
+        val session = FakeSession(accountA)
+        val repository = LibraryRepository(storage, api, session, json, firstScope)
+        assertTrue(repository.setPinned(true))
+        runCurrent()
+        assertTrue(storage.collection(accountA.id).pinned)
+        assertEquals(1, storage.pending(accountA.id).size)
+        firstScope.cancel()
+        val restored = LibraryRepository(storage, api, session, json, backgroundScope)
+        runCurrent()
+        assertEquals(true, restored.pinned.value)
+        offline = false
+        assertTrue(restored.synchronize())
+        runCurrent()
+        assertTrue(remote.collection.pinned)
+        assertEquals(listOf(stationA.saved()), remote.collection.favorites)
+        assertTrue(storage.pending(accountA.id).isEmpty())
+        remote = remote.copy(revision = remote.revision + 1, collection = remote.collection.copy(pinned = false))
+        assertTrue(restored.synchronize())
+        runCurrent()
+        assertEquals(false, restored.pinned.value)
+        assertTrue(restored.logout(false))
+        runCurrent()
+        assertNull(restored.pinned.value)
+        assertTrue(restored.login("listener_b", "test-only-password"))
+        runCurrent()
+        assertEquals(false, restored.pinned.value)
+        assertFalse(storage.collection(accountB.id).pinned)
+    }
+
     @Test fun loginAndLocalEditsAutomaticallySynchronizeWithoutManualRequests() = runTest {
         val storage = FakeStorage()
         var remote = Library(2, ListeningCollection(favorites = listOf(stationA.saved())))

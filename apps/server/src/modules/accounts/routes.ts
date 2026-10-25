@@ -1,4 +1,5 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
+import { z } from 'zod';
 import { ACCOUNT_SESSION_MAX_AGE } from './session.js';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
@@ -8,6 +9,7 @@ import {
   AccountLibrarySchema,
   SaveAccountLibrarySchema,
   ApiErrorSchema,
+  type AccountLibrary,
 } from '@haen/contracts';
 import { AccountError, type AccountService } from './service.js';
 import { CatalogUnavailableError } from '../catalog/service.js';
@@ -17,6 +19,13 @@ const tokenFrom = (request: FastifyRequest) =>
     .map((part) => part.trim())
     .find((part) => /^haen_session=[a-f0-9]{64}$/.test(part))
     ?.slice('haen_session='.length);
+// Opt in so already-installed clients with strict collection schemas keep working.
+const preferenceQuery = z.strictObject({ pinned: z.literal('1').optional() });
+const libraryResponse = (value: AccountLibrary, includePinned: boolean) => {
+  if (includePinned) return value;
+  const { favorites, songs, history } = value.collection;
+  return { ...value, collection: { favorites, songs, history } };
+};
 export function registerAccountRoutes(
   app: FastifyInstance,
   service: AccountService | undefined,
@@ -92,14 +101,14 @@ export function registerAccountRoutes(
       '/api/v1/account/library',
       {
         schema: {
-          querystring: AccountOwnerSchema,
+          querystring: AccountOwnerSchema.extend(preferenceQuery.shape),
           response: { 200: AccountLibrarySchema, ...errors },
         },
       },
       async (request, reply) => {
         const result = await required().read(await authenticated(request), request.query.userId);
         reply.header('set-cookie', cookie(tokenFrom(request)!, ACCOUNT_SESSION_MAX_AGE));
-        return result;
+        return libraryResponse(result, request.query.pinned === '1');
       },
     );
     routes.post(
@@ -110,6 +119,7 @@ export function registerAccountRoutes(
           await authenticated(request);
         },
         schema: {
+          querystring: preferenceQuery,
           body: SaveAccountLibrarySchema,
           response: { 200: AccountLibrarySchema, ...errors },
         },
@@ -121,7 +131,7 @@ export function registerAccountRoutes(
           request.body,
         );
         reply.header('set-cookie', cookie(tokenFrom(request)!, ACCOUNT_SESSION_MAX_AGE));
-        return result;
+        return libraryResponse(result, request.query.pinned === '1');
       },
     );
   });

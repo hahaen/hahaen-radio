@@ -75,7 +75,7 @@ export function createAccountController(library: Library, request = getJson) {
   async function enter(user: AccountUser) {
     const epoch = ++generation;
     const remote = await request(
-      `/account/library?userId=${encodeURIComponent(user.id)}`,
+      `/account/library?userId=${encodeURIComponent(user.id)}&pinned=1`,
       AccountLibrarySchema,
     );
     if (epoch !== generation) return;
@@ -127,7 +127,7 @@ export function createAccountController(library: Library, request = getJson) {
     try {
       for (let attempt = 0; attempt < 5; attempt++) {
         const remote = await request(
-          `/account/library?userId=${encodeURIComponent(user.id)}`,
+          `/account/library?userId=${encodeURIComponent(user.id)}&pinned=1`,
           AccountLibrarySchema,
         );
         if (epoch !== generation || !base) return;
@@ -136,7 +136,7 @@ export function createAccountController(library: Library, request = getJson) {
         let saved = remote;
         if (!sameCollection(merged, remote.collection)) {
           try {
-            saved = await request('/account/library', AccountLibrarySchema, undefined, {
+            saved = await request('/account/library?pinned=1', AccountLibrarySchema, undefined, {
               method: 'POST',
               body: { userId: user.id, revision: remote.revision, collection: merged },
               timeoutMs: 30000,
@@ -190,7 +190,8 @@ export function createAccountController(library: Library, request = getJson) {
           applying ||
           (state.favorites === previous.favorites &&
             state.songs === previous.songs &&
-            state.history === previous.history) ||
+            state.history === previous.history &&
+            state.pinned === previous.pinned) ||
           !base ||
           !store.getState().user ||
           sameCollection(collectionOf(state), collectionOf(previous))

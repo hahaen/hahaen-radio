@@ -20,6 +20,7 @@ import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import okhttp3.OkHttpClient
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -105,7 +106,8 @@ import javax.inject.Inject
         setListener(object : MediaSessionService.Listener {
             override fun onForegroundServiceStartNotAllowedException() { fail("service") }
         })
-        scope.launch { preferences.state.collect { value -> connection.mutable.update { it.copy(pinned = value.pinned) } } }
+        scope.launch { combine(preferences.state, library.pinned) { local, account -> account ?: local.pinned }
+            .collect { value -> connection.mutable.update { it.copy(pinned = value) } } }
         publish()
     }
 

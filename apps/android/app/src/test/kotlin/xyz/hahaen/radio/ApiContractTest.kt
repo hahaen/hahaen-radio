@@ -15,6 +15,20 @@ import xyz.hahaen.radio.data.remote.*
 import xyz.hahaen.radio.domain.ListeningCollection
 
 class ApiContractTest {
+    @Test fun optsInToPinSynchronizationAndSendsExplicitFalse() = runBlocking {
+        MockWebServer().use { server ->
+            val body = """{"revision":1,"collection":{"favorites":[],"history":[],"songs":[],"pinned":true}}"""
+            server.enqueue(MockResponse().setBody(body))
+            val api = api(server)
+            assertTrue(api.library("owner").collection.pinned)
+            assertEquals("1", server.takeRequest().requestUrl!!.queryParameter("pinned"))
+            server.enqueue(MockResponse().setBody(body.replace("true", "false")))
+            assertFalse(api.saveLibrary(SaveLibrary("owner", 1, ListeningCollection(pinned = false))).collection.pinned)
+            val request = server.takeRequest()
+            assertEquals("1", request.requestUrl!!.queryParameter("pinned"))
+            assertTrue(request.body.readUtf8().contains("\"pinned\":false"))
+        }
+    }
     @Test fun preservesGatewayPrefixAndNullableFields() = runBlocking {
         MockWebServer().use { server ->
             server.enqueue(MockResponse().setBody("""{"items":[{"id":"00000000-0000-4000-8000-000000000001","name":"世界电台","countryCode":null,"futureField":true}],"total":1,"offset":0,"limit":30}"""))
@@ -39,5 +53,5 @@ class ApiContractTest {
     }
     private fun api(server: MockWebServer): RadioApi = Retrofit.Builder().baseUrl(server.url("/radio/api/v1/"))
         .client(OkHttpClient.Builder().retryOnConnectionFailure(false).build())
-        .addConverterFactory(Json { ignoreUnknownKeys=true }.asConverterFactory("application/json".toMediaType())).build().create(RadioApi::class.java)
+        .addConverterFactory(Json { ignoreUnknownKeys=true; encodeDefaults=true }.asConverterFactory("application/json".toMediaType())).build().create(RadioApi::class.java)
 }

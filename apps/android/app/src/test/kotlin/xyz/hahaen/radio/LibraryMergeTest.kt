@@ -7,6 +7,14 @@ import xyz.hahaen.radio.domain.*
 class LibraryMergeTest {
     private val a = SavedStation("00000000-0000-4000-8000-000000000001", "A", "CN", 100)
     private val b = SavedStation("00000000-0000-4000-8000-000000000002", "B", null, 200)
+    @Test fun pinOperationsReplayInOrderWithoutAffectingStations() {
+        val base = ListeningCollection(favorites = listOf(a), pinned = true)
+        val changes = listOf(LibraryOperation("pin.set", pinned = true), LibraryOperation("pin.set", pinned = false))
+        val result = applyOperations(base, changes.map { it.validated() })
+        assertFalse(result.pinned)
+        assertEquals(base.favorites, result.favorites)
+        assertEquals(result, applyOperations(result, changes))
+    }
     @Test fun offlineDeletionSurvivesConflictWithoutRemovingOtherDeviceAdditions() {
         val remote = ListeningCollection(favorites = listOf(a,b), songs = listOf(SavedSong("Artist","Song",1)))
         val merged = applyOperations(remote, listOf(LibraryOperation("favorite.remove",a)))

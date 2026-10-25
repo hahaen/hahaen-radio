@@ -29,6 +29,47 @@ const credentials = () => ({
 });
 const cookieOf = (value: string | string[] | number | undefined) => String(value).split(';')[0]!;
 describe('account routes', () => {
+  it('syncs the pin toggle through the existing revision and preserves it for legacy clients', async () => {
+    const { app, libraries } = setup();
+    const login = await app.inject({
+      method: 'POST',
+      url: '/api/v1/account/login',
+      headers,
+      payload: credentials(),
+    });
+    const userId = login.json().user.id;
+    const auth = { ...headers, cookie: cookieOf(login.headers['set-cookie']) };
+    const save = (revision: number, collection: object, query = '?pinned=1') =>
+      app.inject({
+        method: 'POST',
+        url: '/api/v1/account/library' + query,
+        headers: auth,
+        payload: { userId, revision, collection },
+      });
+    const enabled = await save(0, { ...emptyCollection(), pinned: true });
+    expect(enabled.statusCode).toBe(200);
+    expect(enabled.json().collection.pinned).toBe(true);
+    const legacy = await app.inject({
+      url: '/api/v1/account/library?userId=' + userId,
+      headers: auth,
+    });
+    expect(legacy.json().collection).toEqual(emptyCollection());
+    const legacySave = await save(1, emptyCollection(), '');
+    expect(legacySave.statusCode).toBe(200);
+    expect(legacySave.json().collection).toEqual(emptyCollection());
+    expect(libraries.get(userId)?.collection.pinned).toBe(true);
+    const remote = await app.inject({
+      url: '/api/v1/account/library?userId=' + userId + '&pinned=1',
+      headers: auth,
+    });
+    expect(remote.json().collection.pinned).toBe(true);
+    expect((await save(0, { ...emptyCollection(), pinned: false })).statusCode).toBe(409);
+    expect((await save(2, { ...emptyCollection(), pinned: false })).json().collection.pinned).toBe(
+      false,
+    );
+    expect(libraries.get(userId)?.collection.pinned).toBe(false);
+    expect((await save(3, { ...emptyCollection(), pinned: 'true' })).statusCode).toBe(400);
+  });
   it.each(['session', 'read', 'save'] as const)(
     'renews both the cookie and server deadline on %s, but never revives an idle session',
     async (kind) => {

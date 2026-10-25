@@ -93,7 +93,7 @@
     <string name="empty_favorites">遇见喜欢的声音，点亮爱心留住它。</string>
     <string name="account_guest_summary">登录后同步收藏与收听记录</string>
     <string name="account_signin_title">接续你的收听</string>
-    <string name="account_sync_note">收藏与最近收听会随账号同步。离线更改将在网络恢复后重试。</string>
+    <string name="account_sync_note">收藏、最近收听和固定电台开关会随账号同步。离线更改将在网络恢复后重试。</string>
     <string name="login_requirements">用户名为 3–32 位字母、数字或下划线；密码至少 6 位。</string>
     <string name="signing_in">正在登录</string>
     <string name="show_password">显示密码</string>

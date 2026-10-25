@@ -234,6 +234,27 @@ it('publishes the account API then frontend after SQL without updating the legac
     f.events.filter(([name]) => name === 'publish').map(([, value]) => value.component),
   ).toEqual(['api', 'frontend']);
 });
+it('permits the pin preference API then frontend with the previous account contract installed', async () => {
+  const f = fixture();
+  const previousContract = '811b6526cd895d599fff54befa403285dbe3d956176d2eeaeb88e852d00abfee';
+  expect(policy.compatibleContracts).toContain(previousContract);
+  for (const value of Object.values(f.state.components)) value.contractHash = previousContract;
+  const originalJobs = structuredClone(f.state.components.jobs);
+  for (const component of ['api', 'frontend']) {
+    await componentFlow(
+      {
+        component,
+        release: release(component, 'b', {
+          contractHash: 'd'.repeat(64),
+          compatibleContracts: policy.compatibleContracts,
+        }),
+      },
+      f.io,
+    );
+    expect(f.state.components.jobs).toEqual(originalJobs);
+  }
+  expect(f.events.some(([name]) => ['migrate', 'backup'].includes(name))).toBe(false);
+});
 it('backs up before SQL and restores the unselected writer using its original record', async () => {
   const f = fixture({ pending: 1 }),
     original = structuredClone(f.state.components.jobs);

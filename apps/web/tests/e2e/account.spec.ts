@@ -31,6 +31,7 @@ for (const viewport of [
           'haen:personal:v1:history:' + station.id,
           JSON.stringify({ version: 1, value: item }),
         );
+        localStorage.setItem('haen:personal:v1:last', JSON.stringify({ version: 1, value: item }));
         sessionStorage.setItem('account-fixture-seeded', '1');
       }
     }, first);
@@ -92,6 +93,7 @@ for (const viewport of [
       revision: remote.revision + 1,
       collection: {
         ...remote.collection,
+        pinned: true,
         favorites: [
           ...remote.collection.favorites,
           {
@@ -105,6 +107,14 @@ for (const viewport of [
     };
     await page.clock.fastForward(30000);
     await expect(panel.getByRole('button', { name: '电台收藏（2）', exact: true })).toBeVisible();
+    await panel.getByRole('button', { name: '关闭面板', exact: true }).click();
+    await expect(page.getByRole('button', { name: '取消固定', exact: true })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await page.getByRole('button', { name: '取消固定', exact: true }).click();
+    await expect.poll(() => remote.collection.pinned).toBe(false);
+    await page.getByRole('button', { name: '我的收听', exact: true }).click();
     await panel.getByRole('button', { name: '取消收藏 ' + second.name, exact: true }).click();
     await expect.poll(() => remote.collection.favorites.map((item) => item.id)).toEqual([first.id]);
     await page.reload();

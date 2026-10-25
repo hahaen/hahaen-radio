@@ -14,16 +14,19 @@ export function useListeningLibrary(player: PlayerController) {
         playback = player.store.getState().playback;
       if (playback.volume !== preferences.volume) player.setVolume(preferences.volume);
       if (playback.muted !== preferences.muted) player.setMuted(preferences.muted);
+      const pinned = library.store.getState().pinned;
+      if (player.store.getState().pinned !== pinned) player.setPinned(pinned);
       applying = false;
     };
     apply();
     player.setAudioOptions(library.store.getState().audio);
     const offLibrary = library.store.subscribe((state, previous) => {
-      if (state.preferences !== previous.preferences) apply();
+      if (state.preferences !== previous.preferences || state.pinned !== previous.pinned) apply();
       if (state.audio !== previous.audio) player.setAudioOptions(state.audio);
       if (state.history.length === 0 && previous.history.length > 0) player.clearVisits();
     });
     const offVolume = player.store.subscribe((state, previous) => {
+      if (!applying && state.pinned !== previous.pinned) library.setPinned(state.pinned);
       if (
         !applying &&
         (state.playback.volume !== previous.playback.volume ||

@@ -43,6 +43,7 @@ export const AccountCollectionSchema = z
     favorites: z.array(CollectionStationSchema).max(5000),
     songs: z.array(CollectionSongSchema).max(5000),
     history: z.array(CollectionStationSchema).max(100),
+    pinned: z.boolean().optional(),
   })
   .superRefine((value, context) => {
     for (const kind of ['favorites', 'history'] as const)

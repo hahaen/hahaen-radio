@@ -47,6 +47,6 @@ interface RadioApi {
     @GET("account/session") suspend fun session(): SessionDto
     @POST("account/login") suspend fun login(@Body credentials: Credentials): SessionDto
     @POST("account/logout") suspend fun logout(@Body owner: Owner): SessionDto
-    @GET("account/library") suspend fun library(@Query("userId") userId: String): Library
-    @POST("account/library") suspend fun saveLibrary(@Body body: SaveLibrary): Library
+    @GET("account/library?pinned=1") suspend fun library(@Query("userId") userId: String): Library
+    @POST("account/library?pinned=1") suspend fun saveLibrary(@Body body: SaveLibrary): Library
 }

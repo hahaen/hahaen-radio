@@ -116,7 +116,10 @@ data class SearchState(
     }
     fun favorite(station: Station) { viewModelScope.launch { library.favorite(station) } }
     fun clearHistory() { viewModelScope.launch { library.clearHistory() } }
-    fun preference(key: String, value: Boolean) { viewModelScope.launch { preferences.boolean(key, value) } }
+    fun preference(key: String, value: Boolean) { viewModelScope.launch {
+        if (key == "pinned" && library.account.value.user != null) library.setPinned(value)
+        else preferences.boolean(key, value)
+    } }
     fun scene(value: String) { viewModelScope.launch { preferences.scene(value) } }
     fun login(username: String, password: String) { viewModelScope.launch { library.login(username, password) } }
     fun logout(keepPending: Boolean) { viewModelScope.launch { library.logout(keepPending) } }

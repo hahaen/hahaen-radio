@@ -27,10 +27,10 @@ const resources = {
         aboutLive:
           '节目由电台实时播出；上一站与下一站切换的是电台，不能跳过直播中的歌曲。电台数据与可播放状态可能变化。',
         aboutLocal:
-          '未登录时，收藏、最近收听和偏好留在当前浏览器。可在“我的收听”登录以同步收藏和历史，也可导出、导入收藏文件。',
+          '未登录时，收藏、最近收听和偏好留在当前浏览器。可在“我的收听”登录以同步收藏、历史和固定电台开关，也可导出、导入收藏文件。',
         privacyLocalTitle: '保存在这台设备上',
         privacyLocal:
-          '电台收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。曾保存或导入的歌曲收藏作为历史数据保留，可随收藏文件导出。电台目录也会缓存到本机。登录为可选功能：账号、密码哈希、登录会话、收藏和最近收听保存在服务器。密码不以明文保存。登录会设置用于身份验证的 Cookie；本机设置不参与同步。登录时自动合并本机新增或更新的收藏与历史，并记录已合并项目以避免重复恢复已删除的收藏。待同步账号数据暂存在当前标签页，退出后恢复本机数据。',
+          '电台收藏、最近收听、筛选、界面语言和收听设置保存在当前浏览器。曾保存或导入的歌曲收藏作为历史数据保留，可随收藏文件导出。电台目录也会缓存到本机。登录为可选功能：账号、密码哈希、登录会话、收藏、最近收听和固定电台开关保存在服务器。密码不以明文保存。登录会设置用于身份验证的 Cookie；固定电台开关随账号同步，其他本机设置不参与同步。登录时自动合并本机新增或更新的收藏与历史，并记录已合并项目以避免重复恢复已删除的收藏。待同步账号数据暂存在当前标签页，退出后恢复本机数据。',
         privacyClear:
           '清除浏览器中的本站数据会删除本地内容。请先导出收藏；导出文件也包含你的收藏，应自行保管。共享设备上的其他使用者可能看到这些内容。',
         privacyRequestsTitle: '何时会发出请求',
@@ -422,10 +422,10 @@ const resources = {
         aboutLive:
           'Programs are broadcast live by each station. Previous and next switch stations; they cannot skip a song within a live broadcast. Directory details and stream availability can change.',
         aboutLocal:
-          'Without signing in, favorites, recent listening and preferences stay in this browser. Sign in from My listening to sync favorites and history, or export and import favorites files.',
+          'Without signing in, favorites, recent listening and preferences stay in this browser. Sign in from My listening to sync favorites, history and the pin toggle, or export and import favorites files.',
         privacyLocalTitle: 'Stored on this device',
         privacyLocal:
-          'Station favorites, recent listening, filters, language, and settings stay in this browser. Previously saved or imported song favorites are retained as historical data and included in exports. A local directory cache reduces downloads. Optional accounts store usernames, password hashes, login sessions, favorites and recent listening on the server. Passwords are never stored as plain text. Signing in sets an authentication cookie. Device settings stay local. Signing in automatically merges new or changed guest collection items. Already imported items are remembered so deleted account favorites are not restored on each login. Pending account changes stay in this tab; signing out restores guest data.',
+          'Station favorites, recent listening, filters, language, and settings stay in this browser. Previously saved or imported song favorites are retained as historical data and included in exports. A local directory cache reduces downloads. Optional accounts store usernames, password hashes, login sessions, favorites, recent listening and the pin toggle on the server. Passwords are never stored as plain text. Signing in sets an authentication cookie. The pin toggle syncs with your account; other device settings stay local. Signing in automatically merges new or changed guest collection items. Already imported items are remembered so deleted account favorites are not restored on each login. Pending account changes stay in this tab; signing out restores guest data.',
         privacyClear:
           'Clearing this site’s browser data removes local content. Export favorites first and keep the file private. Other people using the same browser may be able to see this content.',
         privacyRequestsTitle: 'When requests are made',

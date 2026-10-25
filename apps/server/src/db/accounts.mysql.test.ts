@@ -69,6 +69,7 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('isolated MySQL accounts',
     ).rejects.toThrow();
     const collection = {
       ...emptyCollection(),
+      pinned: true,
       favorites: [{ id: randomUUID(), name: '测试电台 🌊', countryCode: 'CN', savedAt: 1 }],
     };
     const results = await Promise.all([
@@ -77,6 +78,22 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('isolated MySQL accounts',
     ]);
     expect(results.filter(Boolean)).toHaveLength(1);
     expect((await repository.readLibrary(account.user.id)).revision).toBe(1);
+    const stored = await repository.readLibrary(account.user.id);
+    await service.save(account.user, account.user.id, {
+      revision: stored.revision,
+      collection: { ...emptyCollection(), pinned: true },
+    });
+    expect((await repository.readLibrary(account.user.id)).collection.pinned).toBe(true);
+    await service.save(account.user, account.user.id, {
+      revision: stored.revision + 1,
+      collection: emptyCollection(),
+    });
+    expect((await repository.readLibrary(account.user.id)).collection.pinned).toBe(true);
+    await service.save(account.user, account.user.id, {
+      revision: stored.revision + 2,
+      collection: { ...emptyCollection(), pinned: false },
+    });
+    expect((await repository.readLibrary(account.user.id)).collection.pinned).toBe(false);
     await repository.createSession(account.user.id, 'a'.repeat(64), new Date(0));
     expect(
       await repository.findSession('a'.repeat(64), new Date(Date.now() + 30 * 86400000)),

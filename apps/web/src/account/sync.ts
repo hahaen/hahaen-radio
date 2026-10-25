@@ -8,9 +8,11 @@ export const collectionOf = (state: LibraryState): AccountCollection => ({
   favorites: state.favorites,
   songs: state.songs,
   history: state.history,
+  pinned: state.pinned,
 });
 const canonical = (value: AccountCollection) =>
   JSON.stringify({
+    pinned: value.pinned ?? false,
     favorites: [...value.favorites].sort((a, b) => a.id.localeCompare(b.id)),
     songs: [...value.songs].sort((a, b) =>
       collectionSongKey(a).localeCompare(collectionSongKey(b)),
@@ -45,6 +47,7 @@ export function mergeCollection(
   remote: AccountCollection,
 ): AccountCollection {
   return AccountCollectionSchema.parse({
+    pinned: (local.pinned ?? false) !== (base.pinned ?? false) ? local.pinned : remote.pinned,
     favorites: mergeItems(base.favorites, local.favorites, remote.favorites, (item) => item.id),
     songs: mergeItems(base.songs, local.songs, remote.songs, collectionSongKey),
     history: mergeItems(base.history, local.history, remote.history, (item) => item.id).slice(

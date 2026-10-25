@@ -172,7 +172,7 @@ Android 图形入口在同一个 WebView 文档内最多保留地球与一个沉
 
 ## 8. 本地数据、会话与同步
 
-Room 保存收藏、历史、账号快照、待同步操作与必要的有界目录缓存；DataStore 保存 `power_save`、`reduce_motion`、`scene`、`graphics` 和 `pinned` 五项偏好，不将大型集合序列化到设置。语言使用 AppCompat 的应用语言 API 与 `autoStoreLocales` 持久化；当前没有可选主题，界面统一使用夜航主题。选择依据见 [DataStore 与 Room 的适用范围](https://developer.android.com/topic/libraries/architecture/datastore)。
+Room 保存收藏、历史、账号快照、待同步操作与必要的有界目录缓存；DataStore 保存 `power_save`、`reduce_motion`、`scene`、`graphics` 和游客 `pinned` 五项偏好；登录后 `pinned` 使用账号 Room 快照与队列参与同步（[任务记录](../iterations/2026-10-25-account-pin-sync/README.md)），不将大型集合序列化到设置。语言使用 AppCompat 的应用语言 API 与 `autoStoreLocales` 持久化；当前没有可选主题，界面统一使用夜航主题。选择依据见 [DataStore 与 Room 的适用范围](https://developer.android.com/topic/libraries/architecture/datastore)。
 
 - 游客库与账号库按身份隔离，切号取消旧请求，待同步操作绑定用户及版本。收藏删除、版本冲突与失败重试保持现有服务端语义，具体上限由共享契约读取并在 Kotlin 中对应。
 - 账号同步由 Repository/原生协程协调，待处理操作持久化；登录、本机变更、前台进入及网络恢复自动触发同步，前台每 30 秒拉取其他设备的变更，无需手动刷新。离开前台取消周期拉取，原待同步队列的有限重试继续保留；必要的可延迟后台同步再评估 WorkManager，不拿它执行持续播放或精准计时。

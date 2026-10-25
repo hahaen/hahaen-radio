@@ -32,6 +32,7 @@ export const LIBRARY_PREFIX = 'haen:personal:v1:';
 type StorageLike = Pick<Storage, 'length' | 'key' | 'getItem' | 'setItem' | 'removeItem'>;
 type Problem = 'unavailable' | 'corrupt' | null;
 type Category =
+  | 'pinned'
   | 'favorite'
   | 'song'
   | 'history'
@@ -42,6 +43,7 @@ type Category =
   | 'audio'
   | 'scene';
 export interface LibraryState {
+  pinned: boolean;
   favorites: SavedStation[];
   songs: SavedSong[];
   history: SavedStation[];
@@ -53,6 +55,7 @@ export interface LibraryState {
   sleep: SleepTimer | null;
   storageProblem: Problem;
 }
+const pinnedRecord = z.strictObject({ version: z.literal(1), value: z.boolean() });
 const stationRecord = z.strictObject({ version: z.literal(1), value: SavedStationSchema });
 const songRecord = z.strictObject({ version: z.literal(1), value: SavedSongSchema });
 const filterRecord = z.strictObject({ version: z.literal(1), value: FilterSchema });
@@ -70,9 +73,10 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     songs = new Map<string, SavedSong>(),
     history = new Map<string, SavedStation>();
   let accountMode = false;
+  let pinned = false;
   let guestFallback: AccountCollection | null = null;
   const isCollectionKey = (key: string) =>
-    /^(favorite:|song:|history:|last$)/.test(key.slice(LIBRARY_PREFIX.length));
+    /^(favorite:|song:|history:|last$|pinned$)/.test(key.slice(LIBRARY_PREFIX.length));
   let filters = defaultFilters(),
     preferences = defaultPreferences(),
     audio = defaultAudioOptions(),
@@ -101,6 +105,8 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
       const input: unknown = text === null ? null : JSON.parse(text);
       if (suffix === 'filters')
         filters = input === null ? defaultFilters() : filterRecord.parse(input).value;
+      else if (suffix === 'pinned')
+        pinned = input === null ? false : pinnedRecord.parse(input).value;
       else if (suffix === 'last')
         lastStation = input === null ? null : stationRecord.parse(input).value;
       else if (suffix === 'preferences')
@@ -148,7 +154,10 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     audio = defaultAudioOptions();
     scene = defaultSceneOptions();
     sleep = null;
-    if (!accountMode) lastStation = null;
+    if (!accountMode) {
+      lastStation = null;
+      pinned = false;
+    }
     try {
       if (storage.length > 25000) throw new Error('STORAGE_LIMIT');
       for (let index = 0; index < storage.length; index++) {
@@ -162,6 +171,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   }
   readAll();
   const snapshot = (): LibraryState => ({
+    pinned,
     favorites: newest(favorites.values()),
     songs: newest(songs.values()),
     history: newest(history.values()).slice(0, 100),
@@ -179,6 +189,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     else
       store.setState({
         storageProblem,
+        ...(category === 'pinned' ? { pinned } : {}),
         ...(category === 'favorite' ? { favorites: newest(favorites.values()) } : {}),
         ...(category === 'song' ? { songs: newest(songs.values()) } : {}),
         ...(category === 'history' ? { history: newest(history.values()).slice(0, 100) } : {}),
@@ -215,9 +226,14 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
   }
   return {
     store,
+    setPinned(value: boolean) {
+      write(LIBRARY_PREFIX + 'pinned', value);
+      publish('pinned');
+    },
     setAccountCollection(value: AccountCollection | null) {
       if (!accountMode && value)
         guestFallback = {
+          pinned,
           favorites: newest(favorites.values()),
           songs: newest(songs.values()),
           history: newest(history.values()).slice(0, 100),
@@ -229,6 +245,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
       history.clear();
       lastStation = null;
       if (value) {
+        pinned = value.pinned ?? false;
         for (const item of value.favorites) favorites.set(item.id, item);
         for (const item of value.songs) songs.set(songKey(item), item);
         for (const item of value.history) history.set(item.id, item);
@@ -239,13 +256,19 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
     guestCollection(): AccountCollection {
       if (!accountMode)
         return {
+          pinned,
           favorites: newest(favorites.values()),
           songs: newest(songs.values()),
           history: newest(history.values()).slice(0, 100),
         };
       if (!writable && guestFallback) return guestFallback;
       const guest = createLibrary(options).store.getState();
-      return { favorites: guest.favorites, songs: guest.songs, history: guest.history };
+      return {
+        favorites: guest.favorites,
+        songs: guest.songs,
+        history: guest.history,
+        pinned: guest.pinned,
+      };
     },
     attach() {
       const events = options.events ?? window;
@@ -275,6 +298,7 @@ export function createLibrary(options: { storage?: () => StorageLike; events?: E
         if (suffix === 'history') trimHistory();
         if (
           [
+            'pinned',
             'favorite',
             'song',
             'history',

@@ -93,7 +93,7 @@
     <string name="empty_favorites">Tap the heart on a station to keep it here.</string>
     <string name="account_guest_summary">Sign in to sync favorites and history</string>
     <string name="account_signin_title">Pick up where you left off</string>
-    <string name="account_sync_note">Favorites and history sync with your account. Offline changes retry when you reconnect.</string>
+    <string name="account_sync_note">Favorites, history and the pin toggle sync with your account. Offline changes retry when you reconnect.</string>
     <string name="login_requirements">Use 3–32 letters, numbers or underscores for your username, and at least 6 characters for your password.</string>
     <string name="signing_in">Signing in</string>
     <string name="show_password">Show password</string>

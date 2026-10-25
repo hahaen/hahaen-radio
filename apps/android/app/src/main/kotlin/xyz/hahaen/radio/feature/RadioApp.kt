@@ -75,7 +75,9 @@ import java.time.format.DateTimeFormatter
 
 @Composable fun RadioApp(model: RadioViewModel, controls: PlaybackConnection) = HaenTheme {
     val playback by controls.state.collectAsStateWithLifecycle()
-    val preferences by model.preferences.state.collectAsStateWithLifecycle(ListeningPreferences())
+    val localPreferences by model.preferences.state.collectAsStateWithLifecycle(ListeningPreferences())
+    val accountPinned by model.library.pinned.collectAsStateWithLifecycle()
+    val preferences = localPreferences.copy(pinned = accountPinned ?: localPreferences.pinned)
     val account by model.library.account.collectAsStateWithLifecycle()
     val ownedCollection by model.library.ownedCollections.collectAsStateWithLifecycle()
     val pending by model.library.pending.collectAsStateWithLifecycle()

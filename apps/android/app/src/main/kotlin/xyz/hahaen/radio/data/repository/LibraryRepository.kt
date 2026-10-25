@@ -57,6 +57,11 @@ data class AccountState(val user: AccountUser? = null, val syncing: Boolean = fa
         if (data.first == (state.user?.id ?: GUEST)) data.second else ListeningCollection()
     }.stateIn(scope, SharingStarted.Eagerly, ListeningCollection())
 
+    // Null selects the existing guest DataStore preference; account values stay owner-scoped.
+    val pinned = combine(account, ownedCollections) { state, data ->
+        if (state.user == null) null else data.first == state.user.id && data.second.pinned
+    }.stateIn(scope, SharingStarted.Eagerly, if (account.value.user == null) null else false)
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val ownedPending = owner.flatMapLatest { key -> storage.pendingCount(key).map { key to it } }
     val pending = combine(account, ownedPending) { state, data ->
@@ -179,6 +184,7 @@ data class AccountState(val user: AccountUser? = null, val syncing: Boolean = fa
         LibraryOperation(if (current.favorites.any { it.id.equals(station.id, ignoreCase = true) }) "favorite.remove" else "favorite.add", station.saved())
     }
     suspend fun heard(station: Station): Boolean = mutate { LibraryOperation("history.add", station.saved()) }
+    suspend fun setPinned(value: Boolean): Boolean = mutate { LibraryOperation("pin.set", pinned = value) }
     suspend fun clearHistory(): Boolean = mutate { LibraryOperation("history.clear") }
     private fun Station.saved() = SavedStation(id.lowercase(Locale.ROOT), name.trim().take(512), countryCode, System.currentTimeMillis())
 

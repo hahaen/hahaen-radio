@@ -68,6 +68,62 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('optional account controller', () => {
+  it('syncs pin changes automatically in both directions without replacing the guest preference', async () => {
+    vi.useFakeTimers();
+    const state = setup();
+    state.library.setPinned(true);
+    const detach = state.account.attach();
+    try {
+      await vi.advanceTimersByTimeAsync(0);
+      await state.account.authenticate('listener_alpha', 'test-only-password');
+      expect(state.library.store.getState().pinned).toBe(false);
+      state.library.setPinned(true);
+      await vi.advanceTimersByTimeAsync(400);
+      expect(state.remote().collection.pinned).toBe(true);
+      state.updateRemote({
+        revision: state.remote().revision + 1,
+        collection: { ...state.remote().collection, pinned: false },
+      });
+      await vi.advanceTimersByTimeAsync(30000);
+      expect(state.library.store.getState().pinned).toBe(false);
+      await state.account.logout();
+      expect(state.library.store.getState().pinned).toBe(true);
+      expect(JSON.parse(localStorage.getItem(LIBRARY_PREFIX + 'pinned')!).value).toBe(true);
+    } finally {
+      detach();
+    }
+  });
+  it('restores an offline pin edit after reload and preserves other-device collection changes', async () => {
+    const state = setup();
+    const detach = state.account.attach();
+    await waitFor(() => expect(state.account.store.getState().status).toBe('guest'));
+    await state.account.authenticate('listener_alpha', 'test-only-password');
+    state.offline(true);
+    state.library.setPinned(true);
+    await state.account.sync();
+    detach();
+    state.updateRemote({
+      revision: 1,
+      collection: {
+        ...emptyCollection(),
+        history: [
+          { id: testStation(5).id, name: testStation(5).name, countryCode: 'CN', savedAt: 1 },
+        ],
+      },
+    });
+    state.offline(false);
+    const library = createLibrary();
+    const account = createAccountController(library, state.request);
+    const off = account.attach();
+    try {
+      await waitFor(() => expect(account.store.getState().status).toBe('synced'));
+      expect(library.store.getState().pinned).toBe(true);
+      expect(state.remote().collection.pinned).toBe(true);
+      expect(library.store.getState().history[0]?.id).toBe(testStation(5).id);
+    } finally {
+      off();
+    }
+  });
   it('uploads edits and pulls other-device changes automatically without a manual sync', async () => {
     vi.useFakeTimers();
     const state = setup();
