@@ -1,5 +1,8 @@
 # 服务器项目目录
 
+> 当前部署已于 2026-10-25 改为[本机编译上传与 Docker 更新](../local-upload.md)；本文中 Jenkins 配置及服务器源码路径为历史说明。
+
+
 主环境文件为 `/home/hahaen/radio-prod.env`（发布身份所有、600），由 Node 显式加载。Radio 的服务器总目录统一为 `/home/hahaen/hahaen-radio/`。源码和私有配置分开，Jenkins 每次仍在专用工作区检出固定提交；不能在服务器源码副本中临时修改后绕过发布检查。
 
 | 子目录 | 用途与权限 |

@@ -2,7 +2,7 @@
 
 声屿 HAEN · 嗯，听听世界。
 
-本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，通过 Jenkins 与 Docker Compose 完成构建和部署。
+本项目采用 React、TypeScript 和 Three.js 构建浏览器应用，使用 Node.js、Fastify 和 MySQL 提供数据服务，在本机编译，经 SSH 上传产物后由 Docker Compose 部署。
 
 已完成工程初始化、真实目录管线、基础播放与夜航探索，可搜索电台、旋转地球、按流派发现并播放 MP3/AAC/HLS。电台收藏、最近收听、多维筛选、分享与文件迁移也已接入，收听设置、睡眠、快捷键和沉浸基础已接入，曲目与歌词、可选音量校准及调台音效已接入，默认关闭的识曲适配及部署材料已实现；本次按约定功能、构建运行、相关测试及无已知严重功能问题的标准完成，环境专项保留待办。证据见[目标收尾](docs/iterations/2026-10-17-goal-completion/README.md)；实际状态见[实施进度](docs/product/progress.md)。
 
@@ -17,7 +17,7 @@
 - [Android 客户端](apps/android/README.md)：开发目录与协作规范；[完整技术方案](docs/android/technical-design.md)已整理，原生工程待初始化。
 - [系统架构](docs/architecture/system-design.md)：前后端边界、访问路径与部署关系。
 - [代码目录规划](docs/architecture/repository-layout.md)：后续应用工程的目录约定。
-- [Jenkins 流水线](docs/deployment/jenkins/pipeline.md)：构建、迁移、发布与验收流程。
+- [本机上传部署](docs/deployment/local-upload.md)：本机编译、服务器 Docker 更新与最新产物保留。
 
 ## 技术基线
 
@@ -29,7 +29,7 @@
 | 后端 | Node.js 24 LTS、Fastify 5、TypeScript |
 | 数据 | MySQL 8.0.46、mysql2、Drizzle ORM、Drizzle Kit |
 | 工程 | pnpm Workspace、ESLint、Prettier、Vitest、Playwright |
-| 发布 | Jenkins、Docker、Docker Compose、Caddy 2 |
+| 发布 | 本机编译上传、Docker、Docker Compose |
 
 版本锁定和兼容性验收要求见[工程环境与依赖](docs/engineering/environment-and-dependencies.md)。
 

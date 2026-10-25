@@ -1,6 +1,9 @@
 # 部署文档
 
-确定使用自有 Jenkins 与 Docker Compose，发布由手动触发。目标主机入口已实现，见[发布执行器](releases/target-executor.md)；容器基础配置已实现，见[构建与运行](containers/local-and-image-build.md)；Jenkins 文件夹和任务已创建，服务器目录已统一，前端、API、任务三个独立入口已成功完成首次上线。具体状态见[正式部署记录](../iterations/2026-10-17-production-deployment/README.md)与[服务器项目目录](containers/server-layout.md)。
+> 当前部署已于 2026-10-25 改为[本机编译上传与 Docker 更新](local-upload.md)；本文中 Jenkins 配置及服务器源码路径为历史说明。
+
+
+当前采用[本机上传](local-upload.md)，服务器只留运行配置、最新产物及持久数据。Jenkins 已退役，旧专题仅供历史追溯。
 
 ## 部署阅读顺序
 

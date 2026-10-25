@@ -1,5 +1,8 @@
 # 部署配置目录
 
+> 当前部署已于 2026-10-25 改为[本机编译上传与 Docker 更新](../docs/deployment/local-upload.md)；本文中 Jenkins 配置及服务器源码路径为历史说明。
+
+
 状态：已实现同提交产物链、共享 Nginx 静态发布、API/jobs Compose、目标迁移与恢复入口；原生节点、隔离镜像与三个独立正式任务已验证成功，实际结果见[记录](../docs/iterations/2026-10-17-production-deployment/README.md)。每日独立副本仍需实际存储配置，未启用定时器。
 
 | 目录 | 用途 |

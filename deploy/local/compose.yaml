@@ -1,0 +1,113 @@
+name: radio
+
+x-runtime: &runtime
+  image: ${HAEN_API_IMAGE:?Set API image}
+  pull_policy: never
+  restart: unless-stopped
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: ['/tmp:size=32m,mode=1777']
+  stop_grace_period: 30s
+  logging:
+    driver: none
+  networks: [application]
+
+x-database: &database
+  NODE_ENV: production
+  DB_NAME: ha_radio
+  DB_TLS: required
+  DB_TLS_CA_PATH: /run/haen/mysql-ca.pem
+
+x-ca: &ca
+  type: bind
+  source: ${HAEN_DB_CA_FILE:?Set the trusted MySQL CA file path}
+  target: /run/haen/mysql-ca.pem
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  api:
+    container_name: radio-api
+    <<: *runtime
+    env_file:
+      - path: ${HAEN_API_ENV_FILE:?Set the private API env file path}
+        required: true
+        format: raw
+    environment:
+      <<: *database
+      HOST: 0.0.0.0
+      PORT: '3001'
+      API_DOCS_ENABLED: 'false'
+      HAEN_LOG_DIRECTORY: /var/log/haen
+    volumes:
+      - *ca
+      - recognition_state:/var/lib/haen/recognition
+      - api_logs:/var/log/haen
+    healthcheck:
+      test:
+        [
+          CMD,
+          node,
+          -e,
+          "fetch('http://127.0.0.1:3001/api/v1/health/ready',{signal:AbortSignal.timeout(5000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 8s
+      start_period: 30s
+      retries: 3
+
+  jobs:
+    container_name: radio-jobs
+    <<: *runtime
+    image: ${HAEN_JOBS_IMAGE:?Set jobs image}
+    command: [dist/entrypoints/jobs.js]
+    env_file:
+      - path: ${HAEN_JOBS_ENV_FILE:?Set the private jobs env file path}
+        required: true
+        format: raw
+    environment:
+      <<: *database
+      RECOGNITION_ENABLED: 'false'
+      HAEN_LOG_DIRECTORY: /var/log/haen
+    volumes:
+      - *ca
+      - jobs_logs:/var/log/haen
+
+  migration:
+    image: ${HAEN_MIGRATION_IMAGE:?Set the same-commit migration image}
+    pull_policy: never
+    profiles: [tools]
+    restart: 'no'
+    init: true
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: ['/tmp:size=32m,mode=1777']
+    env_file:
+      - path: ${HAEN_MIGRATION_ENV_FILE:?Set the private migration env file path}
+        required: true
+        format: raw
+    environment: *database
+    volumes: [*ca]
+    logging:
+      driver: none
+    networks: [application]
+
+networks:
+  application:
+    name: radio_application
+    external: true
+
+volumes:
+  recognition_state:
+    name: radio_recognition_state
+    external: true
+  api_logs:
+    name: radio_api_logs
+    external: true
+  jobs_logs:
+    name: radio_jobs_logs
+    external: true

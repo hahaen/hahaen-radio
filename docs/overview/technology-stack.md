@@ -74,7 +74,7 @@
 | API 集成测试 | Fastify inject、独立 MySQL 8.0.46 测试库 |
 | 浏览器测试 | Playwright |
 | 覆盖率 | Vitest V8 Coverage |
-| CI/CD | Jenkins Pipeline，手动触发发布 |
+| CI/CD | 本机验证编译、SSH 产物上传、Docker Compose 发布 |
 | 容器与编排 | Docker、Docker Compose |
 | Web 入口 | 现有 Nginx，提供静态资源、HTTPS 和反向代理；Caddy 2 仅用于隔离产物验收 |
 | 服务器基线 | Ubuntu 24.04 LTS |

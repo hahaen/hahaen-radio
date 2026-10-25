@@ -10,3 +10,6 @@ test-results/
 /.env.local
 /.env.*.local
 /.local/
+
+# Local Python deployment checks
+deploy/local/__pycache__/

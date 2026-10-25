@@ -91,6 +91,8 @@ describe('radio application entry', () => {
       withoutScene(
         vi.fn(async (input) => {
           const url = new URL(String(input), 'https://haen.test');
+          if (url.pathname.endsWith('/stations/random-china'))
+            return new Response(JSON.stringify({ station: china }));
           return url.pathname.endsWith('/stations')
             ? new Response(
                 JSON.stringify({
