@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { encodeSceneEntry } from '@haen/contracts';
+import { encodeSceneEntry, GenreSchema, StationSearchSchema } from '@haen/contracts';
 import type { CatalogManifest, StationDetail, StationSearch } from '@haen/contracts';
 import type { CatalogRepository } from './repository.js';
 import { CATALOG_CHUNK_SIZE, summaryOf } from './snapshot.js';
@@ -133,6 +133,23 @@ export function createCatalogService(repository: CatalogRepository) {
         total: data.total,
         offset: query.offset,
         limit: query.limit,
+      };
+    },
+    async randomChina(excludeIds: string[]) {
+      const version = await currentVersion();
+      const search = StationSearchSchema.parse({
+        genres: GenreSchema.options.filter((genre) => genre !== 'religious').join(','),
+        playableOnly: 'true',
+        excludeIds: excludeIds.join(','),
+      });
+      const query = { version, countryCode: 'CN', search, offset: 0, limit: 1 };
+      const first = await repository.query(query);
+      if (!first.total) return { station: null };
+      const offset = Math.floor(Math.random() * first.total);
+      const selected = offset === 0 ? first : await repository.query({ ...query, offset });
+      const station = selected.items[0] ? apply(selected.items[0]) : null;
+      return {
+        station: station?.availability === 'available' && station.streams.length ? station : null,
       };
     },
     station: stationById,

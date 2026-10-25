@@ -17,6 +17,7 @@ import xyz.hahaen.radio.domain.*
         locationPrecision, genre, languages, bitrate, availability)
 }
 @Serializable data class StreamDto(val id: String, val url: String, val hls: Boolean = false)
+@Serializable data class RandomStationResult(val station: StationDto?)
 @Serializable data class StationPage(val items: List<StationDto>, val total: Int, val offset: Int, val limit: Int)
 @Serializable data class CountDto(val id: String, val count: Int)
 @Serializable data class ChunkRef(val index: Int, val count: Int)
@@ -38,6 +39,7 @@ interface RadioApi {
         @Query("languages") languages: String? = null, @Query("minBitrate") bitrate: Int = 0,
         @Query("offset") offset: Int = 0, @Query("limit") limit: Int = 30,
         @Query("playableOnly") playable: Boolean = true, @Query("excludeIds") excludeIds: String? = null): StationPage
+    @GET("stations/random-china") suspend fun randomChina(): RandomStationResult
     @POST("stations/lookup") suspend fun lookup(@Body body: StationLookup): StationLookupResult
     @GET("stations/{id}") suspend fun station(@Path("id") id: String): StationDto
     @GET("catalog") suspend fun manifest(): ManifestDto

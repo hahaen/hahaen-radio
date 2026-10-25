@@ -34,6 +34,48 @@ afterEach(() => {
   vi.useRealTimers();
 });
 describe('playback coordination', () => {
+  it('reuses a pending initial selection on start and plays its returned streams without a detail request', async () => {
+    const detail = vi.fn(async () => testStation(9));
+    const { controller, media } = harness(detail);
+    let finish!: (station: StationDetail) => void;
+    let signal!: AbortSignal;
+    const choose = vi.fn((active: AbortSignal) => {
+      signal = active;
+      return new Promise<StationDetail>((resolve) => {
+        finish = resolve;
+      });
+    });
+    controller.setExplorer(choose);
+    const preparing = controller.prepare(choose);
+    void controller.start();
+    expect(choose).toHaveBeenCalledOnce();
+    expect(signal.aborted).toBe(false);
+    expect(controller.store.getState().intent).toBe(true);
+    finish(testStation(1));
+    await preparing;
+    expect(detail).not.toHaveBeenCalled();
+    expect(controller.store.getState().station?.id).toBe(testStation(1).id);
+    expect(media).toHaveLength(1);
+  });
+  it('honors pause while the reused initial selection is pending', async () => {
+    const { controller, media } = harness();
+    let finish!: (station: StationDetail) => void;
+    const choose = vi.fn(
+      () =>
+        new Promise<StationDetail>((resolve) => {
+          finish = resolve;
+        }),
+    );
+    controller.setExplorer(choose);
+    const preparing = controller.prepare(choose);
+    void controller.start();
+    controller.pause();
+    finish(testStation(1));
+    await preparing;
+    expect(choose).toHaveBeenCalledOnce();
+    expect(controller.store.getState().playback.status).toBe('paused');
+    expect(media).toHaveLength(0);
+  });
   it('keeps initial country selection pending when account hydration refreshes directory filters', async () => {
     const { controller, media } = harness();
     let finish!: (station: StationDetail) => void;

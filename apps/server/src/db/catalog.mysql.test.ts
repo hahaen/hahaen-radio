@@ -173,6 +173,36 @@ describe.skipIf(process.env.HAEN_MYSQL_TESTS !== '1')('MySQL 8.0.46 isolated acc
       expect(result.items[0]?.countryCode).toBe('TW');
     }
   });
+  it('selects a playable CN station directly with exclusions and live manual blocks', async () => {
+    const repository = createCatalogRepository(database);
+    const stations = ['CN', 'CN', 'GB', 'CN'].map((code, index) =>
+      normalizeStation({
+        stationuuid: `00000000-0000-4000-8000-00000000007${index}`,
+        name: '中国随机选台测试',
+        countrycode: code,
+        url: 'https://radio.example/live',
+        tags: index === 3 ? 'religious' : 'jazz',
+        lastcheckok: 1,
+      })!,
+    );
+    await synchronizeCatalog(repository, {
+      load: async () => ({ stations, sourceCount: stations.length, invalidCount: 0 }),
+    });
+    const service = createCatalogService(repository);
+    // Snapshots retain recently missing stations; exclude earlier suite fixtures explicitly.
+    const excluded = [
+      stations[0]!.id,
+      ...(await repository.registry())
+        .filter((entry) => !stations.some((station) => station.id === entry.payload.id))
+        .map((entry) => entry.payload.id),
+    ];
+    expect((await service.randomChina(excluded)).station).toEqual(stations[1]);
+    await repository.setBlocked(stations[1]!.id, true, 'isolated random selection');
+    // Query-level exclusions take effect even within the five-second metadata cache.
+    expect(await service.randomChina(excluded)).toEqual({ station: null });
+    await repository.setBlocked(stations[1]!.id, false, 'isolated random selection restored');
+    expect((await service.randomChina(excluded)).station).toEqual(stations[1]);
+  });
   it('matches canonical language filters against a published legacy snapshot', async () => {
     const repository = createCatalogRepository(database);
     const station = normalizeStation({

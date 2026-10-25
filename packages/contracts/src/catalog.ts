@@ -102,6 +102,8 @@ export const StationSearchSchema = z.object({
   offset: z.coerce.number().int().min(0).max(200000).default(0),
   limit: z.coerce.number().int().min(1).max(100).default(30),
 });
+export const RandomChinaStationQuerySchema = StationSearchSchema.pick({ excludeIds: true });
+export const RandomStationResultSchema = z.object({ station: StationDetailSchema.nullable() });
 export const StationLookupSchema = z.object({ ids: z.array(StationIdSchema).max(100) });
 export const StationLookupResultSchema = z.object({
   items: z.array(StationDetailSchema).max(100),

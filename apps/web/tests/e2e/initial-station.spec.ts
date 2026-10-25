@@ -22,11 +22,13 @@ test.beforeEach(async ({ page }) => {
   await page.route('**/api/v1/stations**', (route) => {
     const url = new URL(route.request().url());
     return route.fulfill({
-      json: url.pathname.endsWith('/stations')
-        ? { items: [abroad, china], total: 2, offset: 0, limit: 100 }
-        : url.pathname.endsWith(china.id)
-          ? china
-          : abroad,
+      json: url.pathname.endsWith('/random-china')
+        ? { station: china }
+        : url.pathname.endsWith('/stations')
+          ? { items: [abroad, china], total: 2, offset: 0, limit: 100 }
+          : url.pathname.endsWith(china.id)
+            ? china
+            : abroad,
     });
   });
 });
@@ -74,4 +76,43 @@ test('an explicit shared station overrides the initial China default and remains
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(abroad.name);
   await expect(page.getByRole('status')).toHaveAttribute('data-state', 'paused');
   await expect(page.locator('audio')).toHaveCount(0);
+});
+
+test('starting during preselection reuses one response and starts media without a detail lookup', async ({
+  page,
+}) => {
+  let finish!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  const requests: string[] = [];
+  await page.route('**/api/v1/stations**', async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    requests.push(path);
+    if (path.endsWith('/random-china')) {
+      await gate;
+      return route.fulfill({ json: { station: china } }).catch(() => {});
+    }
+    return route.fulfill({ json: { items: [china], total: 1, offset: 0, limit: 30 } });
+  });
+  await page.route('https://media.haen.test/**', async (route) =>
+    route.fulfill({
+      body: await readFile(new URL('../fixtures/audio/tone.mp3', import.meta.url)),
+      contentType: 'audio/mpeg',
+    }),
+  );
+  await page.goto('/');
+  await expect
+    .poll(() => requests.filter((path) => path.endsWith('/random-china')).length)
+    .toBeGreaterThan(0);
+  const beforeStart = requests.filter((path) => path.endsWith('/random-china')).length;
+  await page.getByRole('button', { name: '开始收听', exact: true }).click();
+  finish();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(china.name);
+  await expect(page.getByRole('status')).toHaveAttribute('data-state', 'playing');
+  expect(requests.filter((path) => path.endsWith('/random-china'))).toHaveLength(beforeStart);
+  expect(requests.some((path) => path.endsWith(china.id))).toBe(false);
+  await expect
+    .poll(() => page.locator('audio').evaluate((el) => (el as HTMLAudioElement).currentTime))
+    .toBeGreaterThan(0.1);
 });

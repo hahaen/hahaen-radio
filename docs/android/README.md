@@ -1,6 +1,6 @@
 # Android 客户端文档
 
-Android 当前安装包为 0.1.1 / versionCode 7，图钉即时反馈修复与原机回归见[任务记录](../iterations/2026-10-25-account-pin-sync/README.md#android-图钉状态即时刷新修复2026-10-25)。
+Android 当前源码版本为 0.1.2 / versionCode 8，首次选台单次请求及安装包验证见[起播优化记录](../iterations/2026-10-25-initial-playback-latency/README.md)。此前图钉即时反馈修复与原机回归见[任务记录](../iterations/2026-10-25-account-pin-sync/README.md#android-图钉状态即时刷新修复2026-10-25)。
 
 Android 客户端采用 Kotlin 原生路线，目标是延续声屿手机网页的夜航设计与收听体验，并由原生服务承载后台音频。
 

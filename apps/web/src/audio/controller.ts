@@ -1,5 +1,10 @@
 import { createStore } from 'zustand/vanilla';
-import { StationIdSchema, type StationDetail, type StationPreview } from '@haen/contracts';
+import {
+  StationDetailSchema,
+  StationIdSchema,
+  type StationDetail,
+  type StationPreview,
+} from '@haen/contracts';
 import { AudioEngine, type PlaybackSnapshot } from './engine';
 import { getStation } from '../services/catalog';
 import { HttpError } from '../services/http';
@@ -124,6 +129,7 @@ export function createPlayerController(
     autoplay: boolean,
     automatic: boolean,
     station: StationPreview | null,
+    resolvedDetail?: StationDetail,
   ) {
     if (!engine) return;
     if (autoplay) engine.activateAudio();
@@ -150,7 +156,7 @@ export function createPlayerController(
       return;
     }
     try {
-      const detail = await (options.station ?? getStation)(id, signal);
+      const detail = resolvedDetail ?? (await (options.station ?? getStation)(id, signal));
       if (signal.aborted || selectedToken !== token || !engine) return;
       store.setState({
         station: detail,
@@ -207,7 +213,14 @@ export function createPlayerController(
         store.setState({ resolving: false, requestFailure: 'empty' });
         return;
       }
-      await select(station, wantsPlayback, automatic);
+      const detail = StationDetailSchema.safeParse(station);
+      await resolveStation(
+        station.id,
+        wantsPlayback,
+        automatic,
+        station,
+        detail.success ? detail.data : undefined,
+      );
     } catch {
       if (selectedToken === token && !signal.aborted)
         store.setState({ resolving: false, requestFailure: 'network' });
@@ -276,7 +289,16 @@ export function createPlayerController(
     invalidateSelection,
     next: () => explore(wantsPlayback || !store.getState().station),
     prepare: (scope?: Explorer) => explore(false, false, scope),
-    start: () => explore(true),
+    async start() {
+      if (store.getState().resolving) {
+        invalidateSelection();
+        wantsPlayback = true;
+        engine?.activateAudio();
+        store.setState({ intent: true, requestFailure: null });
+        return;
+      }
+      await explore(true);
+    },
     previous() {
       const index = visits[cursor]?.id === targetId ? cursor - 1 : cursor;
       const visit = visits[index];

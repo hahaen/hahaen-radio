@@ -6,49 +6,26 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 describe('catalogue selection scope', () => {
-  it('chooses China by region code across all pages, excluding unavailable and unrelated matches', async () => {
-    const offsets: number[] = [];
+  it('gets a random China station with streams in one request without downloading pages', async () => {
     const china = { ...testStation(101), countryCode: 'CN' };
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (input: string) => {
-        const url = new URL(input, 'https://haen.test');
-        const offset = Number(url.searchParams.get('offset'));
-        offsets.push(offset);
-        expect(url.searchParams.get('q')).toBe('中国');
-        expect(url.searchParams.get('limit')).toBe('100');
-        expect(url.searchParams.get('playableOnly')).toBe('true');
-        const items =
-          offset === 0
-            ? Array.from({ length: 100 }, (_, i) => ({
-                ...testStation(i + 1),
-                name: '中国之声 abroad',
-              }))
-            : [
-                china,
-                { ...testStation(102), countryCode: 'CN', availability: 'blocked' },
-                { ...testStation(103), countryCode: 'CN', genre: 'religious' },
-                { ...testStation(104), countryCode: 'CN' },
-              ];
-        return new Response(JSON.stringify({ items, total: 104, offset, limit: 100 }));
-      }),
+    const fetcher = vi.fn(async (input: string) => {
+      const url = new URL(input, 'https://haen.test');
+      expect(url.pathname).toBe('/api/v1/stations/random-china');
+      expect(url.searchParams.get('excludeIds')).toBe(testStation(104).id);
+      expect(url.searchParams.has('offset')).toBe(false);
+      return new Response(JSON.stringify({ station: china }));
+    });
+    vi.stubGlobal('fetch', fetcher);
+    expect(await randomChinaStation(new AbortController().signal, [testStation(104).id])).toEqual(
+      china,
     );
-    expect(
-      await randomChinaStation(new AbortController().signal, [testStation(104).id]),
-    ).toMatchObject({ id: china.id, countryCode: 'CN' });
-    expect(offsets).toEqual([0, 100]);
+    expect(fetcher).toHaveBeenCalledOnce();
   });
   it('does not fall back abroad when China has no eligible stations', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            JSON.stringify({ items: [testStation(1)], total: 1, offset: 0, limit: 100 }),
-          ),
-      ),
-    );
+    const fetcher = vi.fn(async () => new Response(JSON.stringify({ station: null })));
+    vi.stubGlobal('fetch', fetcher);
     expect(await randomChinaStation(new AbortController().signal)).toBeNull();
+    expect(fetcher).toHaveBeenCalledOnce();
   });
   it('selects across the full filtered result while excluding failed stations', async () => {
     const offsets: number[] = [];

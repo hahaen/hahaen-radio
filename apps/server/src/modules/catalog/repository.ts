@@ -35,6 +35,7 @@ export interface CatalogQuery {
   ids?: string[];
   search?: StationSearch;
   sameCity?: { city: string; countryCode: string };
+  countryCode?: string;
 }
 const jsonText = (field: 'name' | 'region' | 'city' | 'nearbyCity' | 'countryCode' | 'genre') =>
   sql<string>`COALESCE(NULLIF(JSON_UNQUOTE(JSON_EXTRACT(${catalogEntries.payload}, ${`$.${field}`})), 'null'), '')`;
@@ -373,6 +374,7 @@ export function createCatalogRepository(database: Database): CatalogRepository {
       database.run(async (session) => {
         const filters = [eq(catalogEntries.versionId, input.version)];
         if (input.ids) filters.push(inArray(catalogEntries.stationId, input.ids));
+        if (input.countryCode) filters.push(eq(jsonText('countryCode'), input.countryCode));
         if (input.sameCity)
           filters.push(
             eq(jsonText('city'), input.sameCity.city),

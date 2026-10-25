@@ -8,6 +8,8 @@ import {
   SceneManifestSchema,
   SceneChunkSchema,
   ReadinessSchema,
+  RandomChinaStationQuerySchema,
+  RandomStationResultSchema,
   StationDetailSchema,
   StationIdSchema,
   StationLookupResultSchema,
@@ -99,6 +101,17 @@ export function registerCatalogRoutes(app: FastifyInstance, service?: CatalogSer
       },
     },
     (request) => available().lookup(request.body.ids),
+  );
+  routes.get(
+    '/api/v1/stations/random-china',
+    {
+      schema: {
+        tags: ['stations'],
+        querystring: RandomChinaStationQuerySchema,
+        response: { 200: RandomStationResultSchema, ...errors },
+      },
+    },
+    (request) => available().randomChina(request.query.excludeIds),
   );
   routes.get(
     '/api/v1/stations/:id',

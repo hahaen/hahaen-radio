@@ -10,6 +10,7 @@
 | `GET /catalog/:version/chunks/:index` | 不含播放地址的场景摘要，每片最多 1000 条；版本或分片不存在时 404 |
 | `GET /stations` | 分页搜索与筛选 |
 | `POST /stations/lookup` | `{ "ids": [...] }`，最多 100 个 UUID；去重返回详情及 missing ID |
+| `GET /stations/random-china` | 从可用、非宗教的 `CN` 电台中随机返回一台完整详情及线路；无候选返回 `{ "station": null }` |
 | `GET /stations/:id` | 电台详情、可靠的位置字段和线路 |
 | `GET /stations/:id/streams` | 最多 3 条播放候选；已屏蔽或不可用时返回空数组 |
 | `GET /stations/:id/same-city` | 仅在有可靠城市与国家时返回同城列表；不把未知城市归为同城 |
@@ -31,6 +32,12 @@
 ```
 
 收藏筛选由浏览器使用同一契约数据和本地收藏集合处理，不上传个人收藏。不足城市或时区证据的字段返回 null。
+
+## 首次随机选台
+
+`GET /stations/random-china` 接受与列表相同的 `excludeIds` 参数（最多 32 个 UUID），返回 `{ "station": StationDetail | null }`。服务端按真实 `countryCode = CN`、可播放条件、非宗教分类和排除 ID 筛选，在同一目录版本的全部合格候选中随机选取，使用现有查询获取总数与一个随机偏移，不下载完整列表或探测外部音源。人工屏蔽参与查询；无候选时不回退境外电台。返回线路只代表目录判定可用，不保证当前设备即时出声。
+
+网页与 Android 用此接口静默预选，点击播放才连接音频；正在进行的预选不会因点击播放而重新发起，接口返回的详情直接用于起播。分享与上次电台仍优先。新接口为增量能力，旧列表及详情接口不变；发布顺序为 `radio-api`、`radio-frontend`，Android 使用新包。无需数据库迁移或 `radio-jobs` 更新。实现与验证见[首次起播优化](../../iterations/2026-10-25-initial-playback-latency/README.md)。
 
 ## 错误与边界
 

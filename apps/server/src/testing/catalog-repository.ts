@@ -5,6 +5,7 @@ import type { CatalogSnapshot } from '../modules/catalog/snapshot.js';
 
 // Test fixture only: persistence and transaction correctness require the MySQL suite.
 export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
+  const overrides = vi.fn(async () => new Set<string>());
   return {
     enrich: vi.fn(async (stations: StationDetail[]) => stations),
     acquire: vi.fn(async () => '00000000-0000-4000-8000-000000000099'),
@@ -38,6 +39,7 @@ export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
     ),
     hasVersion: vi.fn(async (version: string) => snapshot?.manifest.version === version),
     query: vi.fn(async (input) => {
+      const blocked = input.search?.playableOnly ? await overrides() : new Set<string>();
       const fold = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
       const matches =
         snapshot && snapshot.manifest.version === input.version
@@ -51,12 +53,15 @@ export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
                     station.countryCode !== input.sameCity.countryCode)
                 )
                   return false;
+                if (input.countryCode && station.countryCode !== input.countryCode) return false;
                 const query = input.search;
                 if (!query) return true;
                 if (query.excludeIds.includes(station.id)) return false;
                 if (
                   query.playableOnly &&
-                  (station.availability !== 'available' || !station.streams.length)
+                  (station.availability !== 'available' ||
+                    !station.streams.length ||
+                    blocked.has(station.id))
                 )
                   return false;
                 return (
@@ -87,7 +92,7 @@ export function testRepository(snapshot?: CatalogSnapshot): CatalogRepository {
         items: matches.slice(input.offset, input.offset + input.limit),
       };
     }),
-    overrides: vi.fn(async () => new Set<string>()),
+    overrides,
     setBlocked: vi.fn(async () => {}),
   };
 }

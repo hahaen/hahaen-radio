@@ -1,5 +1,7 @@
 # 任务归档
 
+网页与 Android [首次起播等待优化](2026-10-25-initial-playback-latency/README.md)。
+
 电脑网页、手机网页与 Android 的[固定电台开关账号同步与安卓即时反馈修复](2026-10-25-account-pin-sync/README.md)。
 
 诊断报告路由测试的固定时钟修复见[验证记录](2026-10-17-playback-diagnostics/README.md#路由测试时钟修复2026-10-24)。

@@ -112,6 +112,7 @@ export async function install(page: Page, scene = true) {
   await page.route('**/api/v1/stations**', async (route) => {
     const url = new URL(route.request().url()),
       current = stations();
+    if (url.pathname.endsWith('/random-china')) return route.fulfill({ json: { station: null } });
     if (url.pathname.endsWith('/lookup')) {
       if (lookupFailed)
         return route.fulfill({

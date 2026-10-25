@@ -307,6 +307,7 @@ class LibraryRepositoryTest {
         override suspend fun library(userId: String) = onLibrary(userId)
         override suspend fun saveLibrary(body: SaveLibrary) = onSave(body)
         override suspend fun stations(q: String, genres: String?, languages: String?, bitrate: Int, offset: Int, limit: Int, playable: Boolean, excludeIds: String?): StationPage = error("Not used")
+        override suspend fun randomChina(): RandomStationResult = error("Not used")
         override suspend fun station(id: String): StationDto = error("Not used")
         override suspend fun manifest(): ManifestDto = error("Not used")
         override suspend fun sceneManifest(): ManifestDto = error("Not used")

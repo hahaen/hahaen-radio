@@ -22,28 +22,33 @@ class InitialStationTest {
         .client(OkHttpClient.Builder().retryOnConnectionFailure(false).build())
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType())).build().create(RadioApi::class.java)
 
-    @Test fun scansAllCountrySearchPagesAndChecksActualCountryAndAvailability() = runBlocking {
+    @Test fun readsAChinaStationAndStreamsInOneRequest() = runBlocking {
         MockWebServer().use { server ->
-            val china = station(101)
-            server.enqueue(MockResponse().setBody(json.encodeToString(StationPage((1..100).map { station(it, "GB") }, 103, 0, 100))))
-            server.enqueue(MockResponse().setBody(json.encodeToString(StationPage(listOf(china, station(102, availability = "blocked"), station(103, genre = "religious")), 103, 100, 100))))
-            assertEquals(china.model(), randomChinaStation(api(server)))
-            assertEquals(2, server.requestCount)
-            for (offset in listOf("0", "100")) {
-                val url = server.takeRequest().requestUrl!!
-                assertEquals("中国", url.queryParameter("q"))
-                assertEquals(offset, url.queryParameter("offset"))
-                assertEquals("100", url.queryParameter("limit"))
-                assertEquals("true", url.queryParameter("playableOnly"))
-            }
+            val china = station(101).copy(streams = listOf(StreamDto("1".repeat(24), "https://radio.example/live.mp3")))
+            server.enqueue(MockResponse().setBody(json.encodeToString(RandomStationResult(china))))
+            assertEquals(china, randomChinaStation(api(server)))
+            assertEquals(1, server.requestCount)
+            assertEquals("/radio/api/v1/stations/random-china", server.takeRequest().path)
         }
     }
 
-    @Test fun neverFallsBackAbroadWhenNoChinaStationIsAvailable() = runBlocking {
+    @Test fun neverFallsBackWhenNoChinaStationIsAvailable() = runBlocking {
         MockWebServer().use { server ->
-            server.enqueue(MockResponse().setBody(json.encodeToString(StationPage(listOf(station(1, "GB")), 1, 0, 100))))
+            server.enqueue(MockResponse().setBody(json.encodeToString(RandomStationResult(null))))
             assertEquals("NO_STATIONS", runCatching { randomChinaStation(api(server)) }.exceptionOrNull()?.message)
             assertEquals(1, server.requestCount)
+        }
+    }
+
+    @Test fun rejectsForeignBlockedReligiousAndEmptyCandidatesWithoutExtraRequests() = runBlocking {
+        MockWebServer().use { server ->
+            val valid = station(1).copy(streams = listOf(StreamDto("1".repeat(24), "https://radio.example/live.mp3")))
+            for (candidate in listOf(valid.copy(countryCode = "GB"), valid.copy(availability = "blocked"),
+                valid.copy(genre = "religious"), valid.copy(streams = emptyList()))) {
+                server.enqueue(MockResponse().setBody(json.encodeToString(RandomStationResult(candidate))))
+                assertEquals("NO_STATIONS", runCatching { randomChinaStation(api(server)) }.exceptionOrNull()?.message)
+            }
+            assertEquals(4, server.requestCount)
         }
     }
 }

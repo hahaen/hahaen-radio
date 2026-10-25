@@ -27,6 +27,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import xyz.hahaen.radio.app.MainActivity
 import xyz.hahaen.radio.R
 import xyz.hahaen.radio.data.local.Preferences
+import xyz.hahaen.radio.data.remote.StationDto
 import xyz.hahaen.radio.data.remote.StreamDto
 import xyz.hahaen.radio.data.repository.CatalogRepository
 import xyz.hahaen.radio.data.repository.LibraryRepository
@@ -45,6 +46,8 @@ import javax.inject.Inject
     private var session: MediaSession? = null
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var resolving: Job? = null
+    private var preparingInitial = false
+    private var preparedDetail: StationDto? = null
     private val watchdog = PlaybackStallWatchdog(scope) { if (shouldWatchForStall()) failedLine() }
     private var sleepJob: Job? = null
     private var generation = 0L
@@ -145,10 +148,16 @@ import javax.inject.Inject
         updateWatchdog()
     }
     private fun pausePlayback() {
-        intent = false; generation++; resolving?.cancel(); resolving = null; watchdog.cancel()
+        intent = false; generation++; resolving?.cancel(); resolving = null; preparingInitial = false; watchdog.cancel()
         player.pause(); publish()
     }
     private fun resume() {
+        if (preparingInitial && resolving?.isActive == true) {
+            intent = true
+            pendingItem = pendingMediaItem("haen:initial", null)
+            publish()
+            return
+        }
         if (intent && (resolving?.isActive == true || player.playWhenReady)) return
         if (requestedRandomStation) { recoveryStations = 0; nextStation(); return }
         val id = requestedStationId ?: connection.requestedStationId ?: connection.state.value.station?.id
@@ -159,7 +168,9 @@ import javax.inject.Inject
         }
         intent = true; connection.mutable.update { it.copy(error = null) }; player.play(); publish()
     }
-    private fun select(id: String, rememberPrevious: Boolean = true) {
+    private fun select(id: String, rememberPrevious: Boolean = true, ready: StationDto? = null) {
+        val prepared = ready ?: preparedDetail?.takeIf { it.id == id }
+        preparedDetail = null
         val old = connection.state.value.station
         if (rememberPrevious && old != null && old.id != id) { previous.addLast(old.id); if (previous.size > 100) previous.removeFirst() }
         pausePlayback()
@@ -171,9 +182,9 @@ import javax.inject.Inject
         switching = true; player.stop(); player.clearMediaItems(); switching = false
         connection.mutable.update { it.copy(connecting = true, error = null, playing = false) }
         publish()
-        resolving = scope.launch {
+        resolving = scope.launch(start = CoroutineStart.LAZY) {
             try {
-                val detail = catalog.station(id)
+                val detail = prepared ?: catalog.station(id)
                 ensureActive()
                 if (generation != expected || !intent) return@launch
                 streams = detail.streams.filter { it.url.toHttpUrlOrNull()?.let { url -> url.isHttps && url.username.isEmpty() && url.password.isEmpty() } == true }.take(3)
@@ -183,6 +194,7 @@ import javax.inject.Inject
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { if (generation == expected) fail("network") }
         }
+        resolving?.start()
     }
     private fun startLine() {
         if (!intent) return
@@ -214,6 +226,7 @@ import javax.inject.Inject
     private fun prepareInitialStation() {
         if (connection.state.value.station != null || resolving != null || requestedStationId != null || intent) return
         val expected = generation
+        preparingInitial = true
         resolving = scope.launch {
             try {
                 val station = catalog.randomChina()
@@ -221,8 +234,13 @@ import javax.inject.Inject
                 if (expected != generation) return@launch
                 requestedStationId = station.id; connection.requestedStationId = station.id
                 resolving = null
-                connection.mutable.update { it.copy(station = station, error = null) }
-                publish()
+                preparingInitial = false
+                if (intent) select(station.id, ready = station)
+                else {
+                    preparedDetail = station
+                    connection.mutable.update { it.copy(station = station.model(), error = null) }
+                    publish()
+                }
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { if (expected == generation) { resolving = null; fail("network") } }
         }
@@ -237,7 +255,12 @@ import javax.inject.Inject
         connection.mutable.update { it.copy(connecting = true, error = null) }
         publish()
         resolving = scope.launch {
-            try { val station = if (connection.state.value.station == null) catalog.randomChina() else catalog.random(connection.state.value.station?.id); ensureActive(); if (expected == generation && intent) { resolving = null; select(station.id) } }
+            try {
+                val initial = if (connection.state.value.station == null) catalog.randomChina() else null
+                val station = initial?.model() ?: catalog.random(connection.state.value.station?.id)
+                ensureActive()
+                if (expected == generation && intent) { resolving = null; select(station.id, ready = initial) }
+            }
             catch (cancelled: CancellationException) { throw cancelled }
             catch (_: Exception) { if (expected == generation) fail("network") }
         }
