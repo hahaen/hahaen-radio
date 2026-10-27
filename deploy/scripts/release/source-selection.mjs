@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { command, outputDirectory, revisionPattern, save } from './common.mjs';
 
-assert.equal(process.version, 'v24.9.0');
+assert.equal(process.version, 'v24.22.1');
 const branch = process.env.HAEN_SOURCE_BRANCH;
 assert(typeof branch === 'string' && /^[A-Za-z0-9][A-Za-z0-9._/-]{0,127}$/.test(branch));
 await command('git', ['check-ref-format', 'refs/heads/' + branch]);

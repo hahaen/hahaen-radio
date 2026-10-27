@@ -79,7 +79,7 @@ export async function checkedDeployEnvironment(path, previousWorkspace) {
   );
 }
 export async function handoff(stage, env) {
-  assert.equal(process.version, 'v24.9.0');
+  assert.equal(process.version, 'v24.22.1');
   const directory = await outputDirectory();
   if (stage === 'prepare-target') {
     assert(env.CI === 'true');

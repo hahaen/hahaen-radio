@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { targetConfiguration } from '../target.mjs';
 
 export async function targetPlan(env) {
-  assert.equal(process.version, 'v24.9.0');
+  assert.equal(process.version, 'v24.22.1');
   assert.equal(env.CI, 'true');
   assert.equal(env.HAEN_CI_DEPLOY, 'true');
   const { readDatabaseConfig, databaseTargetFingerprint } =

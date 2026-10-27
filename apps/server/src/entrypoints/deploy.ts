@@ -11,7 +11,7 @@ const cancel = () => controller.abort();
 process.once('SIGTERM', cancel);
 process.once('SIGINT', cancel);
 try {
-  if (process.platform !== 'linux' || process.version !== 'v24.9.0')
+  if (process.platform !== 'linux' || process.version !== 'v24.22.1')
     throw Error('Unsupported target');
   const lock = lstatSync(lockPath),
     parent = lstatSync('/var/lib/haen-maintenance');

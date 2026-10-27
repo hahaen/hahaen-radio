@@ -98,7 +98,7 @@ async function storedMigrationStatus(run, config, schema) {
   return result;
 }
 export async function planComponent(env) {
-  assert.equal(process.version, 'v24.9.0');
+  assert.equal(process.version, 'v24.22.1');
   assert.equal(env.CI, 'true');
   const source = await sourceDescriptor(env),
     { config, readDatabaseConfig } = await configuration(env),
@@ -119,7 +119,7 @@ export async function planComponent(env) {
 }
 export async function executeComponentTarget(env, signal, database, targetFingerprint) {
   assert.equal(process.platform, 'linux');
-  assert.equal(process.version, 'v24.9.0');
+  assert.equal(process.version, 'v24.22.1');
   const { config, readDatabaseConfig, fingerprint } = await configuration(env, database);
   assert.equal(fingerprint, targetFingerprint);
   const action = env.HAEN_DEPLOY_ACTION || 'apply',

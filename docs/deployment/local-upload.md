@@ -20,9 +20,11 @@ python3 deploy/local/release.py frontend
 python3 deploy/local/release.py all --build-only
 ```
 
-需要固定 Node.js 24.9.0、pnpm 12.5.1、Python 3.9+、可访问生产目标的 `hahaen-server` SSH 别名与已校验主机密钥；可用 `--host` 指定另一已配置目标。本机不需要 Docker。先提交跟踪文件改动，再构建发布，使 revision 与源码一致。新克隆仅配置 GitHub upstream，不添加 Gitee remote 或镜像同步。
+需要固定 Node.js 24.22.1、pnpm 12.5.1、Python 3.9+、可访问生产目标的 `hahaen-server` SSH 别名与已校验主机密钥；可用 `--host` 指定另一已配置目标。本机不需要 Docker。先提交跟踪文件改动，再构建发布，使 revision 与源码一致。新克隆仅配置 GitHub upstream，不添加 Gitee remote 或镜像同步。
 
 本机依次验证相关应用的类型、单元测试、编译及前端体积限制。后端用锁文件生成仅运行依赖的 portable 包，扫描越界链接、密钥、环境文件及原生二进制；若将来引入平台相关依赖，发布会明确失败，届时必须改用匹配 Linux/amd64 的构建环境，不能复制 macOS 原生库。上传包只包含编译后服务、依赖、迁移材料、网页和运行配置模板，带 SHA-256 校验；上传和解压临时目录结束即删除。
+
+2026-10-27 将固定 Node.js 基线从 24.9.0 升级为 24.22.1，运行镜像固定官方多平台摘要。此变更需发布 `all`，更新 API、后台任务及同一提交构建的前端；不涉及数据库迁移。安全修复范围见 [Node.js 官方公告](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)。
 
 ## 服务器配置
 

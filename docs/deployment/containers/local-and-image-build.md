@@ -4,7 +4,7 @@
 
 ## 构建与包边界
 
-同一审核提交构建三个不可变目标：`server` 使用固定 Node.js 24.9.0 Debian slim 和 pnpm 12.5.1，携带生产依赖与编译文件；`migration` 携带固定 Drizzle Kit、Schema、SQL 和元数据；`web` 携带前端公开文件和仅用于隔离验收的 Caddy。基础镜像固定摘要，构建依赖冻结安装，凭据不使用 ARG，不 COPY 私有配置。
+同一审核提交构建三个不可变目标：`server` 使用固定 Node.js 24.22.1 Debian slim 和 pnpm 12.5.1，携带生产依赖与编译文件；`migration` 携带固定 Drizzle Kit、Schema、SQL 和元数据；`web` 携带前端公开文件和仅用于隔离验收的 Caddy。基础镜像固定摘要，构建依赖冻结安装，凭据不使用 ARG，不 COPY 私有配置。
 
 `server` 默认运行 API，任务使用同一镜像的 `dist/entrypoints/jobs.js`。迁移只在 tools profile 中单次执行，不随应用启动建表。前端产物镜像正式只提取文件，不作为常驻容器启动；目标执行器记录镜像与文件摘要，原子切换静态版本，详见[执行器](../releases/target-executor.md)。
 

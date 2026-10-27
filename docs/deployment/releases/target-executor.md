@@ -4,7 +4,7 @@
 
 ## 固定运行条件
 
-Ubuntu 24.04、Node.js 24.9.0、pnpm 12.5.1、本机 Linux Docker socket、Compose ≥2.30、现有 MySQL 8.0.46。在审核通过的完整源码树冻结安装后，通过 `node --env-file=/home/hahaen/radio-prod.env --import tsx apps/server/src/entrypoints/deploy.ts` 进入；生产应用本身仍运行编译后的 JavaScript。不能从裁剪后的 API 镜像或仅含备份工具的目录运行发布入口。
+Ubuntu 24.04、Node.js 24.22.1、pnpm 12.5.1、本机 Linux Docker socket、Compose ≥2.30、现有 MySQL 8.0.46。在审核通过的完整源码树冻结安装后，通过 `node --env-file=/home/hahaen/radio-prod.env --import tsx apps/server/src/entrypoints/deploy.ts` 进入；生产应用本身仍运行编译后的 JavaScript。不能从裁剪后的 API 镜像或仅含备份工具的目录运行发布入口。
 
 `HAEN_RELEASE_FILE` 为本机私有组件发布 JSON，发布身份所有、600；CI 同时验证其批准摘要及目标上下文。来源权限由受控 Jenkins 交接保证，同形 JSON 不代表已验收产物。所有新发布镜像固定服务器本地不可变 image ID，交接须核对同一 Docker 引擎；运行后核对实际 image ID 和 revision。Compose 禁止拉取或隐式构建，缺失镜像在维护前拒绝。
 

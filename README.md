@@ -51,7 +51,7 @@
 
 ## 本地开发
 
-使用 `.nvmrc` 中的 Node.js 24.9.0 和 `packageManager` 指定的 pnpm 12.5.1。
+使用 `.nvmrc` 中的 Node.js 24.22.1 和 `packageManager` 指定的 pnpm 12.5.1。
 
 ```bash
 pnpm install --frozen-lockfile

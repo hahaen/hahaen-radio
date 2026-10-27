@@ -55,7 +55,7 @@ ViewModel、分层和 Compose 的设计依据见 [Android 架构建议](https://
 
 依据 [AGP 9.1 兼容说明](https://developer.android.com/build/releases/agp-9-1-0-release-notes)选择 Gradle 9.3.1、JDK 17 和 Build Tools 36.0.0。具体插件和依赖集中在 `gradle/libs.versions.toml`，Compose 使用 BOM，Media3 模块版本一致；不使用动态版本。Wrapper 固定分发 SHA-256，应用与构建设置的解析结果写入 Gradle 锁文件。
 
-Android 构建由 Gradle 管理；图形使用根仓库固定的 Node.js 24.9.0、pnpm 12.5.1 和 `pnpm-lock.yaml`。SDK 从本机 `local.properties` 或显式 `ANDROID_HOME` 读取，文件被排除。公开 API 地址由模块 `BuildConfig.API_BASE_URL` 编译注入，当前指向第一方 HTTPS `/radio/api/v1/`；本应用不读取根目录服务端 `.env.local`，不携带数据库或部署凭据。
+Android 构建由 Gradle 管理；图形使用根仓库固定的 Node.js 24.22.1、pnpm 12.5.1 和 `pnpm-lock.yaml`。SDK 从本机 `local.properties` 或显式 `ANDROID_HOME` 读取，文件被排除。公开 API 地址由模块 `BuildConfig.API_BASE_URL` 编译注入，当前指向第一方 HTTPS `/radio/api/v1/`；本应用不读取根目录服务端 `.env.local`，不携带数据库或部署凭据。
 
 当前提供 Debug 与独立正式签名 Release 构建；Debug 使用本机 Android debug key，Release 显式读取私有签名配置。覆盖升级依赖相同应用 ID、相同签名和递增 versionCode；Debug 与 Release 签名不同，不能直接覆盖，不得通过卸载应用替代升级验收。商店分发未接入，Release 产物与验证见 [Android 导航](README.md#正式-release-交付)，构建、安装及升级命令见 [应用说明](../../apps/android/README.md)。
 

@@ -59,7 +59,7 @@ CI 安装使用 `pnpm install --frozen-lockfile`。数据库命令的配置和�
 
 ## 当前固定组合
 
-工程初始化固定 Node.js 24.9.0、pnpm 12.5.1、TypeScript 6.0.3、ESLint 10.12.0 与 typescript-eslint 8.71.2；前端使用 React 19.3.1、Vite 8.3.4，后端使用 Fastify 5.12.7、Zod 4.6.7 和 fastify-type-provider-zod 7.0.0。所有实际直接依赖以各包清单和锁文件为准。
+当前工程固定 Node.js 24.22.1、pnpm 12.5.1、TypeScript 6.0.3、ESLint 10.12.0 与 typescript-eslint 8.71.2；前端使用 React 19.3.1、Vite 8.3.4，后端使用 Fastify 5.12.7、Zod 4.6.7 和 fastify-type-provider-zod 7.0.0。所有实际直接依赖以各包清单和锁文件为准。
 
 pnpm 配置集中在 `pnpm-workspace.yaml`，启用严格引擎与 Peer 检查，保留至少一天的发布冷却时间，当前仅允许 esbuild 执行依赖构建脚本。没有降低检查或批量放行未知脚本。
 

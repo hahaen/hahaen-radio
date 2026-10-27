@@ -1,4 +1,4 @@
-FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS dependencies
+FROM node:24.22.1-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS dependencies
 WORKDIR /work
 RUN npm install --global pnpm@12.5.1
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -20,7 +20,7 @@ RUN pnpm --filter @haen/contracts build && pnpm --filter @haen/web build && pnpm
 FROM server-build AS portable
 RUN pnpm --filter @haen/server --prod deploy /out/server
 
-FROM node:24.9.0-bookworm-slim@sha256:3e69116c924bfcba6c6979aff60d966c37aef56d488ce091c69d442ebec9f103 AS server
+FROM node:24.22.1-bookworm-slim@sha256:55fb5f5a527ea2c5c4a95f963e48ef90aa38c7b346054fdc8ee9957a2b55d205 AS server
 ARG VCS_REF=local
 ARG BUILD_NUMBER=local
 LABEL org.opencontainers.image.version="$VCS_REF-$BUILD_NUMBER"

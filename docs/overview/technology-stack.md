@@ -50,7 +50,7 @@
 
 | 范畴 | 选型 | 约定 |
 | --- | --- | --- |
-| 运行时 | Node.js 24 LTS | 开发、CI、生产统一版本 |
+| 运行时 | Node.js 24.22.1 LTS | 开发、CI、生产统一固定版本，包含 2026-10-21 安全修复 |
 | 语言与模块 | TypeScript、ES Modules | 明确共享包与服务端边界 |
 | HTTP 服务 | Fastify 5 | REST API |
 | 契约校验 | Zod、兼容的 Fastify 类型适配器 | 统一请求与响应约束 |

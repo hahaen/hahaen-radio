@@ -4,7 +4,7 @@
 
 ## 工具与身份
 
-工具运行于具备固定 Node.js 24.9.0 与 MySQL 8.0.46 `mysqldump`、`mysql` 客户端的受控运维节点，不在 API 镜像中安装客户端。根命令通过 tsx 运行源码；已构建的独立服务端包可直接运行 `node dist/entrypoints/backup.js ...`，不重建正在运行的共享包。
+工具运行于具备固定 Node.js 24.22.1 与 MySQL 8.0.46 `mysqldump`、`mysql` 客户端的受控运维节点，不在 API 镜像中安装客户端。根命令通过 tsx 运行源码；已构建的独立服务端包可直接运行 `node dist/entrypoints/backup.js ...`，不重建正在运行的共享包。
 
 私有配置分别为 `.env.backup.local` 与 `.env.restore.local`，均应先确认已被 Git 排除、未跟踪，权限 600。以根 `.env.example` 的空值模板填写所需变量；命令显式加载对应文件，创建文件本身不会生效。生产运维节点可直接注入环境或显式使用 Node 的 `--env-file`。
 

@@ -4,7 +4,7 @@
 
 ## 安装与检查
 
-准备.nvmrc指定的Node.js 24.9.0和packageManager指定的pnpm 12.5.1，先核对实际版本，再执行：
+准备.nvmrc指定的Node.js 24.22.1和packageManager指定的pnpm 12.5.1，先核对实际版本，再执行：
 
 ```sh
 node --version

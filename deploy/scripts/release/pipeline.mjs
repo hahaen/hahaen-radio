@@ -12,7 +12,7 @@ import {
 import { smokeImages } from './smoke.mjs';
 
 export async function execute(stage, env, signal) {
-  assert.equal(process.version, 'v24.9.0');
+  assert.equal(process.version, 'v24.22.1');
   assert.equal(env.CI, 'true');
   const directory = await outputDirectory();
   if (stage === 'build') {
