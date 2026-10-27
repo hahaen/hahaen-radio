@@ -63,6 +63,8 @@ CI 安装使用 `pnpm install --frozen-lockfile`。数据库命令的配置和�
 
 pnpm 配置集中在 `pnpm-workspace.yaml`，启用严格引擎与 Peer 检查，保留至少一天的发布冷却时间，当前仅允许 esbuild 执行依赖构建脚本。没有降低检查或批量放行未知脚本。
 
+2026-10-27 将传递依赖 `fast-uri` 的 3.x、4.x 分支分别锁定到 3.1.9、4.2.3，修复 URI 解析与规范化安全问题；保留各上游依赖要求的主版本，不新增直接依赖或覆盖规则。修复内容见上游 [3.1.9](https://github.com/fastify/fast-uri/releases/tag/v3.1.9)、[4.2.3](https://github.com/fastify/fast-uri/releases/tag/v4.2.3) 发布说明。
+
 本机尚无 Docker。2026-10-17 用户明确允许本机跳过镜像构建及容器实测，待真正部署时验证；部署配置仍须实现，未执行检查必须作为待验收事项保留。
 
 ## 播放器依赖
