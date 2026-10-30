@@ -14,7 +14,7 @@
 - [验收矩阵](docs/product/acceptance.md)：实际通过项、未完成项及部署前检查。
 - [完整文档导航](docs/README.md)：按主题查找全部技术文档。
 - [技术选型](docs/overview/technology-stack.md)：已确定的技术组合与版本策略。
-- [Android 客户端](apps/android/README.md)：开发目录与协作规范；[完整技术方案](docs/android/technical-design.md)已整理，原生工程待初始化。
+- [Android 客户端](apps/android/README.md)：原生工程已实现，提供 Debug 与正式签名 Release APK，已有核心真机验收记录；[完整技术方案](docs/android/technical-design.md)与[验证状态](docs/android/verification.md)见专题文档，其余专项及商店发布按对应记录确认。
 - [系统架构](docs/architecture/system-design.md)：前后端边界、访问路径与部署关系。
 - [代码目录规划](docs/architecture/repository-layout.md)：后续应用工程的目录约定。
 - [本机上传部署](docs/deployment/local-upload.md)：本机编译、服务器 Docker 更新与最新产物保留。
@@ -24,7 +24,7 @@
 | 领域 | 选型 |
 | --- | --- |
 | 前端 | React 19、TypeScript、Vite 8 |
-| Android（待初始化） | Kotlin、Compose、Media3、Room、DataStore；局部 WebView 图形复用待验证 |
+| Android | Kotlin、Compose、Media3、Room、DataStore；局部 WebView 已接入共享 Three.js 图形 |
 | 图形与音频 | Three.js、WebGL 2、Web Audio、HTMLAudioElement、hls.js |
 | 后端 | Node.js 24 LTS、Fastify 5、TypeScript |
 | 数据 | MySQL 8.0.46、mysql2、Drizzle ORM、Drizzle Kit |
@@ -39,7 +39,7 @@
 | --- | --- |
 | [apps/web](apps/web/README.md) | 前端应用、图形与音频引擎 |
 | [apps/server](apps/server/README.md) | 后端 API、任务和数据库访问 |
-| [apps/android](apps/android/README.md) | Android 开发入口与规范，尚未建立 Gradle 工程 |
+| [apps/android](apps/android/README.md) | Android 原生客户端、播放服务与局部图形，使用独立 Gradle 工程构建 |
 | [packages/contracts](packages/contracts/README.md) | 前后端共享数据契约 |
 | [packages/config](packages/config/README.md) | 共享工程配置 |
 | [apps/server/migrations](apps/server/migrations/README.md) | 数据库迁移 |
@@ -47,7 +47,7 @@
 | [deploy](deploy/README.md) | Docker、Compose 与 Caddy 配置 |
 | [apps/web/tests/e2e](apps/web/tests/e2e/README.md) | 浏览器端到端测试 |
 
-前后端、共享契约、数据迁移和发布工具均已有实现，具体职责及完成范围见各目录说明。
+前后端、Android 客户端、共享契约、数据迁移和发布工具均已有实现，具体职责及完成范围见各目录说明。
 
 ## 本地开发
 
