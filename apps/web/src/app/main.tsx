@@ -7,6 +7,7 @@ import '../styles/fonts.css';
 import '../styles/global.css';
 import { App } from './App';
 import { applicationBase } from '../platform/paths';
+import { VersionUpdate } from '../platform/VersionUpdate';
 
 const element = document.getElementById('root');
 if (!element) throw new Error('Missing application root');
@@ -16,6 +17,7 @@ createRoot(element).render(
     <BrowserRouter basename={applicationBase}>
       <QueryClientProvider client={queryClient}>
         <App />
+        <VersionUpdate />
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>,

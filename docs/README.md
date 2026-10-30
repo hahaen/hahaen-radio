@@ -1,5 +1,7 @@
 # 技术文档导航
 
+前端[版本检测与强制更新弹窗](iterations/2026-10-30-web-version-update/README.md)：生产构建自动生成版本标识，前台轮询与恢复补查，检测差异后要求刷新。
+
 > 当前部署已于 2026-10-25 改为[本机编译上传与 Docker 更新](deployment/local-upload.md)；本文中 Jenkins 配置及服务器源码路径为历史说明。
 
 完成代码修改后[自动发版并逐项报告结果](iterations/2026-10-25-automatic-release/README.md)，不备份旧版本；当前入口见[本机上传](deployment/local-upload.md)。

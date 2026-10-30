@@ -4,6 +4,15 @@ import { initReactI18next } from 'react-i18next';
 const resources = {
   zh: {
     translation: {
+      versionUpdate: {
+        ready: '更新已就绪',
+        title: '发现新版本',
+        description: '声屿已更新，请刷新页面以继续使用最新版本。',
+        hint: '收藏与收听设置会保留。刷新后，可能需要再次点击播放。',
+        action: '立即更新',
+        updating: '正在更新…',
+        error: '暂时无法获取更新，请检查网络后重试。',
+      },
       accountPanelUnavailable: '账号面板暂不可用，请刷新后重试。',
 
       browseUnlocated: '{{count}} 台位置未知，可在列表查找',
@@ -399,6 +408,16 @@ const resources = {
   },
   en: {
     translation: {
+      versionUpdate: {
+        ready: 'Update ready',
+        title: 'A new version is available',
+        description:
+          'HAEN has been updated. Refresh this page to continue with the latest version.',
+        hint: 'Your favorites and listening settings will be kept. You may need to press play again.',
+        action: 'Update now',
+        updating: 'Updating…',
+        error: 'Unable to get the update. Check your connection and try again.',
+      },
       accountPanelUnavailable: 'Account panel unavailable. Refresh to retry.',
 
       browseUnlocated: 'Find {{count}} unlocated stations in the list',

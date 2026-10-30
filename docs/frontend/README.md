@@ -1,5 +1,7 @@
 # 前端技术文档
 
+前端[版本检测与强制更新弹窗](../iterations/2026-10-30-web-version-update/README.md)：生产构建自动生成版本标识，前台轮询与恢复补查，检测差异后要求刷新。
+
 标签页、Safari 分享面板、主屏幕与 Mac 程序坞深色图标见[当前修正](../iterations/2026-10-24-safari-dark-icon/README.md)及[平台说明](platform/browser-and-storage.md)，早期实现见[图标记录](../iterations/2026-10-18-favicon-concepts/README.md)。
 
 可选账号登录与收藏、历史自动同步见[任务记录](../iterations/2026-10-23-account-sync/README.md)，未登录保持本机使用方式。
