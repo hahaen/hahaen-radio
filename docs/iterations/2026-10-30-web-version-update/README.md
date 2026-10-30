@@ -1,6 +1,6 @@
 # 前端版本检测与强制更新
 
-日期：2026-10-30。
+实施日期：2026-10-30；发布验收：2026-10-31（Asia/Shanghai）。
 
 ## 需求与实际变更
 
@@ -26,6 +26,11 @@
 
 ## 发布
 
-待提交、推送与远端核对通过后，按长期授权发布前端并核对线上静态版本及健康状态。
+- 实现提交：`7379bf6f9c1c50b7b056dd899ad16ea819c64433`，`feat(web): 增加前端版本检测与强制更新弹窗`；已推送 GitHub `origin/main`，远端分支核对与该提交一致。
+- 已执行 `python3 deploy/local/release.py frontend`；服务器发布记录时间为 2026-10-31 00:01:50 +08:00。
+- `frontend`：SUCCESS；生产 `version.json` 构建标识为 `fbbe3c2a37c7b72d5173926dfa79731b`，HTTPS 返回 HTTP 200、`application/json` 和 `Cache-Control: no-cache`，与本机发布产物逐字节一致。
+- 公网入口 HTML、入口 JS、更新模块 JS / CSS 及其启动运行文件均与本机产物逐字节一致；更新模块内嵌标识与 `version.json` 相同。服务器侧发布检查与本机系统 curl 的 TLS 验证均通过；API ready 正常。
+- `radio-api`、`radio-jobs`：无需更新，本轮 NOT_REQUESTED；数据库、Android、共享 Nginx 配置均未变更。
+- 本条发布记录为后续文档补记，不改变已部署的前端实现版本，无需再次更新服务。
 
 返回[任务归档](../README.md)、[前端导航](../../frontend/README.md)、[文档总导航](../../README.md)。
