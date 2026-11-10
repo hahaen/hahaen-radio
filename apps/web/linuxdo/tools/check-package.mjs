@@ -292,6 +292,7 @@ for (const { engine, label, options } of [
     await expect(heading).not.toHaveText(first[1]);
     await find.click();
     await directory.getByRole('button', { name: /附近城市：|同城：/ }).click();
+    await directory.getByRole('button', { name: '只看可播' }).click();
     for (const { source, station } of playable) {
       if (!(await search.isVisible())) await find.click();
       await search.fill(station[1]);

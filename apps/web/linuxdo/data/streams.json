@@ -9,6 +9,20 @@
       "date": "2026-11-10",
       "desktop": "用户确认 LINUX DO 沙箱测试通过",
       "mobile": "用户确认 LINUX DO 沙箱测试通过"
-    }
+    },
+    "aliases": [
+      {
+        "stationId": "6c61e3a9-33e1-41d2-b1f3-1f4e73201115",
+        "catalogUrl": "https://stream.radioparadise.com/flacm"
+      },
+      {
+        "stationId": "9fe19f6a-6e9c-4c58-bdf1-4d8431934d09",
+        "catalogUrl": "https://stream.radioparadise.com/flac"
+      },
+      {
+        "stationId": "a766bfe4-e0e1-48b1-846d-270d7973e500",
+        "catalogUrl": "https://stream.radioparadise.com/flacm"
+      }
+    ]
   }
 ]

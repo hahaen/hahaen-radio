@@ -44,6 +44,7 @@ const streamConfig = z.array(
   z.strictObject({
     stationId: z.uuid(),
     catalogUrl: httpsUrl,
+    aliases: z.array(z.strictObject({ stationId: z.uuid(), catalogUrl: httpsUrl })).default([]),
     url: httpsUrl,
     operator: z.string().min(1),
     permission: httpsUrl,
@@ -71,10 +72,13 @@ if (write) {
   );
   const configured = streamConfig.parse(JSON.parse(await readFile('data/streams.json', 'utf8')));
   const ids = new Set();
-  for (const { stationId } of configured) {
-    if (ids.has(stationId)) throw new Error(`直播源重复关联同一电台：${stationId}`);
-    ids.add(stationId);
+  function registerStationIds({ stationId, aliases }) {
+    for (const id of [stationId, ...aliases.map((alias) => alias.stationId)]) {
+      if (ids.has(id)) throw new Error(`直播源重复关联同一电台：${id}`);
+      ids.add(id);
+    }
   }
+  for (const source of configured) registerStationIds(source);
   if (check || sandbox) {
     const candidates = streamConfig.parse(
       JSON.parse(await readFile('data/sandbox-streams.json', 'utf8')),
@@ -86,23 +90,26 @@ if (write) {
     }
     for (const source of candidates.slice(offset, offset + limit)) {
       if (ids.has(source.stationId)) continue;
+      registerStationIds(source);
       configured.push({ ...source, verification: null });
-      ids.add(source.stationId);
     }
-  }
-  const streams = configured.filter(
-    ({ stationId, verification }) => available.has(stationId) && (check || sandbox || verification),
-  );
-  if (!check && !sandbox && !streams.length) {
-    throw new Error('正式包需要至少一条已通过桌面和手机沙箱验收的直播源。');
   }
   const endpointByUrl = new Map();
   const entries = streamIndexSchema.parse(
-    streams.map(({ stationId, url, verification }) => {
+    configured.flatMap(({ stationId, aliases, url, verification }) => {
+      if (!check && !sandbox && !verification) return [];
+      const stationIds = [stationId, ...aliases.map((alias) => alias.stationId)].filter((id) =>
+        available.has(id),
+      );
+      if (!stationIds.length) return [];
       if (!endpointByUrl.has(url)) endpointByUrl.set(url, `station-${stationId}`);
-      return { stationId, endpoint: endpointByUrl.get(url), candidate: !verification };
+      const endpoint = endpointByUrl.get(url);
+      return stationIds.map((id) => ({ stationId: id, endpoint, candidate: !verification }));
     }),
   );
+  if (!check && !sandbox && !entries.length) {
+    throw new Error('正式包需要至少一条已通过桌面和手机沙箱验收的直播源。');
+  }
   const streamEndpoints = Object.fromEntries(
     [...endpointByUrl].map(([url, endpoint]) => [endpoint, { url, method: 'GET', auth: 'none' }]),
   );
@@ -118,14 +125,14 @@ if (write) {
     permissions: [
       'storage.read',
       'storage.write',
-      ...(streams.length ? ['network.request', 'audio.webAudio'] : []),
+      ...(entries.length ? ['network.request', 'audio.webAudio'] : []),
     ],
     assets: [
       'data/catalog.json',
       'data/streams.json',
       ...geography.map((name) => 'geography/' + name),
     ],
-    ...(streams.length ? { endpoints: streamEndpoints } : {}),
+    ...(entries.length ? { endpoints: streamEndpoints } : {}),
   };
   const files = {
     'index.html': await readFile('template.html'),
@@ -156,7 +163,7 @@ if (write) {
     await rename(`${temporary}/package.json`, `${outputDirectory}/package.json`);
     await rename(result.file, `${outputDirectory}/app.zip`);
     console.log(
-      `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${version} ${outputDirectory}/app.zip (${sizeKiB} KiB)，${snapshot.manifest.stationCount} 条包内电台，${streams.length} 条直播源`,
+      `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${version} ${outputDirectory}/app.zip (${sizeKiB} KiB)，${snapshot.manifest.stationCount} 条包内电台，${entries.length} 条可播记录，${endpointByUrl.size} 个直播端点`,
     );
   } finally {
     await rm(temporary, { recursive: true, force: true });

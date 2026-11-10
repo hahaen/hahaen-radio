@@ -12,8 +12,10 @@ LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、筛选�
 
 1. 运行 `pnpm --filter @haen/web scan:linuxdo:sources`。工具核对包内目录与当前线上版本，再按官网搜索范围批量读取公开详情。若版本不一致，先更新目录快照。清点结果保存在 Git 忽略的 `.local/linuxdo/station-inventory.json`。
 2. 在 `data/source-evidence.json` 记录运营方的公开使用依据、频道对应的目录地址和实际播放端点。多频道可共用运营方的依据。运行 `pnpm --filter @haen/web prepare:linuxdo:sources` 查看格式、使用依据、连接预检和去重统计。工具只预检有依据的固定端点，不播放声音。
-3. 核对结果后运行 `pnpm --filter @haen/web prepare:linuxdo:sources --write-candidates` 生成 `data/sandbox-streams.json`。每个实际频道只保留一个待验收目录条目。沙箱和本地检查包会载入候选，正式候选包只从 `data/streams.json` 读取已验收音源。
+3. 核对结果后运行 `pnpm --filter @haen/web prepare:linuxdo:sources --write-candidates` 生成 `data/sandbox-streams.json`。同一频道的目录条目通过 `aliases` 共用一个播放端点。需要补齐已验收频道的目录关联时，另加 `--write-aliases` 更新 `data/streams.json` 中已核对的别名，保留原音源和验收记录。正式包仅载入已验收频道，沙箱和本地检查包另载入候选频道。
 4. 使用 `HAEN_LINUXDO_SANDBOX_OFFSET=0 HAEN_LINUXDO_SANDBOX_LIMIT=10 pnpm --filter @haen/web package:linuxdo:sandbox` 可分批构建。`OFFSET` 从 0 开始，默认每批最多 100 条候选，已验收音源随每批沙箱包提供。沙箱实际通过后，将对应候选和 `verification` 写入正式可播清单。
+
+`source-evidence.json` 的 `reviewGroups` 为待排查的托管平台，统计按域名归组的 MP3 目录条目。同一条电台可能使用多个平台。这组数据仅供核对覆盖范围，正式和沙箱候选依然按 `allowed` 的频道依据筛选。
 
 参见[官方规则核对记录](../../../docs/iterations/2026-11-10-linuxdo-mini-app/network-rules.md)和[批量筛选结果](../../../docs/iterations/2026-11-10-linuxdo-mini-app/README.md#批量筛选官网音源)。
 

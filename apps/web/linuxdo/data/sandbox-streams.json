@@ -2,6 +2,20 @@
   {
     "stationId": "6d264e68-5179-4e0f-ad2e-fca103afba28",
     "catalogUrl": "https://stream.radioparadise.com/mellow-64",
+    "aliases": [
+      {
+        "stationId": "02f3876d-ee77-449b-bae4-6cbb335d414b",
+        "catalogUrl": "https://stream.radioparadise.com/mellow-flac"
+      },
+      {
+        "stationId": "793b9ac7-090b-40a9-8e21-0146cc8b8d35",
+        "catalogUrl": "https://stream.radioparadise.com/mellow-flac"
+      },
+      {
+        "stationId": "8f780a6b-07ee-4657-a1ae-7c17f520c19d",
+        "catalogUrl": "https://stream.radioparadise.com/mellow-flac"
+      }
+    ],
     "url": "https://stream.radioparadise.com/mellow-192",
     "operator": "Radio Paradise",
     "permission": "https://radioparadise.com/listen/stream-links",
@@ -10,6 +24,12 @@
   {
     "stationId": "9e54d6fc-16a6-4308-9c15-c60aeb1e2de8",
     "catalogUrl": "https://stream.radioparadise.com/rock-64",
+    "aliases": [
+      {
+        "stationId": "786d2939-00eb-479d-b3f0-f0f7673ea7e0",
+        "catalogUrl": "https://stream.radioparadise.com/rock-flac"
+      }
+    ],
     "url": "https://stream.radioparadise.com/rock-192",
     "operator": "Radio Paradise",
     "permission": "https://radioparadise.com/listen/stream-links",
@@ -18,6 +38,24 @@
   {
     "stationId": "22f72eb5-cc37-4525-9f9d-15204c8165ef",
     "catalogUrl": "https://stream.radioparadise.com/world-etc-64",
+    "aliases": [
+      {
+        "stationId": "21a282be-44f4-4b8e-aae9-b4c2041af4a5",
+        "catalogUrl": "https://stream.radioparadise.com/world-etc-320"
+      },
+      {
+        "stationId": "566476bf-d03c-4cac-b5d3-468f99a874b8",
+        "catalogUrl": "https://stream.radioparadise.com/world-etc-320"
+      },
+      {
+        "stationId": "6263a7a9-804a-4ce3-9056-cfc98f2fa90f",
+        "catalogUrl": "https://stream.radioparadise.com/world-etc-flac"
+      },
+      {
+        "stationId": "e64aad7f-fbf2-4b07-882a-a029820e2427",
+        "catalogUrl": "https://stream.radioparadise.com/world-etc-flacm"
+      }
+    ],
     "url": "https://stream.radioparadise.com/global-192",
     "operator": "Radio Paradise",
     "permission": "https://radioparadise.com/listen/stream-links",
@@ -26,6 +64,12 @@
   {
     "stationId": "24bc153c-8a47-4ba2-9bd9-df1ef8b9146e",
     "catalogUrl": "https://quarrel.streamguys1.com:7090/live",
+    "aliases": [
+      {
+        "stationId": "1f04c6ed-a4b3-4caa-84b1-8af241ecc21e",
+        "catalogUrl": "https://radiosausalito.org/128k"
+      }
+    ],
     "url": "https://quarrel.streamguys1.com:7090/live",
     "operator": "Radio Sausalito",
     "permission": "https://radiosausalito.org/listen/stream/",

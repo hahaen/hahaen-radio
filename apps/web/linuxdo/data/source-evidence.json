@@ -45,6 +45,18 @@
       ]
     }
   ],
+  "reviewGroups": [
+    {
+      "provider": "Zeno Media",
+      "domain": "zeno.fm",
+      "documentation": "https://new.zeno.fm/developers/"
+    },
+    {
+      "provider": "Triton Digital",
+      "domain": "streamtheworld.com",
+      "documentation": "https://help.tritondigital.com/docs/provisioning-request"
+    }
+  ],
   "restricted": [
     {
       "operator": "SomaFM",

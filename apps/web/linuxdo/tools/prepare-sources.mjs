@@ -40,6 +40,8 @@ for (const channel of channels) {
 const counts = {};
 const formats = {};
 const mp3Urls = new Set();
+const ambiguousIds = new Set();
+const providerReview = evidence.reviewGroups.map((group) => ({ ...group, stationCount: 0 }));
 let directMp3Stations = 0;
 const restrictions = {};
 const increment = (map, key) => {
@@ -60,6 +62,9 @@ for (const station of inventory.stations) {
   if (mp3.length) {
     directMp3Stations++;
     for (const { url } of mp3) mp3Urls.add(new URL(url).href);
+    for (const group of providerReview) {
+      if (mp3.some(({ host }) => hostRule(host, group.domain))) group.stationCount++;
+    }
   }
   const matched = new Set();
   for (const { url } of station.streams) {
@@ -68,6 +73,7 @@ for (const station of inventory.stations) {
     channel.matches.push({ id: station.id, name: station.name, catalogUrl: url });
     matched.add(channel);
   }
+  if (matched.size > 1) ambiguousIds.add(station.id);
   if (matched.size) continue;
   const restricted = evidence.restricted.filter(({ domain }) =>
     station.streams.some(({ host }) => hostRule(host, domain)),
@@ -122,6 +128,7 @@ async function probe(url) {
 
 const probes = new Map();
 const candidates = [];
+const formalAliases = new Map();
 const channelsReport = [];
 const selectedIds = new Set();
 const coveredIds = new Set();
@@ -138,16 +145,23 @@ for (const { matches, ...channel } of channels) {
   )[0];
   for (const { id } of matches) coveredIds.add(id);
   const existing = configuredById.get(selected.id);
+  const aliases = matches
+    .filter(({ id }) => id !== selected.id && !configuredById.has(id) && !ambiguousIds.has(id))
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map(({ id, catalogUrl }) => ({ stationId: id, catalogUrl }));
   if (!probes.has(url)) probes.set(url, await probe(url));
   const access = probes.get(url);
   let status = 'access-blocked';
-  if (existing?.verification && existing.url === url) status = 'formal';
-  else if (usedUrls.has(url) || selectedIds.has(selected.id)) status = 'duplicate';
+  if (existing?.verification && existing.url === url) {
+    status = 'formal';
+    formalAliases.set(selected.id, aliases);
+  } else if (usedUrls.has(url) || selectedIds.has(selected.id)) status = 'duplicate';
   else if (access === 'mp3-bytes') {
     status = 'sandbox';
     candidates.push({
       stationId: selected.id,
       catalogUrl: selected.catalogUrl,
+      aliases,
       url,
       operator,
       permission,
@@ -165,7 +179,7 @@ for (const { matches, ...channel } of channels) {
     access,
     station: selected.name,
     stationId: selected.id,
-    aliases: matches.length - 1,
+    aliases: aliases.length,
   });
 }
 
@@ -185,6 +199,7 @@ const report = {
   hypotheticalManifestBytes: Buffer.byteLength(hypothetical),
   hypotheticalManifestCompressedBytes: deflateRawSync(hypothetical).length,
   restrictions,
+  providerReview,
   classifications: { ...counts, reviewedCatalogMatches: coveredIds.size },
   channels: channelsReport,
 };
@@ -196,5 +211,13 @@ if (process.argv.includes('--write-candidates')) {
     new URL('sandbox-streams.json', data),
     JSON.stringify(candidates, null, 2) + '\n',
   );
+}
+if (process.argv.includes('--write-aliases')) {
+  const withAliases = configured.map((source) =>
+    formalAliases.has(source.stationId)
+      ? { ...source, aliases: formalAliases.get(source.stationId) }
+      : source,
+  );
+  await writeFile(new URL('streams.json', data), JSON.stringify(withAliases, null, 2) + '\n');
 }
 console.log(JSON.stringify(report, null, 2));
