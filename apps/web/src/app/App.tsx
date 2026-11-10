@@ -311,8 +311,8 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
       return local ? local.loadCatalog(signal, onProgress) : loadSceneCatalog(signal, onProgress);
     },
     retry: 0,
-    staleTime: 60000,
-    refetchInterval: 300000,
+    staleTime: local ? Infinity : 60000,
+    refetchInterval: local ? false : 300000,
   });
   const sceneManifest = useMemo(() => {
     if (!scene.data) return undefined;
@@ -952,7 +952,9 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                 onLoad={results.loadMore}
               />
             )}
-            <p className={styles.source}>{t(local ? 'liveDirectorySource' : 'directorySource')}</p>
+            <p className={styles.source}>
+              {t(local ? 'packagedDirectorySource' : 'directorySource')}
+            </p>
             <p className={styles.source}>
               {t('geographySource')}{' '}
               {local ? (

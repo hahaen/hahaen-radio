@@ -1,12 +1,8 @@
-import type { StreamCandidate } from '@haen/contracts';
 import type { MiniAppSDK } from '@discourse-mini-app/sdk';
 import type { PlaybackSnapshot } from '../src/audio/engine';
 import { createPlayer } from './player';
 
-export function createEngine(
-  sdk: MiniAppSDK,
-  endpoint: (id: string, streams: StreamCandidate[]) => string | undefined,
-) {
+export function createEngine(sdk: MiniAppSDK, endpoint: (id: string) => string | undefined) {
   let snapshot: PlaybackSnapshot = {
     stationId: null,
     status: 'idle',
@@ -44,9 +40,9 @@ export function createEngine(
         listeners.delete(listener);
       };
     },
-    select(stationId: string, streams: StreamCandidate[]) {
+    select(stationId: string) {
       player.stop();
-      selectedEndpoint = endpoint(stationId, streams);
+      selectedEndpoint = endpoint(stationId);
       update({ stationId, status: 'paused', failure: null });
     },
     play() {

@@ -16,26 +16,9 @@ assert.deepEqual(
   ['manifest.json', 'index.html', 'app.js', 'app.css', 'strings.json', ...manifest.assets].sort(),
 );
 assert.equal(manifest.name, '声屿 HAEN');
-assert.deepEqual(manifest.permissions, [
-  'storage.read',
-  'storage.write',
-  'network.request',
-  'audio.webAudio',
-]);
 assert.equal('links' in manifest, false);
-assert.ok(!manifest.assets.includes('data/catalog.json'));
-for (const [name, path, query] of [
-  ['radio-scene', 'scene', undefined],
-  ['radio-chunk', 'chunk', ['version', 'index']],
-  ['radio-stations', 'stations', ['ids']],
-]) {
-  assert.deepEqual(manifest.endpoints[name], {
-    url: `https://hahaen.xyz/radio/api/v1/linuxdo/${path}`,
-    method: 'GET',
-    auth: 'none',
-    ...(query ? { query } : {}),
-  });
-}
+assert.equal('remote_assets' in manifest, false);
+assert.ok(manifest.assets.includes('data/catalog.json'));
 assert.equal(
   files.some((file) => /\.(?:mp3|aac|wav|m4a|ogg|flac)$/i.test(file)),
   false,
@@ -44,116 +27,61 @@ assert.equal(
 const index = unpack('index.html').toString();
 const script = unpack('app.js').toString();
 const css = unpack('app.css').toString();
-const [candidate] = JSON.parse(unpack('data/streams.json'));
+const sources = JSON.parse(unpack('data/streams.json'));
+const [candidate] = sources;
+assert.deepEqual(manifest.permissions, [
+  'storage.read',
+  'storage.write',
+  ...(sources.length ? ['network.request', 'audio.webAudio'] : []),
+]);
+assert.deepEqual(
+  Object.keys(manifest.endpoints ?? {}).sort(),
+  sources.map(({ endpoint }) => endpoint).sort(),
+);
+for (const endpoint of Object.values(manifest.endpoints ?? {})) {
+  const url = new URL(endpoint.url);
+  assert.equal(url.protocol, 'https:');
+  assert.doesNotMatch(url.hostname, /(^|\.)hahaen\.xyz\.?$/);
+  assert.deepEqual(endpoint, { url: endpoint.url, method: 'GET', auth: 'none' });
+}
 const samplePath = process.env.HAEN_LINUXDO_AUDIO_SAMPLE;
 const audioSample = samplePath ? readFileSync(samplePath).toString('base64') : '';
-const first = [
-  '00000000-0000-4000-8000-000000000001',
-  'News Boston',
-  'US',
-  'MA',
-  'Boston',
-  null,
-  42.36,
-  -71.06,
-  'coordinates',
-  'news',
-  ['en'],
-  128,
-  'available',
-];
-const legacy = [
-  '00000000-0000-4000-8000-000000000002',
-  'Jazz Boston',
-  'US',
-  'MA',
-  'Boston',
-  null,
-  42.36,
-  -71.06,
-  'coordinates',
-  'jazz',
-  ['en'],
-  128,
-  'available',
-];
-const playable = [
-  candidate.stationId,
-  'Radio Paradise Main Mix',
-  'US',
-  null,
-  null,
-  null,
-  null,
-  null,
-  'country',
-  'general',
-  ['en'],
-  64,
-  'available',
-];
-const stations = [first, legacy, playable];
+const { stations, manifest: scene } = JSON.parse(unpack('data/catalog.json'));
 const stationCount = stations.length;
-const scene = {
-  format: 1,
-  version: '10000000-0000-4000-8000-000000000001',
-  restrictionsRevision: 'a'.repeat(64),
-  createdAt: '2026-11-10T00:00:00.000Z',
-  stationCount,
-  playableCount: stationCount,
-  countryCount: 1,
-  genres: ['news', 'jazz', 'general'].map((id) => ({ id, count: 1 })),
-  languages: [{ id: 'en', count: stationCount }],
-  chunks: [{ index: 0, count: stationCount }],
-};
-const details = stations.map(
-  ([
-    id,
-    name,
-    countryCode,
-    region,
-    city,
-    nearbyCity,
-    latitude,
-    longitude,
-    locationPrecision,
-    genre,
-    languages,
-    bitrate,
-    availability,
-  ]) => ({
-    id,
-    name,
-    countryCode,
-    region,
-    city,
-    nearbyCity,
-    latitude,
-    longitude,
-    locationPrecision,
-    genre,
-    languages,
-    bitrate,
-    availability,
-    tags: [],
-    timezone: null,
-    timezoneSource: null,
-    homepage: null,
-    streams:
-      id === candidate.stationId
-        ? [
-            {
-              id: '1'.repeat(24),
-              url: candidate.catalogUrl,
-              hls: false,
-              codec: 'AAC',
-              bitrate: 64,
-              analysis: 'unknown',
-            },
-          ]
-        : [],
-  }),
-);
+assert.equal(stationCount, scene.stationCount);
+const sourceIds = new Set(sources.map(({ stationId }) => stationId));
+const nameKey = (name) => name.normalize('NFKC').trim().toLowerCase();
+const cityKey = ([, , country, region, city, nearby]) =>
+  country && (city ?? nearby)
+    ? JSON.stringify([country, nameKey(region ?? ''), nameKey(city ?? nearby)])
+    : null;
+const cities = new Map();
+const names = new Map();
+for (const station of stations) {
+  const name = nameKey(station[1]);
+  names.set(name, (names.get(name) ?? 0) + 1);
+  const city = cityKey(station);
+  if (city) {
+    if (!cities.has(city)) cities.set(city, []);
+    cities.get(city).push(station);
+  }
+}
+const first = stations.find((station) => {
+  const group = cities.get(cityKey(station));
+  return (
+    station[9] === 'news' &&
+    /^[A-Za-z0-9 .'-]+$/.test(station[1]) &&
+    names.get(nameKey(station[1])) === 1 &&
+    group?.length > 1 &&
+    group.length < 10 &&
+    group.every(([id]) => !sourceIds.has(id))
+  );
+});
+assert.ok(first, 'Find a named news station with a small local city group in the snapshot');
+const sameCity = cities.get(cityKey(first));
+const legacy = sameCity.find(([id]) => id !== first[0]);
+const playable = candidate && stations.find(([id]) => id === candidate.stationId);
+if (candidate) assert.ok(playable, 'Sandbox source belongs to the packaged catalog');
 
 const origin = 'https://linuxdo-check.invalid';
 const resources = Object.fromEntries(
@@ -188,7 +116,7 @@ const createHarness = (sample) => `
       }
     : class { constructor() { throw new Error('Audio is disabled during this check'); } };
   HTMLMediaElement.prototype.play = () => { throw new Error('Media is disabled during this check'); };
-  window.fetch = () => { throw new Error('Unexpected browser fetch'); };
+  window.fetch = () => { window.endpointReads.push('fetch'); throw new Error('Unexpected browser fetch'); };
   window.miniApp = {
     ready: Promise.resolve(),
     lifecycle: { ready: async () => { ready = true; } },
@@ -197,23 +125,12 @@ const createHarness = (sample) => `
       readBytes: async (path) => Uint8Array.from(atob(read(path)), (c) => c.charCodeAt(0)),
     },
     http: {
-      request: async (endpoint, { query } = {}) => {
-        if (!ready) throw new Error('SDK requested before ready');
+      request: async (endpoint) => {
         window.endpointReads.push(endpoint);
-        const scene = ${JSON.stringify(scene)};
-        const details = ${JSON.stringify(details)};
-        const stations = ${JSON.stringify(stations)};
-        if (endpoint === 'radio-scene') return { status: 200, body: scene };
-        if (endpoint === 'radio-chunk' && query?.version === scene.version && query.index === '0')
-          return { status: 200, body: { format: 1, version: scene.version, restrictionsRevision: scene.restrictionsRevision, index: 0, entries: stations } };
-        if (endpoint === 'radio-stations') {
-          const ids = query.ids.split(',');
-          return { status: 200, body: { items: details.filter(({ id }) => ids.includes(id)), missing: ids.filter((id) => !details.some((entry) => entry.id === id)) } };
-        }
-        throw new Error('Unexpected SDK endpoint ' + endpoint);
+        throw new Error('Unexpected SDK HTTP request ' + endpoint);
       },
       stream: async (endpoint) => {
-        if (!sample || endpoint !== ${JSON.stringify(candidate.endpoint)}) throw new Error('Unexpected stream request');
+        if (!sample || endpoint !== ${JSON.stringify(candidate?.endpoint ?? null)}) throw new Error('Unexpected stream request');
         return { status: 200, headers: { 'content-type': 'audio/mpeg' }, body: new ReadableStream({
           start(controller) { controller.enqueue(Uint8Array.from(atob(sample), (c) => c.charCodeAt(0))); },
           cancel() { window.audioEvidence.cancelled++; },
@@ -295,6 +212,7 @@ for (const { engine, label, options } of [
     }
     const assetReads = await root.evaluate(() => globalThis.assetReads);
     for (const path of [
+      'data/catalog.json',
       'data/streams.json',
       'geography/land.json',
       'geography/regions.json',
@@ -305,9 +223,7 @@ for (const { engine, label, options } of [
     await expect(directory.getByTestId('directory-state')).toContainText(
       stationCount.toLocaleString('zh-CN'),
     );
-    const endpointReads = await root.evaluate(() => globalThis.endpointReads);
-    assert.ok(endpointReads.includes('radio-scene'));
-    assert.ok(endpointReads.includes('radio-chunk'));
+    await expect(directory.getByText('目录为随微应用发布的公开电台快照。')).toBeAttached();
     await search.fill(first[1]);
     await result.click();
     await expect(heading).toHaveText(first[1]);
@@ -348,7 +264,7 @@ for (const { engine, label, options } of [
     await frame.getByText('电台详情', { exact: true }).click();
     await frame.getByRole('button', { name: /^(同城电台|附近城市的电台)$/ }).click();
     await expect(directory.getByRole('button', { name: /同城：|附近城市：/ })).toBeVisible();
-    await expect(directory.getByTestId('directory-state')).toContainText('2');
+    await expect(directory.locator('button[data-station-id]')).toHaveCount(sameCity.length);
     await directory.getByRole('button', { name: '只看可播' }).click();
     await expect(directory.locator('button[data-station-id]')).toHaveCount(0);
     await directory.getByRole('button', { name: '只看可播' }).click();
@@ -364,31 +280,35 @@ for (const { engine, label, options } of [
     await expect(heading).not.toHaveText(first[1]);
     await find.click();
     await directory.getByRole('button', { name: /附近城市：|同城：/ }).click();
-    await search.fill(playable[1]);
-    await directory.locator(`button[data-station-id="${playable[0]}"]`).click();
-    await expect(heading).toHaveText(playable[1]);
-    const play = frame.getByRole('button', { name: '沙箱试播' });
-    await expect(play).toBeVisible();
-    if (audioSample) {
-      await play.click();
-      await expect
-        .poll(() => root.evaluate(() => globalThis.audioEvidence.scheduled))
-        .toBeGreaterThan(0);
-      await frame.getByRole('button', { name: '停止播放' }).click();
-      await expect.poll(() => root.evaluate(() => globalThis.audioEvidence.cancelled)).toBe(1);
+    if (playable) {
+      await search.fill(playable[1]);
+      await directory.locator(`button[data-station-id="${playable[0]}"]`).click();
+      await expect(heading).toHaveText(playable[1]);
+      const play = frame.getByRole('button', { name: '沙箱试播' });
       await expect(play).toBeVisible();
-      console.log(
-        `${label}通过：现场 MP3 样本解码为非静音数据，进入 Web Audio 调度，停止后取消流。`,
-      );
+      if (audioSample) {
+        await play.click();
+        await expect
+          .poll(() => root.evaluate(() => globalThis.audioEvidence.scheduled))
+          .toBeGreaterThan(0);
+        await frame.getByRole('button', { name: '停止播放' }).click();
+        await expect.poll(() => root.evaluate(() => globalThis.audioEvidence.cancelled)).toBe(1);
+        await expect(play).toBeVisible();
+        console.log(
+          `${label}通过：现场 MP3 样本解码为非静音数据，进入 Web Audio 调度，停止后取消流。`,
+        );
+      }
     }
 
     assert.equal(
       await root.evaluate((element) => element.scrollWidth > element.clientWidth + 1),
       false,
     );
+    assert.deepEqual(await root.evaluate(() => globalThis.endpointReads), []);
+    assert.equal(await frame.getByRole('button', { name: /登录/ }).count(), 0);
     assert.deepEqual(failures, []);
     assert.equal(page.context().pages().length, 1);
-    console.log(`${label}通过：同一页面内的地图、SDK 在线目录、搜索、同城、筛选、收藏和随机选台。`);
+    console.log(`${label}通过：同一页面内的地图、包内目录、搜索、同城、筛选、收藏和随机选台。`);
   } finally {
     await browser.close();
   }

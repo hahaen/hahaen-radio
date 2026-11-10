@@ -1,5 +1,5 @@
 import { getSDK } from '@discourse-mini-app/sdk';
-import type { StationDetail, StationPreview } from '@haen/contracts';
+import type { StationPreview } from '@haen/contracts';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router';
@@ -22,24 +22,24 @@ async function start() {
   const sdk = getSDK();
   await sdk.ready;
   await sdk.lifecycle.ready();
-  const catalog = createCatalog(sdk);
-  const [sources, storage, world] = await Promise.all([
+  const catalogReady = createCatalog(sdk);
+  const [catalog, sources, storage, world] = await Promise.all([
+    catalogReady,
     sdk.assets
       .readJson('data/streams.json', { timeoutMs: 10000 })
       .then((raw) => streamIndexSchema.parse(raw)),
-    loadStorage(sdk, async (ids) => (await catalog.lookup(ids, AbortSignal.timeout(15000))).items),
+    loadStorage(
+      sdk,
+      async (ids) => (await (await catalogReady).lookup(ids, AbortSignal.timeout(15000))).items,
+    ),
     sdk.assets.readBytes('geography/world.svg', { timeoutMs: 10000 }).catch(() => undefined),
   ]);
   const streams = new Map(sources.map((source) => [source.stationId, source]));
-  const sourceFor = (id: string, candidates: StationDetail['streams']) => {
-    const source = streams.get(id);
-    return source && candidates.some(({ url }) => url === source.catalogUrl) ? source : undefined;
-  };
-  const canPlay = (station: StationPreview, detail?: StationDetail | null) =>
+  const canPlay = (station: StationPreview) =>
     station.availability === 'available' &&
     sdk.permissions.has('network.request') &&
     sdk.permissions.has('audio.webAudio') &&
-    (detail?.id === station.id ? !!sourceFor(station.id, detail.streams) : streams.has(station.id));
+    streams.has(station.id);
   const fallback = world ? URL.createObjectURL(new Blob([world], { type: 'image/svg+xml' })) : '';
   if (fallback)
     window.addEventListener('pagehide', () => URL.revokeObjectURL(fallback), { once: true });
@@ -55,10 +55,9 @@ async function start() {
     ...catalog,
     player: {
       explicitPlayback: true,
-      createEngine: () =>
-        createEngine(sdk, (id, candidates) => sourceFor(id, candidates)?.endpoint),
+      createEngine: () => createEngine(sdk, (id) => streams.get(id)?.endpoint),
       station: catalog.station,
-      isPlayable: (detail) => canPlay(detail, detail),
+      isPlayable: canPlay,
     },
     canPlay,
     isCandidate: (id) => streams.get(id)?.candidate === true,
@@ -70,7 +69,9 @@ async function start() {
   };
   root.render(
     <MemoryRouter>
-      <QueryClientProvider client={new QueryClient()}>
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { networkMode: 'always' } } })}
+      >
         <App local={local} />
       </QueryClientProvider>
     </MemoryRouter>,

@@ -29,7 +29,7 @@
 
 ## 两种构建产物
 
-官网用 `pnpm --filter @haen/web build` 输出至 `apps/web/dist`；LINUX DO 用 `pnpm --filter @haen/web test:linuxdo` 构建并检查 ZIP，输出至 `apps/web/linuxdo/dist/check`。微应用通过 SDK 读取现有 `radio-api` 的公开目录和电台详情，地图从包内加载，收藏保存在 SDK 应用存储。实际沙箱和正式包见[微应用说明](linuxdo/README.md)。两套产物按变更影响分别构建。
+官网用 `pnpm --filter @haen/web build` 输出至 `apps/web/dist`；LINUX DO 用 `pnpm --filter @haen/web test:linuxdo` 构建并检查 ZIP，输出至 `apps/web/linuxdo/dist/check`。微应用通过 SDK 读取包内目录和地图，收藏保存在 SDK 应用存储，运行时不调用声屿后台。实际沙箱和正式包见[微应用说明](linuxdo/README.md)。两套产物按变更影响分别构建。
 
 ## 测试与资源工具
 

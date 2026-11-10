@@ -11,6 +11,7 @@
     "test:e2e": "playwright test",
     "test:performance": "pnpm build && pnpm check:budget && playwright test --config playwright.performance.config.ts",
     "check:budget": "node scripts/check-web-budget.mjs",
+    "export:linuxdo:catalog": "node linuxdo/tools/export-catalog.mjs",
     "build:linuxdo": "node linuxdo/tools/prepare-sdk.mjs && tsc -p linuxdo/tsconfig.json && vite build --config linuxdo/vite.config.ts",
     "package:linuxdo:check": "pnpm build:linuxdo && cd linuxdo && node tools/package.mjs --check",
     "package:linuxdo:sandbox": "cd linuxdo && node tools/package.mjs --sandbox && cd .. && pnpm build:linuxdo && cd linuxdo && node tools/package.mjs --sandbox --write",

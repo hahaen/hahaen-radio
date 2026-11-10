@@ -1,12 +1,12 @@
 # 声屿 HAEN
 
-LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、筛选、收藏和播放控制。微应用通过官方 SDK 读取现有 `radio-api` 的公开目录与详情，地图从包内加载，收藏和设置保存在 SDK 应用存储。
+LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、筛选、收藏和播放控制。微应用通过官方 SDK 读取包内目录和地图，收藏和设置保存在 SDK 应用存储。微应用运行时不请求声屿后台，使用访客模式。
 
 ## 目录和直播
 
-现有 `radio-api` 通过 `/radio/api/v1/linuxdo/scene`、`/chunk` 和 `/stations` 提供目录清单、分片和详情。接口与官网使用同一个目录服务，跨域响应允许 `https://linux.do`。部署新版 API 后，首次打开微应用会读取现有目录，目录版本变化时刷新。目录下载完成后，本次会话的筛选、搜索和随机选台在页面内执行。
+`data/catalog.json` 是官网公开目录的快照，记录线上目录版本、导出时间和条数。电台详情、筛选、搜索、同城和随机选台使用包内公开字段。要更新目录，运行 `pnpm --filter @haen/web export:linuxdo:catalog`，从官网公开接口只读导出后重新打包。打包使用已有快照，不访问官网 API。
 
-沙箱包含 Radio Paradise 主频道的试听入口。电台详情必须匹配官网目录中的同频道来源，微应用才会读取运营方公开提供给播放器的 MP3 端点。直播经 SDK 直接读取电台音频，在当前页面解码播放。扩充直播时，在 `data/streams.json` 记录官网目录电台 ID、对应的 `catalogUrl`、运营方提供的 MP3 `url` 和公开依据。实际沙箱验收完成后再填写 `verification`。
+沙箱包含 Radio Paradise 主频道的试听入口。直播经 SDK 直接读取运营方的 MP3 端点，在当前页面解码播放。扩充直播时，先核对音源与目录为同一频道，再在 `data/streams.json` 记录目录电台 ID、对应的 `catalogUrl`、运营方提供的 MP3 `url` 和公开依据。打包时只纳入快照中状态可用的电台。实际沙箱验收完成后再填写 `verification`。
 
 ## 打包
 
