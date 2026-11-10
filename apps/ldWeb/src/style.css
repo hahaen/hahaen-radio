@@ -73,10 +73,6 @@ body {
   color: var(--ld-muted);
 }
 .ld-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--ld-border);
 }
@@ -101,10 +97,6 @@ body {
   border: 1px solid var(--ld-border);
   border-radius: 50%;
   color: var(--ld-accent);
-}
-.ld-edition {
-  color: var(--ld-muted);
-  font-size: 12px;
 }
 .ld-layout {
   display: grid;

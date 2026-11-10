@@ -255,7 +255,6 @@ function App({ sdk, data }: { sdk: MiniAppSDK | null; data: Catalog }) {
             声屿 <b>HAEN</b>
           </span>
         </div>
-        <span className="ld-edition">LINUX DO 微应用</span>
       </header>
       <div className="ld-layout">
         <section className="ld-scene" aria-label="电台地球与当前电台">
@@ -518,7 +517,7 @@ if (container) {
       flushSync(() =>
         root.render(
           <p className="ld-boot" role="alert">
-            电台目录未能载入，请重新打开声屿。
+            电台目录未能载入，请重新打开声屿 HAEN。
           </p>,
         ),
       );
