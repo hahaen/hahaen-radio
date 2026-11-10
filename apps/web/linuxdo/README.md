@@ -23,6 +23,6 @@ pnpm --filter @haen/web package:linuxdo:sandbox
 
 打包按管理页的 4096 KiB 上传上限检查最终 ZIP。超限时构建报错，保留上一次输出。
 
-在管理页上传沙箱包并授予网络和 Web Audio 权限后，验证桌面与手机的目录、播放、停止和切台。记录验收结果后才可运行 `pnpm --filter @haen/web package:linuxdo` 生成正式候选包。正式上架由用户操作。
+在管理页上传沙箱包并授予网络和 Web Audio 权限后，验证桌面与手机的目录、播放、停止和切台。记录验收结果后才可运行 `pnpm --filter @haen/web package:linuxdo` 生成正式候选包 `apps/web/linuxdo/dist/package/app.zip`。正式上架由用户操作。
 
 地图数据来自 Natural Earth，地名参考 GeoNames（CC BY 4.0）。平台能力见 [LINUX DO HTTP 与 WebSocket 指南](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/sdk-network.md)，本项目变更见[实施记录](../../../docs/iterations/2026-11-10-linuxdo-mini-app/README.md)。

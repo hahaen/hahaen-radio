@@ -4,7 +4,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { chromium, devices, expect, webkit } from '@playwright/test';
 import { snapshotSchema, unpackSnapshot } from '../schemas.ts';
 
-const archive = 'dist/check/app.zip';
+const archive = process.argv[2] ?? 'dist/check/app.zip';
 assert.ok(statSync(archive).size <= 4096 * 1024, 'ZIP must fit the LINUX DO upload limit');
 const files = execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' })
   .trim()
@@ -291,7 +291,10 @@ for (const { engine, label, options } of [
       await search.fill(playable[1]);
       await directory.locator(`button[data-station-id="${playable[0]}"]`).click();
       await expect(heading).toHaveText(playable[1]);
-      const play = frame.getByRole('button', { name: '沙箱试播' });
+      const play = frame.getByRole('button', {
+        name: candidate.candidate ? '沙箱试播' : '播放',
+        exact: true,
+      });
       await expect(play).toBeVisible();
       if (audioSample) {
         await play.click();

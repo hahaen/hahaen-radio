@@ -5,6 +5,10 @@
     "url": "https://stream-dc1.radioparadise.com/mp3-128",
     "operator": "Radio Paradise",
     "permission": "https://beta.radioparadise.com/rp3.php?file=links&name=Listen",
-    "verification": null
+    "verification": {
+      "date": "2026-11-10",
+      "desktop": "用户确认 LINUX DO 沙箱测试通过",
+      "mobile": "用户确认 LINUX DO 沙箱测试通过"
+    }
   }
 ]
