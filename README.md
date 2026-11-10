@@ -79,3 +79,7 @@ pnpm test:e2e
 ```
 
 `pnpm build` 生成各包 `dist/`；后端编译入口为 `pnpm --filter @haen/server start`，任务为 `start:jobs`。前端已有真实列表、搜索、播放器、地球与流派探索；个人工具、曲目与可选音频增强已接入，本次功能交付完成。三个镜像目标、Compose 与 Caddy 配置已建立，见[构建与运行](docs/deployment/containers/local-and-image-build.md)；Docker 实测按用户要求延后到实际部署环境执行。
+
+## 友情链接
+
+[LinuxDo](https://linux.do/)：和佬友聊技术、分享开源项目，顺便看看大家又折腾出了什么。
