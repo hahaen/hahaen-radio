@@ -1,5 +1,7 @@
 # 任务归档
 
+[电台目录同步恢复](2026-11-10-catalog-sync-recovery/README.md)
+
 前端[版本检测与强制更新弹窗](2026-10-30-web-version-update/README.md)：生产构建自动生成版本标识，前台轮询与恢复补查，检测差异后要求刷新。
 
 [完成修改后自动发版与逐项结果交付](2026-10-25-automatic-release/README.md)：提交推送核对后自动更新受影响服务，不备份旧版本。

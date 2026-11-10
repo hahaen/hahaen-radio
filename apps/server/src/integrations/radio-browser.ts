@@ -2,9 +2,12 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { lookup, resolveSrv, reverse } from 'node:dns/promises';
 import { z } from 'zod';
 import type { StationDetail } from '@haen/contracts';
+import { catalogSyncTimeoutSchema, defaultCatalogSyncTimeoutMs } from '../config/catalog.js';
 import { normalizeStation } from '../modules/catalog/normalize.js';
 import { readPublicJson, RemoteRequestError, type PublicRequestOptions } from './public-http.js';
 
+const pageConcurrency = 4;
+const pageTimeoutMs = 120000;
 const mirrorName = (value: string) => /^[a-z0-9-]+\.api\.radio-browser\.info$/.test(value);
 export const isDirectoryUrl = (url: URL) =>
   url.protocol === 'https:' && mirrorName(url.hostname) && (!url.port || url.port === '443');
@@ -64,16 +67,14 @@ export class RadioBrowserClient implements CatalogSource {
   async load(signal?: AbortSignal) {
     const pageSize = Math.min(1000, Math.max(1, this.options.pageSize ?? 1000));
     const maxStations = Math.min(150000, Math.max(pageSize, this.options.maxStations ?? 100000));
-    const timeout = z
-      .number()
-      .int()
-      .min(1000)
-      .max(900000)
-      .parse(this.options.timeoutMs ?? 300000);
+    const timeout = catalogSyncTimeoutSchema.parse(
+      this.options.timeoutMs ?? defaultCatalogSyncTimeoutMs,
+    );
     const totalSignal = signal
       ? AbortSignal.any([signal, AbortSignal.timeout(timeout)])
       : AbortSignal.timeout(timeout);
     const mirrors = await (this.options.mirrors ?? discoverDirectoryMirrors)();
+    const pageSchema = z.array(z.unknown()).max(pageSize);
     let invalid = false;
     for (const mirror of mirrors.filter(mirrorName).slice(0, 4)) {
       try {
@@ -81,48 +82,31 @@ export class RadioBrowserClient implements CatalogSource {
         let sourceCount = 0,
           invalidCount = 0,
           completed = false;
-        for (let offset = 0; offset < maxStations; offset += pageSize) {
+        for (let offset = 0; offset < maxStations && !completed;) {
           totalSignal.throwIfAborted();
-          const url = new URL(`https://${mirror}/json/stations/search`);
-          url.search = new URLSearchParams({
-            hidebroken: 'false',
-            order: 'name',
-            reverse: 'false',
-            limit: String(pageSize),
-            offset: String(offset),
-          }).toString();
-          let result: unknown;
-          for (let attempt = 0; ; attempt++) {
-            try {
-              result = await (this.options.readJson ?? readPublicJson)(url.toString(), {
-                signal: totalSignal,
-                timeoutMs: 20000,
-                maxBytes: 4 * 1024 * 1024,
-                allowedUrl: isDirectoryUrl,
-              });
-              break;
-            } catch (error) {
-              const transient =
-                error instanceof RemoteRequestError &&
-                (['REQUEST_FAILED', 'TIMEOUT', 'DNS_FAILURE'].includes(error.code) ||
-                  (error.code === 'INVALID_RESPONSE' &&
-                    (error.status ?? 0) >= 500 &&
-                    (error.status ?? 0) <= 599));
-              if (totalSignal.aborted || attempt >= 2 || !transient) throw error;
-              await delay(250 * (attempt + 1), undefined, { signal: totalSignal });
+          const end = Math.min(
+            maxStations,
+            offset + pageSize * (offset === 0 ? 1 : pageConcurrency),
+          );
+          const pages: Promise<unknown>[] = [];
+          for (; offset < end; offset += pageSize)
+            pages.push(this.readPage(mirror, offset, pageSize, totalSignal));
+          for (const page of await Promise.allSettled(pages)) {
+            if (page.status === 'rejected') throw page.reason;
+            totalSignal.throwIfAborted();
+            const rows = pageSchema.safeParse(page.value);
+            if (!rows.success) throw new CatalogSourceError('CATALOG_INVALID_SOURCE');
+            sourceCount += rows.data.length;
+            for (const row of rows.data) {
+              const station = normalizeStation(row);
+              if (station) stations.set(station.id, station);
+              else invalidCount++;
             }
-          }
-          const rows = z.array(z.unknown()).max(pageSize).safeParse(result);
-          if (!rows.success) throw new CatalogSourceError('CATALOG_INVALID_SOURCE');
-          sourceCount += rows.data.length;
-          for (const row of rows.data) {
-            const station = normalizeStation(row);
-            if (station) stations.set(station.id, station);
-            else invalidCount++;
-          }
-          if (rows.data.length < pageSize) {
-            completed = true;
-            break;
+            // Later offsets in the batch do not belong to this snapshot.
+            if (rows.data.length < pageSize) {
+              completed = true;
+              break;
+            }
           }
         }
         if (!completed) throw new CatalogSourceError('CATALOG_SOURCE_LIMIT');
@@ -139,5 +123,35 @@ export class RadioBrowserClient implements CatalogSource {
       }
     }
     throw new CatalogSourceError(invalid ? 'CATALOG_INVALID_SOURCE' : 'CATALOG_SOURCE_UNAVAILABLE');
+  }
+
+  private async readPage(mirror: string, offset: number, pageSize: number, signal: AbortSignal) {
+    const url = new URL(`https://${mirror}/json/stations/search`);
+    url.search = new URLSearchParams({
+      hidebroken: 'false',
+      order: 'name',
+      reverse: 'false',
+      limit: String(pageSize),
+      offset: String(offset),
+    }).toString();
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await (this.options.readJson ?? readPublicJson)(url.toString(), {
+          signal,
+          timeoutMs: pageTimeoutMs,
+          maxBytes: 4 * 1024 * 1024,
+          allowedUrl: isDirectoryUrl,
+        });
+      } catch (error) {
+        const transient =
+          error instanceof RemoteRequestError &&
+          (['REQUEST_FAILED', 'TIMEOUT', 'DNS_FAILURE'].includes(error.code) ||
+            (error.code === 'INVALID_RESPONSE' &&
+              (error.status ?? 0) >= 500 &&
+              (error.status ?? 0) <= 599));
+        if (signal.aborted || attempt >= 2 || !transient) throw error;
+        await delay(250 * (attempt + 1), undefined, { signal });
+      }
+    }
   }
 }
