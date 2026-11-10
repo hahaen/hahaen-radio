@@ -12,8 +12,8 @@ LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、筛选�
 
 1. 运行 `pnpm --filter @haen/web scan:linuxdo:sources`。工具核对包内目录与当前线上版本，再按官网搜索范围批量读取公开详情。若版本不一致，先更新目录快照。清点结果保存在 Git 忽略的 `.local/linuxdo/station-inventory.json`。
 2. 在 `data/source-evidence.json` 记录运营方的公开使用依据、频道对应的目录地址和实际播放端点。多频道可共用运营方的依据。运行 `pnpm --filter @haen/web prepare:linuxdo:sources` 查看格式、使用依据、连接预检和去重统计。工具只预检有依据的固定端点，不播放声音。
-3. 核对结果后运行 `pnpm --filter @haen/web prepare:linuxdo:sources --write-candidates` 生成 `data/sandbox-streams.json`。同一频道的目录条目通过 `aliases` 共用一个播放端点。需要补齐已验收频道的目录关联时，另加 `--write-aliases` 更新 `data/streams.json` 中已核对的别名，保留原音源和验收记录。正式包仅载入已验收频道，沙箱和本地检查包另载入候选频道。
-4. 使用 `HAEN_LINUXDO_SANDBOX_OFFSET=0 HAEN_LINUXDO_SANDBOX_LIMIT=10 pnpm --filter @haen/web package:linuxdo:sandbox` 可分批构建。`OFFSET` 从 0 开始，默认每批最多 100 条候选，已验收音源随每批沙箱包提供。沙箱实际通过后，将对应候选和 `verification` 写入正式可播清单。
+3. 核对结果后运行 `pnpm --filter @haen/web prepare:linuxdo:sources --write-candidates` 生成 `data/sandbox-streams.json`。同一频道的目录条目通过 `aliases` 共用一个播放端点。需要补齐正式频道的目录关联时，另加 `--write-aliases` 更新 `data/streams.json` 中已核对的别名，保留原音源和验收状态。沙箱和本地检查包会在正式名单之外载入候选频道。
+4. 使用 `HAEN_LINUXDO_SANDBOX_OFFSET=0 HAEN_LINUXDO_SANDBOX_LIMIT=10 pnpm --filter @haen/web package:linuxdo:sandbox` 可分批构建。`OFFSET` 从 0 开始，默认每批最多 100 条候选，正式音源随每批沙箱包提供。沙箱实际通过后，将对应候选和 `verification` 写入正式可播清单。
 
 `source-evidence.json` 的 `reviewGroups` 为待排查的托管平台，统计按域名归组的 MP3 目录条目。同一条电台可能使用多个平台。这组数据仅供核对覆盖范围，正式和沙箱候选依然按 `allowed` 的频道依据筛选。
 
@@ -34,6 +34,6 @@ pnpm --filter @haen/web package:linuxdo
 
 打包按管理页的 4096 KiB 上传上限检查最终 ZIP。超限时构建报错，保留上一次输出。
 
-正式候选包位于 `apps/web/linuxdo/dist/package/app.zip`，仅包含已记录真实沙箱验收的音源。验证新音源时，另用 `pnpm --filter @haen/web package:linuxdo:sandbox` 构建沙箱包，在桌面和手机验证目录、实际出声、停止和切台，再更新验收记录。上传、提审和正式上架由用户操作。详细交付约定见[微应用协作规范](AGENTS.md)。
+正式候选包位于 `apps/web/linuxdo/dist/package/app.zip`。默认在真实沙箱通过桌面和手机的出声、停止和切台验证后，再把音源放入正式名单。用户明确指定直接启用的预检音源在正式名单中设置 `releaseWithoutSandbox`，实际出声状态仍由 `verification` 记录。按平台流程在沙箱页签上传正式候选 ZIP，再到正式页选择该构建提审。上传、提审和正式上架由用户操作。详细交付约定见[微应用协作规范](AGENTS.md)和[官方发布流程](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/developer-guide.md#开发与发布)。
 
 地图数据来自 Natural Earth，地名参考 GeoNames（CC BY 4.0）。平台能力见 [LINUX DO HTTP 与 WebSocket 指南](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/sdk-network.md)，本项目变更见[实施记录](../../../docs/iterations/2026-11-10-linuxdo-mini-app/README.md)。

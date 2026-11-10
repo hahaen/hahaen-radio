@@ -101,3 +101,9 @@ Radio Paradise 为外部播放器公开了频道和编码选项，Radio Sausalit
 - WFMU 与 Freies Radio für Stuttgart 的受测 MP3 仍缺少适用的跨域许可。Deutschlandradio 的四个频道入口会重定向到带临时凭据的地址。LINUX DO 只允许重定向到另一个已审核的固定端点。当前需要电台提供允许论坛来源读取的固定直播入口，或由平台提供可审核的接入方式。[WFMU 播放说明](https://freeform.wfmu.org/mobile.shtml) · [Stuttgart 播放说明](https://www.freies-radio.de/empfang) · [Deutschlandradio 直播地址](https://www.deutschlandradio.de/streamingdienste-100.html) · [SDK 重定向规则](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/sdk-network.md#http)
 - KEXP 公布的外部播放器地址允许跨域读取，但提供 AAC-LC 和 HE-AAC。现有微应用播放器使用 MP3，新格式需单独适配及完成双端验收。[KEXP 外部播放器说明](https://www.kexp.org/mobile/kexp-livestreams/)
 - `0.1.1` 沙箱 ZIP 为 3,954,158 字节，包含 10 个实际频道，其中 9 个待在真实 LINUX DO 沙箱双端确认出声、停止和切台。桌面 Chromium 与手机 WebKit 视口的无声检查通过。交付包的音源和资源与测试包一致，正式 ZIP 的 SHA-256 保持一致。本次只更新微应用沙箱，无需更新声屿服务。
+
+## 本批频道直接进入正式候选包
+
+- 根据用户要求，将上一批沙箱的 9 个独立频道移入正式名单，与已验收的 Radio Paradise 主频道一起打入 `0.1.2`。新增频道已有 HTTPS、跨域和 MP3 数据预检，配置逐条标记直接启用，保留空白的真实沙箱验收记录。正式包内使用普通播放入口。
+- 平台仍通过沙箱页签接收 ZIP 并生成构建，随后在正式页选择该构建提审。本次按要求跳过项目侧的实际播放验收。[官方发布流程](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/developer-guide.md#开发与发布)
+- 10 个音源重新通过 HTTPS、跨域和 MP3 数据预检。正式 ZIP 为 3,954,151 字节，包含 10 个直播端点及 22 条普通播放记录。包体低于 4096 KiB，目录、地图和应用代码与上一版沙箱验证包一致。仅交付微应用正式候选包，本次无需更新声屿服务。

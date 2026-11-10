@@ -40,23 +40,22 @@ const httpsUrl = z.url({ protocol: /^https$/ }).refine((value) => {
     !host.endsWith('.hahaen.xyz')
   );
 });
-const streamConfig = z.array(
-  z.strictObject({
-    stationId: z.uuid(),
-    catalogUrl: httpsUrl,
-    aliases: z.array(z.strictObject({ stationId: z.uuid(), catalogUrl: httpsUrl })).default([]),
-    url: httpsUrl,
-    operator: z.string().min(1),
-    permission: httpsUrl,
-    verification: z
-      .strictObject({
-        date: z.iso.date(),
-        desktop: z.string().min(1),
-        mobile: z.string().min(1),
-      })
-      .nullable(),
-  }),
-);
+const streamSource = z.strictObject({
+  stationId: z.uuid(),
+  catalogUrl: httpsUrl,
+  aliases: z.array(z.strictObject({ stationId: z.uuid(), catalogUrl: httpsUrl })).default([]),
+  url: httpsUrl,
+  operator: z.string().min(1),
+  permission: httpsUrl,
+  verification: z
+    .strictObject({
+      date: z.iso.date(),
+      desktop: z.string().min(1),
+      mobile: z.string().min(1),
+    })
+    .nullable(),
+});
+const releaseSource = streamSource.extend({ releaseWithoutSandbox: z.literal(true).optional() });
 
 if (write) {
   const { pack } = await import('../../../../.local/linuxdo/sdk/pack.mjs');
@@ -70,7 +69,9 @@ if (write) {
       .filter(({ availability }) => availability === 'available')
       .map(({ id }) => id),
   );
-  const configured = streamConfig.parse(JSON.parse(await readFile('data/streams.json', 'utf8')));
+  const configured = z
+    .array(releaseSource)
+    .parse(JSON.parse(await readFile('data/streams.json', 'utf8')));
   const ids = new Set();
   function registerStationIds({ stationId, aliases }) {
     for (const id of [stationId, ...aliases.map((alias) => alias.stationId)]) {
@@ -80,9 +81,9 @@ if (write) {
   }
   for (const source of configured) registerStationIds(source);
   if (check || sandbox) {
-    const candidates = streamConfig.parse(
-      JSON.parse(await readFile('data/sandbox-streams.json', 'utf8')),
-    );
+    const candidates = z
+      .array(streamSource)
+      .parse(JSON.parse(await readFile('data/sandbox-streams.json', 'utf8')));
     const offset = Number(process.env.HAEN_LINUXDO_SANDBOX_OFFSET ?? 0);
     const limit = Number(process.env.HAEN_LINUXDO_SANDBOX_LIMIT ?? 100);
     if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1) {
@@ -96,19 +97,20 @@ if (write) {
   }
   const endpointByUrl = new Map();
   const entries = streamIndexSchema.parse(
-    configured.flatMap(({ stationId, aliases, url, verification }) => {
-      if (!check && !sandbox && !verification) return [];
+    configured.flatMap(({ stationId, aliases, url, verification, releaseWithoutSandbox }) => {
+      const released = Boolean(verification || releaseWithoutSandbox);
+      if (!check && !sandbox && !released) return [];
       const stationIds = [stationId, ...aliases.map((alias) => alias.stationId)].filter((id) =>
         available.has(id),
       );
       if (!stationIds.length) return [];
       if (!endpointByUrl.has(url)) endpointByUrl.set(url, `station-${stationId}`);
       const endpoint = endpointByUrl.get(url);
-      return stationIds.map((id) => ({ stationId: id, endpoint, candidate: !verification }));
+      return stationIds.map((id) => ({ stationId: id, endpoint, candidate: !released }));
     }),
   );
   if (!check && !sandbox && !entries.length) {
-    throw new Error('正式包需要至少一条已通过桌面和手机沙箱验收的直播源。');
+    throw new Error('正式包需要至少一条已验收或明确获准直接启用的直播源。');
   }
   const streamEndpoints = Object.fromEntries(
     [...endpointByUrl].map(([url, endpoint]) => [endpoint, { url, method: 'GET', auth: 'none' }]),

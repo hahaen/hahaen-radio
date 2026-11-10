@@ -152,8 +152,10 @@ for (const { matches, ...channel } of channels) {
   if (!probes.has(url)) probes.set(url, await probe(url));
   const access = probes.get(url);
   let status = 'access-blocked';
-  if (existing?.verification && existing.url === url) {
-    status = 'formal';
+  const released =
+    existing?.url === url && (existing.verification || existing.releaseWithoutSandbox);
+  if (released) {
+    status = existing.verification ? 'formal' : 'formal-unverified';
     formalAliases.set(selected.id, aliases);
   } else if (usedUrls.has(url) || selectedIds.has(selected.id)) status = 'duplicate';
   else if (access === 'mp3-bytes') {
@@ -168,7 +170,7 @@ for (const { matches, ...channel } of channels) {
       verification: null,
     });
   }
-  if (status === 'formal' || status === 'sandbox') {
+  if (released || status === 'sandbox') {
     selectedIds.add(selected.id);
     usedUrls.add(url);
   }
