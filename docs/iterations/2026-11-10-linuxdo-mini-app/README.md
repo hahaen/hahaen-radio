@@ -87,3 +87,10 @@ Radio Paradise 为外部播放器公开了频道和编码选项，Radio Sausalit
 - 批量工具从本轮快照中识别了 Zeno Media 的 1,986 条 MP3 目录记录和 Triton Digital 的 642 条。Zeno 公布的服务端 API 需要项目凭据，Triton 公布的选台接口返回配置。仍需确认运营方能否提供授权覆盖多个频道并直接返回音频的入口。[Zeno 开发者说明](https://new.zeno.fm/developers/) · [Triton 选台接口](https://help.tritondigital.com/docs/provisioning-request)
 - 全量接入仍需平台确认是否支持独立审核的音源白名单。现行 SDK 按 `manifest.json` 中声明的固定端点发起请求。[LINUX DO 网络规则](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/sdk-network.md#声明端点)
 - Chromium 桌面和 WebKit 手机视口通过无声隔离检查，覆盖 17 条目录记录的播放入口。正式 ZIP 为 3,953,337 字节，核对为 4 条目录记录共用 1 个已验收端点。沙箱 ZIP 为 3,953,811 字节，核对为 17 条目录记录共用 5 个端点。两个包均低于 4096 KiB。新增 4 个频道仍需真实沙箱双端验收。仅更新微应用产物，本次无需更新声屿服务。
+
+## 新增两个独立电台候选
+
+- 从既有目录快照选出 WMBR 88.1 FM 和 Dandelion Radio。两者是与既有候选节目不同的电台。WMBR 公布了外部播放器的直连 MP3 地址，Dandelion Radio 公布了外部播放器使用的 PLS，候选使用该 PLS 指向的固定 HTTPS 音源。[WMBR 播放说明](https://wmbr.org/?p=listen) · [Dandelion Radio 播放说明](https://www.dandelionradio.com/about.htm)
+- 两个音源都通过了 HTTPS、`Origin: https://linux.do` 的 CORS 和 MP3 数据预检。KALX 与 Folk Alley 的试查地址未返回允许论坛来源的响应头。WWOZ 和 Radio Swiss 系列需要继续核对第三方微应用直连播放的使用依据。[WWOZ 使用条款](https://www.wwoz.org/wwozorg-site-terms) · [SRG SSR 使用条款](https://www.srgssr.ch/en/terms-of-use)
+- 两台加入 `0.1.1` 沙箱，待真实沙箱在桌面与手机确认出声、停止和切台。正式候选继续使用同一个已验收频道。本次变更只影响 LINUX DO 沙箱包。
+- 沙箱 ZIP 为 3,953,968 字节，包含 19 个目录入口和 7 个实际频道。桌面 Chromium 与手机 WebKit 视口的无声检查通过，核对测试包与交付包的音源清单和资源一致。正式 ZIP 的 SHA-256 保持一致。本次无需更新声屿服务。

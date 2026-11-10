@@ -74,5 +74,23 @@
     "operator": "Radio Sausalito",
     "permission": "https://radiosausalito.org/listen/stream/",
     "verification": null
+  },
+  {
+    "stationId": "a707f84a-9ae4-40bf-a176-fcb4cdbc9fbe",
+    "catalogUrl": "https://wmbr.org:8002/hi",
+    "aliases": [],
+    "url": "https://wmbr.org:8002/hi",
+    "operator": "WMBR 88.1 FM",
+    "permission": "https://wmbr.org/?p=listen",
+    "verification": null
+  },
+  {
+    "stationId": "961fe58c-0601-11e8-ae97-52543be04c81",
+    "catalogUrl": "https://solid41.streamupsolutions.com/proxy/bqbyzdhi?mp=/stream",
+    "aliases": [],
+    "url": "https://solid41.streamupsolutions.com/proxy/bqbyzdhi?mp=/stream",
+    "operator": "Dandelion Radio",
+    "permission": "https://www.dandelionradio.com/about.htm",
+    "verification": null
   }
 ]

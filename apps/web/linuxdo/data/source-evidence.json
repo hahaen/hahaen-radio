@@ -43,6 +43,33 @@
           "url": "https://quarrel.streamguys1.com:7090/live"
         }
       ]
+    },
+    {
+      "operator": "WMBR 88.1 FM",
+      "permission": "https://wmbr.org/?p=listen",
+      "catalogOrigin": "https://wmbr.org",
+      "channels": [
+        {
+          "name": "WMBR 88.1 FM",
+          "url": "https://wmbr.org:8002/hi",
+          "catalogAddresses": ["https://wmbr.org:8002/hi", "/WMBR_live_128.m3u"]
+        }
+      ]
+    },
+    {
+      "operator": "Dandelion Radio",
+      "permission": "https://www.dandelionradio.com/about.htm",
+      "catalogOrigin": "https://www.dandelionradio.com",
+      "channels": [
+        {
+          "name": "Dandelion Radio",
+          "url": "https://solid41.streamupsolutions.com/proxy/bqbyzdhi?mp=/stream",
+          "catalogAddresses": [
+            "https://solid41.streamupsolutions.com/proxy/bqbyzdhi?mp=/stream",
+            "/DandelionRadio.pls"
+          ]
+        }
+      ]
     }
   ],
   "reviewGroups": [
