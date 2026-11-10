@@ -1,0 +1,60 @@
+{
+  "allowed": [
+    {
+      "operator": "Radio Paradise",
+      "permission": "https://radioparadise.com/listen/stream-links",
+      "catalogOrigin": "https://stream.radioparadise.com",
+      "channels": [
+        {
+          "name": "Main Mix",
+          "url": "https://stream-dc1.radioparadise.com/mp3-128",
+          "catalogAddresses": ["/aac-64", "/aac-320", "/flac", "/flacm"]
+        },
+        {
+          "name": "Mellow Mix",
+          "url": "https://stream.radioparadise.com/mellow-192",
+          "catalogAddresses": ["/mellow-64", "/mellow-flac"]
+        },
+        {
+          "name": "Rock Mix",
+          "url": "https://stream.radioparadise.com/rock-192",
+          "catalogAddresses": ["/rock-64", "/rock-flac"]
+        },
+        {
+          "name": "Global Mix",
+          "url": "https://stream.radioparadise.com/global-192",
+          "catalogAddresses": [
+            "/world-etc-64",
+            "/world-etc-320",
+            "/world-etc-flac",
+            "/world-etc-flacm"
+          ]
+        }
+      ]
+    },
+    {
+      "operator": "Radio Sausalito",
+      "permission": "https://radiosausalito.org/listen/stream/",
+      "catalogOrigin": "https://radiosausalito.org",
+      "channels": [
+        {
+          "name": "Radio Sausalito",
+          "catalogAddresses": ["https://quarrel.streamguys1.com:7090/live", "/128k"],
+          "url": "https://quarrel.streamguys1.com:7090/live"
+        }
+      ]
+    }
+  ],
+  "restricted": [
+    {
+      "operator": "SomaFM",
+      "permission": "https://somafm.com/legal/tos.html",
+      "domain": "somafm.com"
+    },
+    {
+      "operator": "laut.fm",
+      "permission": "https://laut.fm/pages/terms_and_conditions",
+      "domain": "laut.fm"
+    }
+  ]
+}

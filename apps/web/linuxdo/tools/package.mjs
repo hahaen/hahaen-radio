@@ -75,28 +75,36 @@ if (write) {
     if (ids.has(stationId)) throw new Error(`直播源重复关联同一电台：${stationId}`);
     ids.add(stationId);
   }
+  if (check || sandbox) {
+    const candidates = streamConfig.parse(
+      JSON.parse(await readFile('data/sandbox-streams.json', 'utf8')),
+    );
+    const offset = Number(process.env.HAEN_LINUXDO_SANDBOX_OFFSET ?? 0);
+    const limit = Number(process.env.HAEN_LINUXDO_SANDBOX_LIMIT ?? 100);
+    if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(limit) || limit < 1) {
+      throw new Error('沙箱候选批次必须使用有效的起始位置和条数');
+    }
+    for (const source of candidates.slice(offset, offset + limit)) {
+      if (ids.has(source.stationId)) continue;
+      configured.push({ ...source, verification: null });
+      ids.add(source.stationId);
+    }
+  }
   const streams = configured.filter(
     ({ stationId, verification }) => available.has(stationId) && (check || sandbox || verification),
   );
   if (!check && !sandbox && !streams.length) {
     throw new Error('正式包需要至少一条已通过桌面和手机沙箱验收的直播源。');
   }
+  const endpointByUrl = new Map();
   const entries = streamIndexSchema.parse(
-    streams.map(({ stationId, verification }) => ({
-      stationId,
-      endpoint: `station-${stationId}`,
-      candidate: !verification,
-    })),
+    streams.map(({ stationId, url, verification }) => {
+      if (!endpointByUrl.has(url)) endpointByUrl.set(url, `station-${stationId}`);
+      return { stationId, endpoint: endpointByUrl.get(url), candidate: !verification };
+    }),
   );
   const streamEndpoints = Object.fromEntries(
-    entries.map(({ endpoint }, index) => [
-      endpoint,
-      {
-        url: streams[index].url,
-        method: 'GET',
-        auth: 'none',
-      },
-    ]),
+    [...endpointByUrl].map(([url, endpoint]) => [endpoint, { url, method: 'GET', auth: 'none' }]),
   );
   const geography = ['land.json', 'regions.json', 'relief.jpg', 'world.svg'];
   const manifest = {

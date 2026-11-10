@@ -1,0 +1,34 @@
+[
+  {
+    "stationId": "6d264e68-5179-4e0f-ad2e-fca103afba28",
+    "catalogUrl": "https://stream.radioparadise.com/mellow-64",
+    "url": "https://stream.radioparadise.com/mellow-192",
+    "operator": "Radio Paradise",
+    "permission": "https://radioparadise.com/listen/stream-links",
+    "verification": null
+  },
+  {
+    "stationId": "9e54d6fc-16a6-4308-9c15-c60aeb1e2de8",
+    "catalogUrl": "https://stream.radioparadise.com/rock-64",
+    "url": "https://stream.radioparadise.com/rock-192",
+    "operator": "Radio Paradise",
+    "permission": "https://radioparadise.com/listen/stream-links",
+    "verification": null
+  },
+  {
+    "stationId": "22f72eb5-cc37-4525-9f9d-15204c8165ef",
+    "catalogUrl": "https://stream.radioparadise.com/world-etc-64",
+    "url": "https://stream.radioparadise.com/global-192",
+    "operator": "Radio Paradise",
+    "permission": "https://radioparadise.com/listen/stream-links",
+    "verification": null
+  },
+  {
+    "stationId": "24bc153c-8a47-4ba2-9bd9-df1ef8b9146e",
+    "catalogUrl": "https://quarrel.streamguys1.com:7090/live",
+    "url": "https://quarrel.streamguys1.com:7090/live",
+    "operator": "Radio Sausalito",
+    "permission": "https://radiosausalito.org/listen/stream/",
+    "verification": null
+  }
+]

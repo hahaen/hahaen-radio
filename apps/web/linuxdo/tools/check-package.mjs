@@ -40,7 +40,7 @@ assert.deepEqual(manifest.permissions, [
 ]);
 assert.deepEqual(
   Object.keys(manifest.endpoints ?? {}).sort(),
-  sources.map(({ endpoint }) => endpoint).sort(),
+  [...new Set(sources.map(({ endpoint }) => endpoint))].sort(),
 );
 for (const endpoint of Object.values(manifest.endpoints ?? {})) {
   const url = new URL(endpoint.url);
@@ -89,8 +89,11 @@ const first = stations.find((station) => {
 assert.ok(first, 'Find a named news station with a small local city group in the snapshot');
 const sameCity = cities.get(cityKey(first));
 const legacy = sameCity.find(([id]) => id !== first[0]);
-const playable = candidate && stations.find(([id]) => id === candidate.stationId);
-if (candidate) assert.ok(playable, 'Sandbox source belongs to the packaged catalog');
+const playable = sources.map((source) => {
+  const station = stations.find(([id]) => id === source.stationId);
+  assert.ok(station, 'A playback source must belong to the packaged catalog');
+  return { source, station };
+});
 
 const origin = 'https://linuxdo-check.invalid';
 const resources = Object.fromEntries(
@@ -289,16 +292,20 @@ for (const { engine, label, options } of [
     await expect(heading).not.toHaveText(first[1]);
     await find.click();
     await directory.getByRole('button', { name: /附近城市：|同城：/ }).click();
-    if (playable) {
-      await search.fill(playable[1]);
-      await directory.locator(`button[data-station-id="${playable[0]}"]`).click();
-      await expect(heading).toHaveText(playable[1]);
+    for (const { source, station } of playable) {
+      if (!(await search.isVisible())) await find.click();
+      await search.fill(station[1]);
+      await directory.locator(`button[data-station-id="${station[0]}"]`).click();
+      await expect(heading).toHaveText(station[1]);
       const play = frame.getByRole('button', {
-        name: candidate.candidate ? '沙箱试播' : '播放',
+        name: source.candidate ? '沙箱试播' : '播放',
         exact: true,
       });
       await expect(play).toBeVisible();
-      if (audioSample) {
+      if (!audioSample && source === candidate) {
+        await play.click();
+        await expect(frame.getByText('未能读取这些音源，可重试或选择其他电台。')).toBeVisible();
+      } else if (audioSample && source === candidate) {
         await play.click();
         await expect
           .poll(() => root.evaluate(() => globalThis.audioEvidence.scheduled))

@@ -8,6 +8,15 @@ LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、筛选�
 
 首个正式可播电台为 Radio Paradise 主频道。直播经 SDK 直接读取运营方的 MP3 端点，在当前页面解码播放。扩充直播时，先核对音源与目录为同一频道，再在 `data/streams.json` 记录目录电台 ID、对应的 `catalogUrl`、运营方提供的 MP3 `url` 和公开依据。打包时只纳入快照中状态可用的电台。实际沙箱验收完成后再填写 `verification`。
 
+### 批量筛选音源
+
+1. 运行 `pnpm --filter @haen/web scan:linuxdo:sources`。工具核对包内目录与当前线上版本，再按官网搜索范围批量读取公开详情。若版本不一致，先更新目录快照。清点结果保存在 Git 忽略的 `.local/linuxdo/station-inventory.json`。
+2. 在 `data/source-evidence.json` 记录运营方的公开使用依据、频道对应的目录地址和实际播放端点。多频道可共用运营方的依据。运行 `pnpm --filter @haen/web prepare:linuxdo:sources` 查看格式、使用依据、连接预检和去重统计。工具只预检有依据的固定端点，不播放声音。
+3. 核对结果后运行 `pnpm --filter @haen/web prepare:linuxdo:sources --write-candidates` 生成 `data/sandbox-streams.json`。每个实际频道只保留一个待验收目录条目。沙箱和本地检查包会载入候选，正式候选包只从 `data/streams.json` 读取已验收音源。
+4. 使用 `HAEN_LINUXDO_SANDBOX_OFFSET=0 HAEN_LINUXDO_SANDBOX_LIMIT=10 pnpm --filter @haen/web package:linuxdo:sandbox` 可分批构建。`OFFSET` 从 0 开始，默认每批最多 100 条候选，已验收音源随每批沙箱包提供。沙箱实际通过后，将对应候选和 `verification` 写入正式可播清单。
+
+参见[官方规则核对记录](../../../docs/iterations/2026-11-10-linuxdo-mini-app/network-rules.md)和[批量筛选结果](../../../docs/iterations/2026-11-10-linuxdo-mini-app/README.md#批量筛选官网音源)。
+
 ## 打包
 
 微应用的实际发布内容有变化时，更新 `version.json`，将补丁版本加 1，再交付正式候选 ZIP。同一次交付的检查、沙箱和正式包使用同一版本。仅改文档、协作规则或不会改变包内内容的工具时，保留版本和现有包。使用仓库固定的 Node.js 和 pnpm，从仓库根执行以下命令。
