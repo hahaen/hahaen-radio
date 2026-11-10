@@ -1,5 +1,4 @@
 import { applicationPath } from '../platform/paths.js';
-import { requestMapAsset } from './map-assets.js';
 import { z } from 'zod';
 import { loadRegions } from './regions.js';
 const point = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]);
@@ -15,7 +14,7 @@ export async function loadLand(signal: AbortSignal): Promise<LandData> {
 }
 async function readLand(signal: AbortSignal): Promise<LandData> {
   const active = AbortSignal.any([signal, AbortSignal.timeout(10000)]);
-  const response = await requestMapAsset(applicationPath('geography/land.json?v=5.1.2-1'), {
+  const response = await fetch(applicationPath('geography/land.json?v=5.1.2-1'), {
     signal: active,
     cache: 'force-cache',
   });

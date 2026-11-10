@@ -1,8 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "types": ["vite/client", "node"],
-    "paths": { "@discourse-mini-app/sdk": ["../../../.local/linuxdo/sdk/index.d.ts"] }
-  },
-  "include": ["*.ts", "*.tsx"]
-}

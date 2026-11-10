@@ -22,31 +22,16 @@ export interface PlayerState {
   autoSkips: number;
   canGoBack: boolean;
 }
-type PlaybackEngine = Pick<
-  AudioEngine,
-  | 'getSnapshot'
-  | 'subscribe'
-  | 'activateAudio'
-  | 'select'
-  | 'play'
-  | 'pause'
-  | 'setAudioOptions'
-  | 'setVolume'
-  | 'setMuted'
-  | 'setOnline'
-  | 'destroy'
->;
-export type PlayerOptions = {
-  createEngine?: () => PlaybackEngine;
-  station?: (id: string, signal: AbortSignal) => Promise<StationDetail>;
-  isPlayable?: (detail: StationDetail) => boolean;
-  explicitPlayback?: boolean;
-};
 type Explorer = (
   signal: AbortSignal,
   excludeIds: readonly string[],
 ) => Promise<StationPreview | null>;
-export function createPlayerController(options: PlayerOptions = {}) {
+export function createPlayerController(
+  options: {
+    createEngine?: () => AudioEngine;
+    station?: (id: string, signal: AbortSignal) => Promise<StationDetail>;
+  } = {},
+) {
   const emptyPlayback: PlaybackSnapshot = {
     stationId: null,
     status: 'idle',
@@ -70,10 +55,7 @@ export function createPlayerController(options: PlayerOptions = {}) {
     autoSkips: 0,
     canGoBack: false,
   }));
-  let engine: PlaybackEngine | undefined;
-  const isPlayable =
-    options.isPlayable ??
-    ((detail: StationDetail) => detail.availability === 'available' && detail.streams.length > 0);
+  let engine: AudioEngine | undefined;
   let unsubscribe: (() => void) | undefined;
   let request: AbortController | undefined;
   let token = 0;
@@ -119,7 +101,6 @@ export function createPlayerController(options: PlayerOptions = {}) {
     store.setState({ playback, canGoBack: canGoBack(), intent: wantsPlayback });
     if (playback.status === 'failed' && playback.stationId) failedStations.add(playback.stationId);
     if (
-      !options.explicitPlayback &&
       playback.status === 'failed' &&
       state.playback.status !== 'failed' &&
       ['network', 'timeout', 'unsupported'].includes(playback.failure ?? '') &&
@@ -151,7 +132,6 @@ export function createPlayerController(options: PlayerOptions = {}) {
     resolvedDetail?: StationDetail,
   ) {
     if (!engine) return;
-    autoplay = autoplay && !options.explicitPlayback;
     if (autoplay) engine.activateAudio();
     cancel();
     if (!automatic) failedStations.clear();
@@ -182,7 +162,8 @@ export function createPlayerController(options: PlayerOptions = {}) {
         station: detail,
         detail,
         resolving: false,
-        requestFailure: isPlayable(detail) || options.explicitPlayback ? null : 'unavailable',
+        requestFailure:
+          detail.availability === 'available' && detail.streams.length ? null : 'unavailable',
       });
       engine.select(
         detail.id,
@@ -203,7 +184,6 @@ export function createPlayerController(options: PlayerOptions = {}) {
   async function explore(autoplay: boolean, automatic = false, scope?: Explorer) {
     const choose = scope ?? explorer;
     if (!engine || !choose) return;
-    autoplay = autoplay && !options.explicitPlayback;
     if (autoplay) engine.activateAudio();
     cancel();
     if (!networkOnline) {
@@ -245,26 +225,6 @@ export function createPlayerController(options: PlayerOptions = {}) {
       if (selectedToken === token && !signal.aborted)
         store.setState({ resolving: false, requestFailure: 'network' });
     }
-  }
-  function play() {
-    const detail = store.getState().detail;
-    if (options.explicitPlayback && (!detail || !isPlayable(detail))) return;
-    invalidateSelection();
-    if (!networkOnline) {
-      store.setState({ requestFailure: 'offline' });
-      return;
-    }
-    wantsPlayback = true;
-    store.setState({ requestFailure: null, autoSkips: 0, intent: true });
-    const state = store.getState();
-    if (state.resolving) return;
-    if (
-      !options.explicitPlayback &&
-      state.station &&
-      (state.detail === null || state.detail.availability !== 'available')
-    )
-      void select(state.station, true);
-    else engine?.play();
   }
   return {
     store,
@@ -327,10 +287,9 @@ export function createPlayerController(options: PlayerOptions = {}) {
     },
     open: (id: string, autoplay = false) => resolveStation(id, autoplay, false, null),
     invalidateSelection,
-    next: () => explore(!options.explicitPlayback && (wantsPlayback || !store.getState().station)),
+    next: () => explore(wantsPlayback || !store.getState().station),
     prepare: (scope?: Explorer) => explore(false, false, scope),
     async start() {
-      if (options.explicitPlayback) return;
       if (store.getState().resolving) {
         invalidateSelection();
         wantsPlayback = true;
@@ -345,11 +304,23 @@ export function createPlayerController(options: PlayerOptions = {}) {
       const visit = visits[index];
       if (!visit) return;
       cursor = index;
-      const autoplay = !options.explicitPlayback && wantsPlayback;
-      if (visit.preview) void select(visit.preview, autoplay);
-      else void resolveStation(visit.id, autoplay, false, null);
+      if (visit.preview) void select(visit.preview, wantsPlayback);
+      else void resolveStation(visit.id, wantsPlayback, false, null);
     },
-    play,
+    play() {
+      invalidateSelection();
+      if (!networkOnline) {
+        store.setState({ requestFailure: 'offline' });
+        return;
+      }
+      wantsPlayback = true;
+      store.setState({ requestFailure: null, autoSkips: 0, intent: true });
+      const state = store.getState();
+      if (state.resolving) return;
+      if (state.station && (state.detail === null || state.detail.availability !== 'available'))
+        void select(state.station, true);
+      else engine?.play();
+    },
     pause() {
       invalidateSelection();
       wantsPlayback = false;
@@ -358,9 +329,7 @@ export function createPlayerController(options: PlayerOptions = {}) {
     },
     retry() {
       const station = store.getState().station;
-      if (options.explicitPlayback) {
-        play();
-      } else if (station) void select(station, true);
+      if (station) void select(station, true);
       else void explore(true);
     },
     setPinned(pinned: boolean) {

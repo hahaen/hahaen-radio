@@ -1,5 +1,5 @@
 import { createPortal } from 'react-dom';
-import { mapFallbackUrl } from './map-assets';
+import { applicationPath } from '../platform/paths';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { StationPreview } from '@haen/contracts';
@@ -243,7 +243,7 @@ export function GlobePanel({
           <span className={styles.reticle} aria-hidden="true" />
         ) : (
           <div className={styles.fallback}>
-            <img src={mapFallbackUrl()} alt="" />
+            <img src={applicationPath('geography/world.svg')} alt="" />
             <p aria-live="polite">
               {t(
                 state === 'loading'

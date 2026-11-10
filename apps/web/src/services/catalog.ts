@@ -42,15 +42,7 @@ export const getCatalog = (signal?: AbortSignal) =>
   getJson('/catalog', CatalogManifestSchema, signal);
 export const getStation = (id: string, signal?: AbortSignal) =>
   getJson(`/stations/${encodeURIComponent(id)}`, StationDetailSchema, signal);
-export async function lookupStations(
-  ids: readonly string[],
-  signal: AbortSignal,
-  requestBatch = (batch: string[], active: AbortSignal) =>
-    getJson('/stations/lookup', StationLookupResultSchema, active, {
-      method: 'POST',
-      body: { ids: batch },
-    }),
-) {
+export async function lookupStations(ids: readonly string[], signal: AbortSignal) {
   const items: StationDetail[] = [],
     missing: string[] = [];
   const unique = [...new Set(ids)];
@@ -64,7 +56,10 @@ export async function lookupStations(
       const offset = next;
       next += 100;
       const batch = unique.slice(offset, offset + 100);
-      const result = await requestBatch(batch, active);
+      const result = await getJson('/stations/lookup', StationLookupResultSchema, active, {
+        method: 'POST',
+        body: { ids: batch },
+      });
       const returned = [...result.items.map((item) => item.id), ...result.missing];
       if (
         returned.length !== batch.length ||

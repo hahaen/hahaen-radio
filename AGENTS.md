@@ -13,7 +13,6 @@
 - 产品目标：[docs/product/README.md](docs/product/README.md)，状态见[实施进度](docs/product/progress.md)与[验收矩阵](docs/product/acceptance.md)。
 - 技术基线：[docs/overview/technology-stack.md](docs/overview/technology-stack.md)。
 - Android 开发入口：[apps/android/README.md](apps/android/README.md)，专用规范见 [apps/android/AGENTS.md](apps/android/AGENTS.md)，方案见 [docs/android/README.md](docs/android/README.md)；已交付 Debug APK 并完成本轮核心真机验收，耳机专项按用户要求暂缓；实际验证状态以 Android 专题记录为准。
-- LINUX DO 微应用入口：[apps/web/linuxdo/README.md](apps/web/linuxdo/README.md)，专用规范见 [apps/web/linuxdo/AGENTS.md](apps/web/linuxdo/AGENTS.md)。
 - 视觉基线：[夜航设计规范](docs/frontend/design/night-voyage.md)与[已确认概念图](docs/frontend/design/assets/night-voyage-concept.png)。
 - 系统设计：[docs/architecture/system-design.md](docs/architecture/system-design.md)。
 - 工程目录：[docs/architecture/repository-layout.md](docs/architecture/repository-layout.md)。
@@ -98,7 +97,6 @@ Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在�
 - 音频默认由浏览器直连电台服务器，后端提供数据和播放信息。不得未经专项评估将全部音频改为后端代理或转码。
 - `apps/web`：前端应用、浏览器测试、前端资源脚本及测试产物；`apps/server`：API、任务、表结构定义和迁移入口。
 - `apps/android`：独立 Gradle 原生客户端、播放服务和局部图形构建；技术文档位于 `docs/android`。不创建无职责的空模块或占位构建配置。
-- 官网与 LINUX DO 微应用使用 `apps/web` 的同一套界面和业务源码，分开构建。微应用纯前端运行，发布前只读导出线上公开电台目录，运行时通过官方 SDK 读取包内目录和地图，详情、搜索、筛选、同城、随机选台使用包内数据，收藏和设置保存在 SDK 应用存储。微应用运行时不接入 `radio-api`、`radio-jobs` 或其他声屿后台服务，不提供登录、账号同步或其他后台功能。直播在当前页面直连运营方允许第三方播放器使用、并已在 SDK 清单声明的音源。
 - `packages/contracts`：可公开共享的 DTO、Zod Schema 和错误码。
 - `packages/config`：共享工程配置；`apps/server/migrations`：数据库迁移及元数据。
 - `deploy/docker`、`deploy/compose`、`deploy/caddy`：容器与运行配置。
@@ -204,15 +202,12 @@ Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在�
 
 - 当前入口为 `python3 deploy/local/release.py all|api|jobs|frontend`；从本机验证、编译并通过 SSH 上传编译产物。服务器不拉取 Git、不保留应用源码或构建依赖。
 - 默认只推送 GitHub upstream，不配置 Gitee remote、双推、镜像或自动同步。
-- 按实际运行和构建依赖判断影响。只有对应代码、依赖、资源或配置影响产物时，才构建和更新该产物。共享改动只更新受影响的消费者。`all` 只在现有服务均受影响且适合一起更新时使用，审核组件兼容。
-- 每次变更影响 LINUX DO 微应用产物时，验证后执行 `pnpm --filter @haen/web package:linuxdo`，默认交付正式候选 ZIP `apps/web/linuxdo/dist/package/app.zip`，上限 4096 KiB。沙箱包用于专项验收，默认交付仍包含正式候选包，详见[微应用协作规范](apps/web/linuxdo/AGENTS.md)。应用 ID 由用户填写至 Git 忽略的 `.env.local.linuxdo`，ZIP 同样由 Git 忽略。上传、提审和上架由用户操作。
-- LINUX DO 微应用实际发布内容有变化并交付正式候选包时，将 `apps/web/linuxdo/version.json` 的补丁版本加 1，例如 `0.1.0 → 0.1.1`。仅改文档、协作规则或不会改变包内内容的工具时，保留版本和现有包。同一次交付的测试和重打包复用该版本。官网版本单独管理。
-- 仅 LINUX DO 微应用产物受影响时，只检查并构建微应用目标。仅官网受影响时，只构建 `apps/web/dist` 并按官网流程发布。共享代码、依赖或资源变化时，核对受影响的消费者，再构建和更新对应产物。仅改文档或协作规则时，无需重打应用包。微应用 ZIP 与官网上传目录分开。
+- 同一项目发布加锁，API、任务、前端可分别更新。改变共享契约时优先 `all`，并审核 API、任务及前端兼容。
 - 发布不备份旧版本网页、镜像或运行配置，不自动回退；成功后只留当前仍在使用的镜像和静态文件。失败时报告实际运行状态，修复后重新编译上传。保留数据库、对象存储、当前运行配置、证书和必需持久卷，禁止 `docker compose down -v`；数据库迁移前的一致性备份仍遵循第 5 节。
 - 电台普通发布核对迁移材料摘要；变化时拒绝更新，先按第 5 节执行审核、隔离库验证、停写、一致性备份和单次迁移。维护成功后同步实际摘要，不能跳过迁移核对。
-- 用户已长期授权：本项目代码修改按第 10 节完成 Review、验证、提交、推送和远端核对后，由执行任务的助手直接运行本机发布入口，自动更新受影响的生产服务，无需再次确认。仅前端变化使用 `frontend`；独立且兼容的 API 或任务变化使用 `api` 或 `jobs`；共享后端、契约、依赖或部署运行配置变化先按消费者核对实际影响，再更新对应服务。多个服务均受影响时按 API/任务后前端的顺序更新。纯文档、协作规则、仅 Android 或仅 LINUX DO 微应用变化无需更新服务器；Android 分发仍需单独授权。
+- 用户已长期授权：本项目代码修改按第 10 节完成 Review、验证、提交、推送和远端核对后，由执行任务的助手直接运行本机发布入口，自动更新受影响的生产服务，无需再次确认。仅前端变化使用 `frontend`；独立且兼容的 API 或任务变化使用 `api` 或 `jobs`；共享后端、契约、依赖或部署运行配置变化使用 `all`，顺序为 API/任务后前端。纯文档、协作规则或仅 Android 变化无需更新服务器；Android 分发仍需单独授权。
 - 自动发版属于任务完成流程，不安装 Git 钩子、不恢复 Jenkins、不配置 GitHub 推送触发器。用户当次要求不发布、仅分析或指定环境时优先；Review、验证、Git 同步/推送或远端核对失败时不得发布。SSH 或健康检查失败报告 BLOCKED，保留已提交版本并说明实际服务状态，不将已上传视为上线成功。
-- 最终交付必须明确回答是否发布成功，并逐项列出 `frontend`、`radio-api`、`radio-jobs` 、LINUX DO 微应用及其他涉及产物的结果（成功、失败、未执行或无需更新）、实际发布版本与验证依据。部分成功时逐项说明，不以整体脚本退出状态替代各组件结果，也不把未验证项写成成功。
+- 最终交付必须明确回答是否发布成功，并逐项列出 `frontend`、`radio-api`、`radio-jobs` 及其他涉及产物的结果（成功、失败、未执行或无需更新）、实际发布版本与验证依据。部分成功时逐项说明，不以整体脚本退出状态替代各组件结果，也不把未验证项写成成功。
 - SSH 严格校验主机密钥；凭据只放本地忽略配置或服务器私有文件。发布方式与限制见[本机部署](docs/deployment/local-upload.md)。
 
 ## 8. 文档维护规则
@@ -234,7 +229,7 @@ Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在�
 - 不提交密钥、真实环境变量、生产数据库、备份、运行日志或临时调试材料。
 - 暂存和提交前检查文件清单及内容，确认没有本地专用资料、敏感信息或无关改动。
 - 完成任务时说明改了什么、验证了什么和仍待确认的事项；按第 10 节完成已授权的提交与推送，如存在阻塞或不适用项，应如实说明。
-- 每次完成修改后，必须在交付说明中明确告诉用户需要更新哪些服务或产物，按实际影响列出前端静态资源（`frontend` 上传入口）、API（`radio-api`）、后台任务（`radio-jobs`）、LINUX DO 微应用及其他涉及的服务；如需数据库迁移、配置调整或有更新顺序要求，一并说明。无需更新任何服务时，也必须明确写出“本次无需更新服务”。区分需要更新与已经更新，实际发布仍遵守第 10.7 节的授权边界。
+- 每次完成修改后，必须在交付说明中明确告诉用户需要更新哪些服务或产物，按实际影响列出前端静态资源（`frontend` 上传入口）、API（`radio-api`）、后台任务（`radio-jobs`）及其他涉及的服务；如需数据库迁移、配置调整或有更新顺序要求，一并说明。无需更新任何服务时，也必须明确写出“本次无需更新服务”。区分需要更新与已经更新，实际发布仍遵守第 10.7 节的授权边界。
 
 ## 10. 验证、同步、自动提交与自动发版（长期执行）
 

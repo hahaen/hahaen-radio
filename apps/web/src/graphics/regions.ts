@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { applicationPath } from '../platform/paths.js';
-import { requestMapAsset } from './map-assets.js';
 import { coverageContains } from './country-coverage.js';
 import { REGION_DATA_VERSION } from './region-version.js';
 
@@ -51,7 +50,7 @@ const normalize = (value: string) =>
     )
     .replace(/[^\p{L}\p{N}]/gu, '');
 
-export async function loadRegions(signal: AbortSignal, request: typeof fetch = requestMapAsset) {
+export async function loadRegions(signal: AbortSignal, request: typeof fetch = fetch) {
   signal.throwIfAborted();
   if (!loaded && !pending)
     pending = (async () => {

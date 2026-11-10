@@ -1,7 +1,5 @@
 # 技术文档导航
 
-[LINUX DO 微应用](../apps/web/linuxdo/README.md)和[实施记录](iterations/2026-11-10-linuxdo-mini-app/README.md)。
-
 前端[版本检测与强制更新弹窗](iterations/2026-10-30-web-version-update/README.md)：生产构建自动生成版本标识，前台轮询与恢复补查，检测差异后要求刷新。
 
 > 当前部署已于 2026-10-25 改为[本机编译上传与 Docker 更新](deployment/local-upload.md)；本文中 Jenkins 配置及服务器源码路径为历史说明。

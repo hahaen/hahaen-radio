@@ -8,7 +8,6 @@ test-results/
 *.tsbuildinfo
 # Private local runtime configuration and operational files
 /.env.local
-/.env.local.linuxdo
 /.env.*.local
 /.local/
 

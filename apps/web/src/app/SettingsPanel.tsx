@@ -10,7 +10,6 @@ import { Modal } from './Modal';
 import styles from './controls.module.css';
 export function SettingsPanel({
   library,
-  localOnly = false,
   player,
   manifest,
   sleep,
@@ -20,7 +19,6 @@ export function SettingsPanel({
   onClose,
 }: {
   library: Library;
-  localOnly?: boolean;
   player: PlayerController;
   manifest: CatalogManifest | undefined;
   sleep: { active: boolean; remaining: number; expired: boolean };
@@ -75,50 +73,46 @@ export function SettingsPanel({
             />
             {t('mute')}
           </label>
-          {!localOnly && (
-            <>
-              <label className={styles.check}>
-                <input
-                  type="checkbox"
-                  checked={state.audio.normalize}
-                  disabled={
-                    !state.audio.normalize &&
-                    (typeof OfflineAudioContext !== 'function' || !playback.volumeControllable)
-                  }
-                  onChange={(event) => library.setAudioOptions({ normalize: event.target.checked })}
-                />
-                {t('normalizeVolume')}
-              </label>
-              <p aria-live="polite">
-                {t(
-                  'normalization.' +
-                    (playback.normalization ?? (state.audio.normalize ? 'waiting' : 'off')),
-                )}
-              </p>
-              <p>{t('normalizationHint')}</p>
-              {(typeof OfflineAudioContext !== 'function' ||
-                !playback.volumeControllable ||
-                typeof AudioContext !== 'function') && <p>{t('audioEnhancementUnavailable')}</p>}
-              <label className={styles.check}>
-                <input
-                  type="checkbox"
-                  checked={state.audio.tuning}
-                  disabled={!state.audio.tuning && typeof AudioContext !== 'function'}
-                  onChange={(event) => {
-                    if (event.target.checked) player.activateAudio();
-                    library.setAudioOptions({ tuning: event.target.checked });
-                  }}
-                />
-                {t('tuningSound')}
-              </label>
-              {state.audio.tuning && (
-                <button className={styles.favorite} onClick={() => player.activateAudio()}>
-                  {t('allowTuningSound')}
-                </button>
-              )}
-              <p>{t('tuningHint')}</p>
-            </>
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={state.audio.normalize}
+              disabled={
+                !state.audio.normalize &&
+                (typeof OfflineAudioContext !== 'function' || !playback.volumeControllable)
+              }
+              onChange={(event) => library.setAudioOptions({ normalize: event.target.checked })}
+            />
+            {t('normalizeVolume')}
+          </label>
+          <p aria-live="polite">
+            {t(
+              'normalization.' +
+                (playback.normalization ?? (state.audio.normalize ? 'waiting' : 'off')),
+            )}
+          </p>
+          <p>{t('normalizationHint')}</p>
+          {(typeof OfflineAudioContext !== 'function' ||
+            !playback.volumeControllable ||
+            typeof AudioContext !== 'function') && <p>{t('audioEnhancementUnavailable')}</p>}
+          <label className={styles.check}>
+            <input
+              type="checkbox"
+              checked={state.audio.tuning}
+              disabled={!state.audio.tuning && typeof AudioContext !== 'function'}
+              onChange={(event) => {
+                if (event.target.checked) player.activateAudio();
+                library.setAudioOptions({ tuning: event.target.checked });
+              }}
+            />
+            {t('tuningSound')}
+          </label>
+          {state.audio.tuning && (
+            <button className={styles.favorite} onClick={() => player.activateAudio()}>
+              {t('allowTuningSound')}
+            </button>
           )}
+          <p>{t('tuningHint')}</p>
           <label className={styles.check}>
             <input
               type="checkbox"

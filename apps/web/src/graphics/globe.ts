@@ -32,7 +32,6 @@ import {
 } from 'three';
 import { GlobeControls } from './globe-controls.js';
 import { applicationPath } from '../platform/paths.js';
-import { requestMapAsset } from './map-assets.js';
 import type { StationPreview } from '@haen/contracts';
 import type { LandData } from './land.js';
 import { DwellSelection, globePosition, type StationGroup } from './model.js';
@@ -220,7 +219,7 @@ export function createGlobe(
   // Optional local shaded relief never blocks the map or station controls.
   void (async () => {
     const signal = AbortSignal.any([reliefRequest.signal, AbortSignal.timeout(10000)]);
-    const response = await requestMapAsset(applicationPath('geography/relief.jpg?v=3.2.0-1'), {
+    const response = await fetch(applicationPath('geography/relief.jpg?v=3.2.0-1'), {
       signal,
       cache: 'force-cache',
     });

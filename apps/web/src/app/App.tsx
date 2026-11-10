@@ -16,7 +16,6 @@ import {
   Pin,
   PinOff,
   Play,
-  Square,
   Search,
   SkipBack,
   SkipForward,
@@ -66,16 +65,14 @@ import { GenreBar } from './GenreBar';
 import { InformationPanel } from '../information/InformationPanel';
 import { EmptyState } from './EmptyState';
 import { useControlMotion } from './use-control-motion';
-import { stationCityKey, type LocalPlatform } from './local-platform';
 import styles from './App.module.css';
 
 const EMPTY_STATIONS: StationPreview[] = [];
 
-function usePlayback(local?: LocalPlatform) {
-  const [controller] = useState(() => createPlayerController(local?.player));
+function usePlayback() {
+  const [controller] = useState(() => createPlayerController());
   useEffect(() => {
     controller.attach();
-    if (local) return () => controller.detach();
     const online = () => controller.setOnline(navigator.onLine);
     online();
     window.addEventListener('online', online);
@@ -85,7 +82,7 @@ function usePlayback(local?: LocalPlatform) {
       window.removeEventListener('offline', online);
       controller.detach();
     };
-  }, [controller, local]);
+  }, [controller]);
   return controller;
 }
 function statusKey(state: PlayerState) {
@@ -118,14 +115,14 @@ function statusKey(state: PlayerState) {
   };
   return statuses[state.playback.status];
 }
-export function App({ local }: { local?: LocalPlatform } = {}) {
+export function App() {
   const { t, i18n } = useTranslation();
-  const player = usePlayback(local);
+  const player = usePlayback();
   const state = useStore(player.store);
-  const track = useNowPlaying(state, !local);
-  const library = useListeningLibrary(player, local?.createLibrary);
-  const [account] = useState(() => (local ? undefined : createAccountController(library)));
-  useEffect(() => account?.attach(), [account]);
+  const track = useNowPlaying(state);
+  const library = useListeningLibrary(player);
+  const [account] = useState(() => createAccountController(library));
+  useEffect(() => account.attach(), [account]);
   const personal = useStore(library.store);
   const [lastEntry] = useState(personal.lastStation);
   const route = useLocation();
@@ -138,9 +135,8 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
     (state.selectionVersion === 0 || (state.resolving && state.requestedStationId === restoreId));
   const restoredName = restoring && lastEntry?.id === restoreId ? lastEntry.name : null;
   const hasStationLayout = !!state.station || restoring;
-  usePlaybackFavicon(!local && state.playback.status === 'playing', personal.scene.powerSave);
+  usePlaybackFavicon(state.playback.status === 'playing', personal.scene.powerSave);
   const [exploring, setExploring] = useState(() => {
-    if (local) return true;
     try {
       return sessionStorage.getItem('haen:exploring:v1') === 'true';
     } catch {
@@ -162,10 +158,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const draft = searchInput.base === search ? searchInput.value : search;
   const setDraft = (value: string) => setSearchInput({ base: search, value });
   const [directoryOpen, setDirectoryOpen] = useState(false);
-  const [sameCity, setSameCity] = useState<{ key: string; name: string; nearby: boolean } | null>(
-    null,
-  );
-  const [playableOnly, setPlayableOnly] = useState(false);
   const [composing, setComposing] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const searchButtonRef = useRef<HTMLButtonElement>(null);
@@ -234,21 +226,19 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const [sleepController] = useState(() => createSleepController(library, player.pause));
   const sleep = useStore(sleepController.store);
   useEffect(() => sleepController.attach(), [sleepController]);
-  useEffect(() => (local ? undefined : observeLanguage()), [local]);
+  useEffect(() => observeLanguage(), []);
   useEffect(() => connectFocusInput(), []);
   useEffect(
     () =>
-      local
-        ? undefined
-        : connectMediaSession(player, {
-            brand: '声屿 HAEN',
-            genre: (id) => t('genre.' + id),
-            ...(track.active && !track.isError && track.data ? { track: track.data } : {}),
-          }),
-    [local, player, t, i18n.language, track.active, track.data, track.isError],
+      connectMediaSession(player, {
+        brand: '声屿 HAEN',
+        genre: (id) => t('genre.' + id),
+        ...(track.active && !track.isError && track.data ? { track: track.data } : {}),
+      }),
+    [player, t, i18n.language, track.active, track.data, track.isError],
   );
   const chooseLanguage = (value: 'zh' | 'en') => {
-    void (local?.setLanguage ?? setLanguage)(value).then((saved) => setLanguageFailed(!saved));
+    void setLanguage(value).then((saved) => setLanguageFailed(!saved));
   };
   const enterImmersive = useCallback(() => {
     if (immersive || !player.store.getState().station) return;
@@ -297,8 +287,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   );
   const savedLookup = useQuery({
     queryKey: ['saved-stations', [...favoriteIds].sort()],
-    queryFn: ({ signal }) =>
-      local ? local.lookup([...favoriteIds], signal) : lookupStations([...favoriteIds], signal),
+    queryFn: ({ signal }) => lookupStations([...favoriteIds], signal),
     enabled: favoriteIds.size > 0 && (libraryOpen || personal.filters.favoritesOnly),
     retry: 0,
     staleTime: 30000,
@@ -306,19 +295,15 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const scene = useQuery({
     queryKey: ['scene-catalog'],
-    queryFn: ({ signal }) => {
-      const onProgress = (loaded: number, total: number) => setProgress({ loaded, total });
-      return local ? local.loadCatalog(signal, onProgress) : loadSceneCatalog(signal, onProgress);
-    },
+    queryFn: ({ signal }) =>
+      loadSceneCatalog(signal, (loaded, total) => setProgress({ loaded, total })),
     retry: 0,
-    staleTime: local ? Infinity : 60000,
-    refetchInterval: local ? false : 300000,
+    staleTime: 60000,
+    refetchInterval: 300000,
   });
   const sceneManifest = useMemo(() => {
     if (!scene.data) return undefined;
-    const stations = scene.data.stations.filter(
-      (station) => local || station.genre !== 'religious',
-    );
+    const stations = scene.data.stations.filter((station) => station.genre !== 'religious');
     const counts = new Map<string, number>();
     for (const station of stations)
       for (const language of normalizeLanguages(station.languages))
@@ -326,40 +311,25 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
     return {
       ...scene.data.manifest,
       stationCount: stations.length,
-      playableCount: local
-        ? stations.filter((station) => local.canPlay(station)).length
-        : stations.filter((station) => station.availability === 'available').length,
+      playableCount: stations.filter((station) => station.availability === 'available').length,
       countryCount: new Set(stations.map((station) => station.countryCode).filter(Boolean)).size,
-      genres: scene.data.manifest.genres.filter((genre) => local || genre.id !== 'religious'),
+      genres: scene.data.manifest.genres.filter((genre) => genre.id !== 'religious'),
       languages: [...counts].map(([id, count]) => ({ id, count })),
     };
-  }, [scene.data, local]);
+  }, [scene.data]);
   const catalogSource =
     scene.data?.stations ??
     (personal.filters.favoritesOnly ? (savedLookup.data?.items ?? EMPTY_STATIONS) : undefined);
   const collection = useMemo(
-    () => (catalogSource ? createStationCollection(catalogSource, !!local) : undefined),
-    [catalogSource, local],
+    () => (catalogSource ? createStationCollection(catalogSource) : undefined),
+    [catalogSource],
   );
   const candidates = useMemo(
     () =>
       collection
         ?.filter(filters)
-        .filter((station) => !personal.filters.favoritesOnly || favoriteIds.has(station.id))
-        .filter(
-          (station) =>
-            (!sameCity || stationCityKey(station) === sameCity.key) &&
-            (!playableOnly || local?.canPlay(station)),
-        ),
-    [
-      collection,
-      filters,
-      personal.filters.favoritesOnly,
-      favoriteIds,
-      sameCity,
-      playableOnly,
-      local,
-    ],
+        .filter((station) => !personal.filters.favoritesOnly || favoriteIds.has(station.id)),
+    [collection, filters, personal.filters.favoritesOnly, favoriteIds],
   );
   const genreStations = useMemo(
     () =>
@@ -385,25 +355,17 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   useControlMotion(footerRef, personal.scene.powerSave);
   useEffect(() => {
     player.setExplorer(async (signal, exclude) =>
-      local
-        ? pickStation(candidatesRef.current ?? [], exclude)
-        : !player.store.getState().station
-          ? await randomChinaStation(signal, exclude)
-          : candidatesRef.current
-            ? pickStation(candidatesRef.current, exclude)
-            : await randomStation(filters, signal, exclude),
-    );
-  }, [player, filters, local]);
-  useEffect(() => {
-    if (
-      !local &&
-      initialWelcome &&
-      !restoreId &&
-      !shared.invalid &&
       !player.store.getState().station
-    )
+        ? await randomChinaStation(signal, exclude)
+        : candidatesRef.current
+          ? pickStation(candidatesRef.current, exclude)
+          : await randomStation(filters, signal, exclude),
+    );
+  }, [player, filters]);
+  useEffect(() => {
+    if (initialWelcome && !restoreId && !shared.invalid && !player.store.getState().station)
       void player.prepare(randomChinaStation);
-  }, [player, initialWelcome, restoreId, shared.invalid, local]);
+  }, [player, initialWelcome, restoreId, shared.invalid]);
   useEffect(() => {
     const page = pageRef.current;
     const footer = footerRef.current;
@@ -421,39 +383,28 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
       page.style.removeProperty('--player-height');
     };
   }, []);
-  const results = useStationResults(filters, candidates, !!local);
+  const results = useStationResults(filters, candidates);
   useLayoutEffect(() => {
     if (directoryScrollRef.current) directoryScrollRef.current.scrollTop = 0;
-  }, [filters, sameCity, playableOnly]);
+  }, [filters]);
   const stations = {
     ...results,
     isPending:
       candidates === undefined
-        ? local
-          ? scene.isPending
-          : results.isPending
+        ? results.isPending
         : !scene.data &&
           personal.filters.favoritesOnly &&
           favoriteIds.size > 0 &&
           savedLookup.isPending,
     isError:
       candidates === undefined
-        ? local
-          ? scene.isError
-          : results.isError
+        ? results.isError
         : !scene.data && personal.filters.favoritesOnly && savedLookup.isError,
     isFetching:
       candidates === undefined
-        ? local
-          ? scene.isFetching
-          : results.isFetching
+        ? results.isFetching
         : !scene.data && personal.filters.favoritesOnly && savedLookup.isFetching,
-    refetch:
-      personal.filters.favoritesOnly && !scene.data
-        ? savedLookup.refetch
-        : local
-          ? scene.refetch
-          : results.refetch,
+    refetch: personal.filters.favoritesOnly && !scene.data ? savedLookup.refetch : results.refetch,
   };
   const outsideFilter = !!(
     state.station &&
@@ -473,32 +424,18 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const active = state.resolving
     ? state.intent
     : ['playing', 'connecting', 'buffering'].includes(state.playback.status);
-  const stationCanPlay =
-    !local || (!!state.station && !!state.detail && local.canPlay(state.station, state.detail));
-  const candidate = !!(local && state.station && local.isCandidate(state.station.id));
+  const status = t(restoring ? 'loadingPaused' : statusKey(state));
   const failed = state.requestFailure !== null || state.playback.status === 'failed';
-  const retryStation =
-    local && state.requestFailure && (state.station?.id ?? state.requestedStationId);
-  const status = t(
-    restoring
-      ? 'loadingPaused'
-      : local && state.station && !state.resolving && !failed && !stationCanPlay
-        ? 'localPlaybackUnavailable'
-        : statusKey(state),
-  );
   const toggle = () => {
     if (active) player.pause();
-    else if (!state.station) {
-      if (local) void player.next();
-      else void player.start();
-    } else if (failed) player.retry();
+    else if (!state.station) void player.start();
+    else if (failed) player.retry();
     else player.play();
   };
   useEffect(
     () =>
       connectShortcuts({
         toggle: () => {
-          if (local) return;
           const current = player.store.getState();
           if (
             current.resolving
@@ -532,7 +469,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
           else exploration.current?.close();
         },
       }),
-    [player, library, favoriteCurrent, enterImmersive, immersive, openDirectory, local],
+    [player, library, favoriteCurrent, enterImmersive, immersive, openDirectory],
   );
   useEffect(() => {
     if (
@@ -561,8 +498,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const reset = () => {
     player.invalidateSelection();
     setDraft('');
-    setSameCity(null);
-    setPlayableOnly(false);
     library.setFilters(defaultFilters());
   };
   const changeFilters = (value: ListeningFilters) => {
@@ -599,10 +534,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                 ? t('tagline')
                 : sceneManifest
                   ? t('catalogSummary', {
-                      stations: (local
-                        ? sceneManifest.stationCount
-                        : sceneManifest.playableCount
-                      ).toLocaleString(i18n.language),
+                      stations: sceneManifest.playableCount.toLocaleString(i18n.language),
                       countries: sceneManifest.countryCount,
                     })
                   : t('tagline')}
@@ -644,24 +576,22 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
               <span className={styles.libraryLabel}>{t('myListening')}</span>
             </button>
           </div>
-          {!local && (
-            <button
-              className={[styles.openLibrary, styles.infoButton].join(' ')}
-              title={t('informationTitle')}
-              aria-expanded={informationOpen}
-              aria-label={t('informationTitle')}
-              onClick={(event) => {
-                event.currentTarget.focus({ preventScroll: true });
-                player.invalidateSelection();
-                setInformationOpen((value) => !value);
-                setLibraryOpen(false);
-                setSettingsOpen(false);
-                setDirectoryOpen(false);
-              }}
-            >
-              <Info size={20} aria-hidden="true" />
-            </button>
-          )}
+          <button
+            className={[styles.openLibrary, styles.infoButton].join(' ')}
+            title={t('informationTitle')}
+            aria-expanded={informationOpen}
+            aria-label={t('informationTitle')}
+            onClick={(event) => {
+              event.currentTarget.focus({ preventScroll: true });
+              player.invalidateSelection();
+              setInformationOpen((value) => !value);
+              setLibraryOpen(false);
+              setSettingsOpen(false);
+              setDirectoryOpen(false);
+            }}
+          >
+            <Info size={20} aria-hidden="true" />
+          </button>
           <button
             className={styles.openLibrary}
             aria-label={t('listeningSettings')}
@@ -711,7 +641,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
           <div className={styles.scene}>
             <Exploration
               ref={exploration}
-              localOnly={!!local}
               onInteract={closeForMap}
               interactionVersion={interactionVersion}
               mapInfoTarget={mapInfoTarget}
@@ -733,7 +662,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                 void scene.refetch();
               }}
               onSelect={(station, reason, expected) => {
-                if (local && reason === 'dwell') return;
                 const current = player.store.getState();
                 const autoplay = explorationAutoplay(
                   reason,
@@ -746,7 +674,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                   },
                   expected,
                 );
-                if (autoplay !== null) void player.select(station, !local && autoplay);
+                if (autoplay !== null) void player.select(station, autoplay);
               }}
             />
           </div>
@@ -859,27 +787,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                 manifest={sceneManifest}
                 onChange={changeFilters}
               />
-              {local && (
-                <button
-                  className={styles.textButton}
-                  aria-pressed={playableOnly}
-                  onClick={() => setPlayableOnly(!playableOnly)}
-                >
-                  {t('playableOnly')}
-                </button>
-              )}
-              {sameCity && (
-                <button
-                  className={styles.textButton}
-                  aria-pressed="true"
-                  onClick={() => setSameCity(null)}
-                >
-                  {t(sameCity.nearby ? 'nearbyCityFilter' : 'sameCityFilter', {
-                    city: sameCity.name,
-                  })}{' '}
-                  ×
-                </button>
-              )}
             </div>
             {!stations.isPending &&
               !stations.isError &&
@@ -908,13 +815,13 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                     className={styles.station}
                     data-station-id={station.id}
                     aria-label={[
-                      t(local ? 'selectStation' : 'listenStation', { name: station.name }),
+                      t('listenStation', { name: station.name }),
                       location(station),
                       t('genre.' + station.genre),
                     ].join(' ')}
                     aria-current={state.station?.id === station.id ? 'true' : undefined}
                     onClick={() => {
-                      void player.select(station, !local);
+                      void player.select(station);
                       setDirectoryOpen(false);
                       searchButtonRef.current?.focus();
                     }}
@@ -933,11 +840,9 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                         <span className={styles.stationKind}>{t('genre.' + station.genre)}</span>
                       </span>
                     </span>
-                    {(!local || local.canPlay(station)) && (
-                      <span className={styles.stationPlay} aria-hidden="true">
-                        <Play size={16} />
-                      </span>
-                    )}
+                    <span className={styles.stationPlay} aria-hidden="true">
+                      <Play size={16} />
+                    </span>
                   </button>
                 </li>
               ))}
@@ -952,28 +857,20 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                 onLoad={results.loadMore}
               />
             )}
-            <p className={styles.source}>
-              {t(local ? 'packagedDirectorySource' : 'directorySource')}
-            </p>
+            <p className={styles.source}>{t('directorySource')}</p>
             <p className={styles.source}>
               {t('geographySource')}{' '}
-              {local ? (
-                'GeoNames · CC BY 4.0'
-              ) : (
-                <>
-                  <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">
-                    GeoNames
-                  </a>
-                  {' · '}
-                  <a
-                    href="https://creativecommons.org/licenses/by/4.0/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    CC BY 4.0
-                  </a>
-                </>
-              )}
+              <a href="https://www.geonames.org/" target="_blank" rel="noopener noreferrer">
+                GeoNames
+              </a>
+              {' · '}
+              <a
+                href="https://creativecommons.org/licenses/by/4.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                CC BY 4.0
+              </a>
             </p>
           </section>
         </section>
@@ -981,7 +878,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
       {libraryOpen && (
         <LibraryPanel
           account={account}
-          localOnly={!!local}
           library={library}
           lookup={savedLookup.data}
           lookupError={savedLookup.isError}
@@ -990,7 +886,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
             void savedLookup.refetch();
           }}
           onOpen={(id) => {
-            void player.open(id, !local);
+            void player.open(id, true);
             setLibraryOpen(false);
           }}
           onClose={() => setLibraryOpen(false)}
@@ -1001,7 +897,6 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
         <SettingsPanel
           library={library}
           player={player}
-          localOnly={!!local}
           manifest={sceneManifest}
           sleep={sleep}
           languageFailed={languageFailed}
@@ -1098,26 +993,10 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                   stations={candidates ?? EMPTY_STATIONS}
                   station={state.station}
                   onSelect={(station) => {
-                    void player.select(station, !local && player.store.getState().intent);
+                    void player.select(station, player.store.getState().intent);
                   }}
                 />
                 <StationFacts station={state.station} detail={state.detail} />
-                {local && stationCityKey(state.station) && (
-                  <button
-                    className={styles.textButton}
-                    onClick={() => {
-                      const station = player.store.getState().station;
-                      const key = station && stationCityKey(station);
-                      const name = station?.city ?? station?.nearbyCity;
-                      if (!key || !name) return;
-                      reset();
-                      setSameCity({ key, name, nearby: !station?.city });
-                      openDirectory();
-                    }}
-                  >
-                    {t(state.station.city ? 'sameCityStations' : 'nearbyCityStations')}
-                  </button>
-                )}
               </details>
               <span ref={setPlaceTarget} className={styles.mobilePlace} />
             </div>
@@ -1140,14 +1019,8 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
           )}
 
           {outsideFilter && <p className={styles.note}>{t('outsideFilter')}</p>}
-          {failed && (stationCanPlay || retryStation) && (
-            <button
-              className={styles.textButton}
-              onClick={() => {
-                if (retryStation) void player.open(retryStation, false);
-                else player.retry();
-              }}
-            >
+          {failed && (
+            <button className={styles.textButton} onClick={() => player.retry()}>
               {t('retry')}
             </button>
           )}
@@ -1155,8 +1028,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
             <button
               className={styles.textButton}
               onClick={() => {
-                if (local) void player.next();
-                else void player.start();
+                void player.start();
               }}
             >
               {t('continueExploring')}
@@ -1172,36 +1044,21 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
           >
             <SkipBack size={20} aria-hidden="true" />
           </button>
-          {stationCanPlay && (
-            <button
-              className={styles.playButton}
-              aria-label={
-                active
-                  ? t(local ? 'stopPlayback' : 'pause')
-                  : hasStationLayout
-                    ? t(candidate ? 'sandboxPlayback' : 'play')
-                    : t('start')
-              }
-              disabled={
-                restoring ||
-                (!!local && state.resolving) ||
-                (!state.station && (!stations.data?.total || stations.isPending))
-              }
-              onClick={toggle}
-            >
-              {active ? (
-                local ? (
-                  <Square size={22} aria-hidden="true" />
-                ) : (
-                  <Pause size={24} aria-hidden="true" />
-                )
-              ) : (
-                <Play size={24} aria-hidden="true" />
-              )}
-              {candidate && !active && <span>{t('sandboxPlayback')}</span>}
-              {!hasStationLayout && <span>{t('start')}</span>}
-            </button>
-          )}
+          <button
+            className={styles.playButton}
+            aria-label={active ? t('pause') : hasStationLayout ? t('play') : t('start')}
+            disabled={
+              restoring || (!state.station && (!stations.data?.total || stations.isPending))
+            }
+            onClick={toggle}
+          >
+            {active ? (
+              <Pause size={24} aria-hidden="true" />
+            ) : (
+              <Play size={24} aria-hidden="true" />
+            )}
+            {!hasStationLayout && <span>{t('start')}</span>}
+          </button>
           <button
             aria-label={t('nextStation')}
             data-control-motion="next"
@@ -1266,34 +1123,32 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
             >
               <Disc3 className={styles.listeningDisc} size={20} aria-hidden="true" />
             </button>
-            {!local && (
-              <button
-                aria-label={t('share')}
-                data-control-motion="press"
-                title={t('share')}
-                onClick={() => {
-                  if (!state.station) return;
-                  void shareStation(state.station.id, state.station.name).then((result) => {
-                    if (result === 'cancelled') return;
-                    if (result === 'shared' || result === 'copied') {
-                      setActionMessage(result === 'copied' ? 'linkCopied' : 'linkShared');
-                      setManualLink('');
-                    } else {
-                      setManualLink(result);
-                      setActionMessage('copyLinkManually');
-                    }
-                  });
-                }}
-              >
-                <Share2 size={20} aria-hidden="true" />
-              </button>
-            )}
+            <button
+              aria-label={t('share')}
+              data-control-motion="press"
+              title={t('share')}
+              onClick={() => {
+                if (!state.station) return;
+                void shareStation(state.station.id, state.station.name).then((result) => {
+                  if (result === 'cancelled') return;
+                  if (result === 'shared' || result === 'copied') {
+                    setActionMessage(result === 'copied' ? 'linkCopied' : 'linkShared');
+                    setManualLink('');
+                  } else {
+                    setManualLink(result);
+                    setActionMessage('copyLinkManually');
+                  }
+                });
+              }}
+            >
+              <Share2 size={20} aria-hidden="true" />
+            </button>
             <span ref={setMapInfoTarget} className={styles.mobileMapInfo} />
           </div>
         )}
         {restoring && (
           <div className={styles.stationActions} aria-hidden="true">
-            {(local ? [Star, Disc3] : [Star, Disc3, Share2]).map((Icon, index) => (
+            {[Star, Disc3, Share2].map((Icon, index) => (
               <button key={index} disabled tabIndex={-1}>
                 <Icon size={20} />
               </button>

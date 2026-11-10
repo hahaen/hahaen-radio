@@ -7,7 +7,6 @@ hahaen-radio/
 ├── apps/
 │   ├── web/
 │   │   ├── src/                         前端页面、状态、图形与音频
-│   │   ├── linuxdo/                     LINUX DO 入口、SDK、直播清单和 ZIP 打包
 │   │   ├── public/                      公开静态资源
 │   │   ├── scripts/                     字体、地理、测试音源及资源预算工具
 │   │   ├── tests/
@@ -69,7 +68,6 @@ hahaen-radio/
 
 - 前端当前业务入口主要位于 `src/graphics`、`src/audio`、`src/catalog`、`src/library`、`src/tracks`、`src/platform` 与 `src/information`。部分预留目录仍仅含 `.gitkeep`，不能视为已有业务实现。
 - 单元和组件测试靠近源码；浏览器测试、性能测试和音源归属于前端。部署工具测试归属于 `deploy/tests`，由根 Vitest 配置统一发现。
-- 官网和 LINUX DO 微应用复用 `apps/web/src`，分别构建。微应用从 ZIP 读取目录快照和地图，运行时无需声屿后台。ZIP 声明获准直播源，音频从电台运营方端点进入当前页面。ZIP 与官网部署目录隔离。
 - 数据库结构定义位于 `apps/server/src/db/schema.ts`；迁移及元数据位于 `apps/server/migrations`。迁移、预检、备份核对与发布清单均使用该目录，既有 SQL 和元数据内容不变。
 - Web 和 Server 可依赖 `contracts`，共享包不反向依赖应用；公开契约不导入数据库驱动、服务器私有配置或 Node.js 专用模块。`config` 不承载业务代码。
 - Android 复用公开契约语义与 API，Kotlin DTO 单独映射，不直接导入 TypeScript/Zod；构建由 Gradle 管理，不创建无用途的 pnpm 包。当前为单一 `:app` Gradle 模块，namespace/applicationId 为 `xyz.hahaen.radio`；职责目录已归入统一包前缀。
@@ -77,4 +75,4 @@ hahaen-radio/
 - 根目录 `pnpm test:e2e`、`pnpm test:performance` 转发到 Web；数据库命令继续转发到 Server。根目录统一检查和 Jenkins 入口保持可用。
 - 本地凭据、私有归档、依赖、编译产物和测试报告不纳入 Git。数据库实际数据不放在源码或迁移目录中。
 
-各应用说明见[前端](../../apps/web/README.md)、[后端](../../apps/server/README.md)、[Android](../../apps/android/README.md)、[LINUX DO 微应用](../../apps/web/linuxdo/README.md)。返回[架构导航](README.md)或[文档总导航](../README.md)。
+各应用说明见[前端](../../apps/web/README.md)、[后端](../../apps/server/README.md)、[Android](../../apps/android/README.md)。返回[架构导航](README.md)或[文档总导航](../README.md)。
