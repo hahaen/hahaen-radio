@@ -13,6 +13,8 @@ const files = execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' })
 const unpack = (name) =>
   execFileSync('unzip', ['-p', archive, name], { maxBuffer: 32 * 1024 * 1024 });
 const manifest = JSON.parse(unpack('manifest.json'));
+const { version } = JSON.parse(readFileSync(new URL('../version.json', import.meta.url), 'utf8'));
+assert.equal(manifest.version, version);
 assert.deepEqual(
   files,
   ['manifest.json', 'index.html', 'app.js', 'app.css', 'strings.json', ...manifest.assets].sort(),

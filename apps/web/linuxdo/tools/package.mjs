@@ -59,7 +59,9 @@ const streamConfig = z.array(
 
 if (write) {
   const { pack } = await import('../../../../.local/linuxdo/sdk/pack.mjs');
-  const version = JSON.parse(await readFile('../package.json', 'utf8')).version;
+  const { version } = JSON.parse(
+    await readFile(new URL('../version.json', import.meta.url), 'utf8'),
+  );
   const snapshot = snapshotSchema.parse(JSON.parse(await readFile('data/catalog.json', 'utf8')));
   const available = new Set(
     snapshot.stations
@@ -146,7 +148,7 @@ if (write) {
     await rename(`${temporary}/package.json`, `${outputDirectory}/package.json`);
     await rename(result.file, `${outputDirectory}/app.zip`);
     console.log(
-      `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${outputDirectory}/app.zip (${sizeKiB} KiB)，${snapshot.manifest.stationCount} 条包内电台，${streams.length} 条直播源`,
+      `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${version} ${outputDirectory}/app.zip (${sizeKiB} KiB)，${snapshot.manifest.stationCount} 条包内电台，${streams.length} 条直播源`,
     );
   } finally {
     await rm(temporary, { recursive: true, force: true });
