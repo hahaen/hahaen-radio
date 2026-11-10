@@ -92,5 +92,32 @@
     "operator": "Dandelion Radio",
     "permission": "https://www.dandelionradio.com/about.htm",
     "verification": null
+  },
+  {
+    "stationId": "4e3c3bc3-7d48-4a20-84cc-509d3e2cea14",
+    "catalogUrl": "https://stream.radio-fratz.de/stream.mp3",
+    "aliases": [],
+    "url": "https://stream.radio-fratz.de/stream.mp3",
+    "operator": "Radio Fratz",
+    "permission": "https://radio-fratz.de/livestream/",
+    "verification": null
+  },
+  {
+    "stationId": "d8def757-2fbd-4fe9-9807-a47b8a91c63c",
+    "catalogUrl": "https://streaming.wrek.org/main/320kb.mp3",
+    "aliases": [],
+    "url": "https://streaming.wrek.org/main/320kb.mp3",
+    "operator": "WREK Atlanta",
+    "permission": "https://old.wrek.org/listen/index.html",
+    "verification": null
+  },
+  {
+    "stationId": "b1390dc3-c6e7-418b-8db2-bb832623ea1c",
+    "catalogUrl": "https://stream.rdl.de/rdl",
+    "aliases": [],
+    "url": "https://stream.rdl.de/rdl",
+    "operator": "Radio Dreyeckland",
+    "permission": "https://rdl.de/kontakt",
+    "verification": null
   }
 ]

@@ -94,3 +94,10 @@ Radio Paradise 为外部播放器公开了频道和编码选项，Radio Sausalit
 - 两个音源都通过了 HTTPS、`Origin: https://linux.do` 的 CORS 和 MP3 数据预检。KALX 与 Folk Alley 的试查地址未返回允许论坛来源的响应头。WWOZ 和 Radio Swiss 系列需要继续核对第三方微应用直连播放的使用依据。[WWOZ 使用条款](https://www.wwoz.org/wwozorg-site-terms) · [SRG SSR 使用条款](https://www.srgssr.ch/en/terms-of-use)
 - 两台加入 `0.1.1` 沙箱，待真实沙箱在桌面与手机确认出声、停止和切台。正式候选继续使用同一个已验收频道。本次变更只影响 LINUX DO 沙箱包。
 - 沙箱 ZIP 为 3,953,968 字节，包含 19 个目录入口和 7 个实际频道。桌面 Chromium 与手机 WebKit 视口的无声检查通过，核对测试包与交付包的音源清单和资源一致。正式 ZIP 的 SHA-256 保持一致。本次无需更新声屿服务。
+
+## 继续核对目录内的独立电台
+
+- 本轮从既有目录快照补充 Radio Fratz、WREK Atlanta 和 Radio Dreyeckland。Radio Fratz 公布了自选播放器的直连地址。WREK 公开了外部播放器收听主频道的方式，目录中的新版 HTTPS 地址与直播响应标识一致。Radio Dreyeckland 发布的 M3U 指向同一电台的 HTTP 流，目录中同域同路径的 HTTPS 入口可直接提供该台直播。[Radio Fratz](https://radio-fratz.de/livestream/) · [WREK 播放说明](https://old.wrek.org/listen/index.html) · [Radio Dreyeckland 播放列表](https://rdl.de/kontakt)
+- WFMU 与 Freies Radio für Stuttgart 的受测 MP3 仍缺少适用的跨域许可。Deutschlandradio 的四个频道入口会重定向到带临时凭据的地址。LINUX DO 只允许重定向到另一个已审核的固定端点。当前需要电台提供允许论坛来源读取的固定直播入口，或由平台提供可审核的接入方式。[WFMU 播放说明](https://freeform.wfmu.org/mobile.shtml) · [Stuttgart 播放说明](https://www.freies-radio.de/empfang) · [Deutschlandradio 直播地址](https://www.deutschlandradio.de/streamingdienste-100.html) · [SDK 重定向规则](https://github.com/linux-do/mapp-developer-guide/blob/master/docs/sdk-network.md#http)
+- KEXP 公布的外部播放器地址允许跨域读取，但提供 AAC-LC 和 HE-AAC。现有微应用播放器使用 MP3，新格式需单独适配及完成双端验收。[KEXP 外部播放器说明](https://www.kexp.org/mobile/kexp-livestreams/)
+- `0.1.1` 沙箱 ZIP 为 3,954,158 字节，包含 10 个实际频道，其中 9 个待在真实 LINUX DO 沙箱双端确认出声、停止和切台。桌面 Chromium 与手机 WebKit 视口的无声检查通过。交付包的音源和资源与测试包一致，正式 ZIP 的 SHA-256 保持一致。本次只更新微应用沙箱，无需更新声屿服务。

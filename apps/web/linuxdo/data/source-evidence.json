@@ -70,6 +70,42 @@
           ]
         }
       ]
+    },
+    {
+      "operator": "Radio Fratz",
+      "permission": "https://radio-fratz.de/livestream/",
+      "catalogOrigin": "https://stream.radio-fratz.de",
+      "channels": [
+        {
+          "name": "Radio Fratz",
+          "url": "https://stream.radio-fratz.de/stream.mp3",
+          "catalogAddresses": ["/stream.mp3"]
+        }
+      ]
+    },
+    {
+      "operator": "WREK Atlanta",
+      "permission": "https://old.wrek.org/listen/index.html",
+      "catalogOrigin": "https://streaming.wrek.org",
+      "channels": [
+        {
+          "name": "WREK Atlanta 91.1 FM",
+          "url": "https://streaming.wrek.org/main/320kb.mp3",
+          "catalogAddresses": ["/main/320kb.mp3"]
+        }
+      ]
+    },
+    {
+      "operator": "Radio Dreyeckland",
+      "permission": "https://rdl.de/kontakt",
+      "catalogOrigin": "https://stream.rdl.de",
+      "channels": [
+        {
+          "name": "Radio Dreyeckland",
+          "url": "https://stream.rdl.de/rdl",
+          "catalogAddresses": ["/rdl", "/rdl.m3u"]
+        }
+      ]
     }
   ],
   "reviewGroups": [
