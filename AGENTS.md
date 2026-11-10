@@ -13,7 +13,7 @@
 - 产品目标：[docs/product/README.md](docs/product/README.md)，状态见[实施进度](docs/product/progress.md)与[验收矩阵](docs/product/acceptance.md)。
 - 技术基线：[docs/overview/technology-stack.md](docs/overview/technology-stack.md)。
 - Android 开发入口：[apps/android/README.md](apps/android/README.md)，专用规范见 [apps/android/AGENTS.md](apps/android/AGENTS.md)，方案见 [docs/android/README.md](docs/android/README.md)；已交付 Debug APK 并完成本轮核心真机验收，耳机专项按用户要求暂缓；实际验证状态以 Android 专题记录为准。
-- LINUX DO 微应用入口：[apps/ldWeb/README.md](apps/ldWeb/README.md)，专用规范见 [apps/ldWeb/AGENTS.md](apps/ldWeb/AGENTS.md)。
+- LINUX DO 微应用入口：[apps/web/linuxdo/README.md](apps/web/linuxdo/README.md)，专用规范见 [apps/web/linuxdo/AGENTS.md](apps/web/linuxdo/AGENTS.md)。
 - 视觉基线：[夜航设计规范](docs/frontend/design/night-voyage.md)与[已确认概念图](docs/frontend/design/assets/night-voyage-concept.png)。
 - 系统设计：[docs/architecture/system-design.md](docs/architecture/system-design.md)。
 - 工程目录：[docs/architecture/repository-layout.md](docs/architecture/repository-layout.md)。
@@ -98,7 +98,7 @@ Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在�
 - 音频默认由浏览器直连电台服务器，后端提供数据和播放信息。不得未经专项评估将全部音频改为后端代理或转码。
 - `apps/web`：前端应用、浏览器测试、前端资源脚本及测试产物；`apps/server`：API、任务、表结构定义和迁移入口。
 - `apps/android`：独立 Gradle 原生客户端、播放服务和局部图形构建；技术文档位于 `docs/android`。不创建无职责的空模块或占位构建配置。
-- `apps/ldWeb` 是 LINUX DO 独立纯前端微应用，只维护无后台版本。运行时从应用包读取公开目录快照和地图，搜索、筛选、同城和收藏在本机执行。直播走获准的官方 SDK 端点，在微应用当前页面输出声音。不得依赖 API、任务、MySQL、代理、云函数或其他自建后台。其他应用沿用各自的架构。
+- 官网与 LINUX DO 微应用使用 `apps/web` 的同一套界面和业务源码，分开构建。`apps/web/linuxdo` 只维护纯前端微应用入口、SDK 适配、目录快照和打包配置。目录和地图随包发布，搜索、筛选、同城、随机选台和收藏在本机完成。直播只走获准的官方 SDK 端点，在当前页播放。微应用不得依赖 `radio-api`、`radio-jobs`、MySQL、代理、云函数或其他自建后台。官网与其他应用继续按各自需求开发。
 - `packages/contracts`：可公开共享的 DTO、Zod Schema 和错误码。
 - `packages/config`：共享工程配置；`apps/server/migrations`：数据库迁移及元数据。
 - `deploy/docker`、`deploy/compose`、`deploy/caddy`：容器与运行配置。
@@ -205,7 +205,7 @@ Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在�
 - 当前入口为 `python3 deploy/local/release.py all|api|jobs|frontend`；从本机验证、编译并通过 SSH 上传编译产物。服务器不拉取 Git、不保留应用源码或构建依赖。
 - 默认只推送 GitHub upstream，不配置 Gitee remote、双推、镜像或自动同步。
 - 按实际运行和构建依赖判断影响。只有对应代码、依赖、资源或配置影响产物时，才构建和更新该产物。共享改动只更新受影响的消费者。`all` 只在现有服务均受影响且适合一起更新时使用，审核组件兼容。
-- 仅 LINUX DO 微应用变化时，只检查、构建 `@haen/ld-web`，并生成对应 ZIP。微应用 ZIP 不属于 `deploy/local/release.py` 的发布范围。应用 ID 由用户写入 Git 忽略的 `apps/ldWeb/.env.local`，正式上架由用户操作。
+- 仅 LINUX DO 微应用受影响时，只检查并构建 `@haen/web` 的微应用目标，输出到 `apps/web/linuxdo/dist`；仅官网受影响时，只构建 `apps/web/dist` 并按官网流程发布。共享代码、依赖和资源变化时，核对受影响的消费者，再构建和更新对应产物。ZIP 不进入官网上传目录。应用 ID 由用户填写至 Git 忽略的 `.local/linuxdo/.env.local`，正式上架由用户操作。
 - 发布不备份旧版本网页、镜像或运行配置，不自动回退；成功后只留当前仍在使用的镜像和静态文件。失败时报告实际运行状态，修复后重新编译上传。保留数据库、对象存储、当前运行配置、证书和必需持久卷，禁止 `docker compose down -v`；数据库迁移前的一致性备份仍遵循第 5 节。
 - 电台普通发布核对迁移材料摘要；变化时拒绝更新，先按第 5 节执行审核、隔离库验证、停写、一致性备份和单次迁移。维护成功后同步实际摘要，不能跳过迁移核对。
 - 用户已长期授权：本项目代码修改按第 10 节完成 Review、验证、提交、推送和远端核对后，由执行任务的助手直接运行本机发布入口，自动更新受影响的生产服务，无需再次确认。仅前端变化使用 `frontend`；独立且兼容的 API 或任务变化使用 `api` 或 `jobs`；共享后端、契约、依赖或部署运行配置变化先按消费者核对实际影响，再更新对应服务。多个服务均受影响时按 API/任务后前端的顺序更新。纯文档、协作规则、仅 Android 或仅 LINUX DO 微应用变化无需更新服务器；Android 分发仍需单独授权。

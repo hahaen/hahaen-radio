@@ -17,7 +17,12 @@ function wait(signal: AbortSignal) {
 }
 
 export function createPlayer(sdk: MiniAppSDK, onState: (state: Playback) => void) {
-  let active: { stop(): void } | undefined;
+  let active: { stop(): void; volume(value: number): void } | undefined;
+  let volume = 0.7;
+  const setVolume = (value: number) => {
+    volume = value;
+    active?.volume(value);
+  };
   function stop() {
     const previous = active;
     active = undefined;
@@ -42,6 +47,9 @@ export function createPlayer(sdk: MiniAppSDK, onState: (state: Playback) => void
       onState('unsupported');
       return;
     }
+    const gain = context.createGain();
+    gain.gain.value = volume;
+    gain.connect(context.destination);
     const controller = new AbortController();
     const { signal } = controller;
     let timer: ReturnType<typeof setTimeout>;
@@ -56,7 +64,12 @@ export function createPlayer(sdk: MiniAppSDK, onState: (state: Playback) => void
       void reader?.cancel().catch(() => {});
       void context.close().catch(() => {});
     }
-    const session = { stop: close };
+    const session = {
+      stop: close,
+      volume: (value: number) => {
+        gain.gain.value = value;
+      },
+    };
     active = session;
     function fail(state: 'error' | 'unsupported' = 'error') {
       if (active !== session) return;
@@ -84,7 +97,7 @@ export function createPlayer(sdk: MiniAppSDK, onState: (state: Playback) => void
         }
         const source = context.createBufferSource();
         source.buffer = buffer;
-        source.connect(context.destination);
+        source.connect(gain);
         source.onended = () => source.disconnect();
         const now = context.currentTime;
         const first = next === 0;
@@ -159,5 +172,5 @@ export function createPlayer(sdk: MiniAppSDK, onState: (state: Playback) => void
     }
     void stream();
   }
-  return { play, stop };
+  return { play, stop, setVolume };
 }

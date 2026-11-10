@@ -1,6 +1,6 @@
 # 技术文档导航
 
-[LINUX DO 微应用](../apps/ldWeb/README.md)和[实施记录](iterations/2026-11-10-linuxdo-mini-app/README.md)。
+[LINUX DO 微应用](../apps/web/linuxdo/README.md)和[实施记录](iterations/2026-11-10-linuxdo-mini-app/README.md)。
 
 前端[版本检测与强制更新弹窗](iterations/2026-10-30-web-version-update/README.md)：生产构建自动生成版本标识，前台轮询与恢复补查，检测差异后要求刷新。
 

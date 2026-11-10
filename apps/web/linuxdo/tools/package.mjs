@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { parseEnv } from 'node:util';
 import { z } from 'zod';
-import { snapshotSchema, streamIndexSchema } from '../src/schemas.ts';
+import { snapshotSchema, streamIndexSchema } from '../schemas.ts';
 
 const check = process.argv.includes('--check');
 const sandbox = process.argv.includes('--sandbox');
@@ -10,13 +10,13 @@ const uuidV7 = /^[a-f\d]{8}-[a-f\d]{4}-7[a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$
 const checkId = '019a2a58-0000-7000-8000-000000000001';
 let id = checkId;
 if (!check) {
-  const input = await readFile('.env.local', 'utf8').catch((error) => {
+  const input = await readFile('../../.local/linuxdo/.env.local', 'utf8').catch((error) => {
     if (error.code === 'ENOENT') return '';
     throw error;
   });
   id = parseEnv(input).MINI_APP_ID?.trim() ?? '';
   if (!uuidV7.test(id) || id === checkId) {
-    throw new Error('请在 apps/ldWeb/.env.local 填写 LINUX DO 分配的 MINI_APP_ID（UUIDv7）。');
+    throw new Error('请在 .local/linuxdo/.env.local 填写 LINUX DO 分配的 MINI_APP_ID（UUIDv7）。');
   }
 }
 
@@ -44,8 +44,8 @@ const streamConfig = z.array(
 );
 
 if (write) {
-  const { pack } = await import('../../../.local/ldweb/sdk/pack.mjs');
-  const version = JSON.parse(await readFile('package.json', 'utf8')).version;
+  const { pack } = await import('../../../../.local/linuxdo/sdk/pack.mjs');
+  const version = JSON.parse(await readFile('../package.json', 'utf8')).version;
   const catalog = await readFile('data/catalog.json');
   const snapshot = snapshotSchema.parse(JSON.parse(catalog.toString('utf8')));
   const stations = new Map(snapshot.stations.map((station) => [station[0], station]));
@@ -79,6 +79,7 @@ if (write) {
       },
     ]),
   );
+  const geography = ['land.json', 'regions.json', 'relief.jpg', 'world.svg'];
   const manifest = {
     format: 1,
     id,
@@ -92,17 +93,28 @@ if (write) {
       'storage.write',
       ...(streams.length ? ['network.request', 'audio.webAudio'] : []),
     ],
-    assets: ['data/catalog.json', 'data/streams.json', 'data/land.json'],
+    assets: [
+      'data/catalog.json',
+      'data/streams.json',
+      ...geography.map((name) => 'geography/' + name),
+    ],
     ...(streams.length ? { endpoints } : {}),
   };
   const files = {
-    'index.html': await readFile('src/template.html'),
-    'app.js': await readFile('dist/web/app.js'),
-    'app.css': await readFile('dist/web/app.css'),
-    'strings.json': await readFile('src/strings.json'),
+    'index.html': await readFile('template.html'),
+    'app.js': await readFile('dist/bundle/app.js'),
+    'app.css': await readFile('dist/bundle/app.css'),
+    'strings.json': await readFile('strings.json'),
     'data/catalog.json': catalog,
     'data/streams.json': JSON.stringify(entries),
-    'data/land.json': await readFile('../web/public/geography/land.json'),
+    ...Object.fromEntries(
+      await Promise.all(
+        geography.map(async (name) => [
+          'geography/' + name,
+          await readFile('../public/geography/' + name),
+        ]),
+      ),
+    ),
   };
   const folder = check ? 'check' : sandbox ? 'sandbox' : 'package';
   const result = await pack({ manifest, files, outputDirectory: `dist/${folder}` });

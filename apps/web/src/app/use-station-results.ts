@@ -8,6 +8,7 @@ const BATCH_SIZE = 30;
 export function useStationResults(
   filters: SearchFilters,
   candidates: readonly StationPreview[] | undefined,
+  localOnly = false,
 ) {
   const [visible, setVisible] = useState({ filters, limit: BATCH_SIZE });
   const requestedLimit = visible.filters === filters ? visible.limit : BATCH_SIZE;
@@ -15,7 +16,7 @@ export function useStationResults(
 
   const remote = useInfiniteQuery({
     queryKey: ['station-directory', filters],
-    enabled: candidates === undefined,
+    enabled: !localOnly && candidates === undefined,
     initialPageParam: 0,
     queryFn: ({ pageParam, signal }) => searchStations(filters, pageParam, BATCH_SIZE, signal),
     getNextPageParam: (last) => {

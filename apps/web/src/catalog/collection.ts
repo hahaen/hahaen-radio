@@ -1,7 +1,10 @@
 import { countrySearchText, normalizeLanguages, type StationPreview } from '@haen/contracts';
 import type { SearchFilters } from '../services/catalog';
 const fold = (value: string) => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase();
-export function createStationCollection(stations: readonly StationPreview[]) {
+export function createStationCollection(
+  stations: readonly StationPreview[],
+  includeUnplayable = false,
+) {
   const indexed = stations.map((station) => ({
     languages: normalizeLanguages(station.languages),
     station,
@@ -23,8 +26,8 @@ export function createStationCollection(stations: readonly StationPreview[]) {
       return indexed
         .filter(
           ({ station, text, languages: stationLanguages }) =>
-            station.availability === 'available' &&
-            station.genre !== 'religious' &&
+            (includeUnplayable ||
+              (station.availability === 'available' && station.genre !== 'religious')) &&
             terms.every((term) => text.includes(term)) &&
             (filters.genres === undefined || filters.genres.includes(station.genre)) &&
             (languages === undefined ||

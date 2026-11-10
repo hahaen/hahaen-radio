@@ -6,7 +6,8 @@
 
 | 目录 | 用途 |
 | --- | --- |
-| `src/app/` | 应用入口、路由和全局 Provider |
+| `src/app/` | 两种产物共用的界面、路由适配和前端业务 |
+| [`linuxdo/`](linuxdo/README.md) | LINUX DO 入口、SDK、静态快照与 ZIP |
 | `src/components/` | 共用界面组件 |
 | `src/features/` | 后续按业务模块组织的代码 |
 | `src/graphics/` | 已实现的 Three.js 地球、流派、交互与资源生命周期 |
@@ -25,6 +26,10 @@
 占位目录由 `.gitkeep` 保留；增加实际文件后可删除相应占位文件。前端目录不保存服务端密钥、数据库或真实环境配置。
 
 技术约定见[前端文档](../../docs/frontend/README.md)，完整结构见[仓库目录](../../docs/architecture/repository-layout.md)。
+
+## 两种构建产物
+
+官网用 `pnpm --filter @haen/web build` 输出至 `apps/web/dist`；LINUX DO 用 `pnpm --filter @haen/web test:linuxdo` 构建并检查 ZIP，输出至 `apps/web/linuxdo/dist/check`。微应用仅从包内读取公开目录和地图，使用 SDK 存储和获准直播端点。实际沙箱和正式包见[微应用说明](linuxdo/README.md)。两套产物按变更影响分别构建。
 
 ## 测试与资源工具
 

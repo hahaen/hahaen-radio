@@ -2,7 +2,7 @@ import { mkdtemp, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import { snapshotSchema, stationEntry } from '../src/schemas.ts';
+import { snapshotSchema, stationEntry } from '../schemas.ts';
 
 const api = 'https://hahaen.xyz/radio/api/v1';
 const maxBytes = 2 * 1024 * 1024;

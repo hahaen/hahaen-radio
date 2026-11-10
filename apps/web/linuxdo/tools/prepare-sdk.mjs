@@ -13,12 +13,12 @@ import { fileURLToPath } from 'node:url';
 
 const repository = 'https://github.com/linux-do/mapp-developer-guide.git';
 const revision = '7792ce37b3e09684b9e3d918f968f2cbd79df3fb';
-const directory = fileURLToPath(new URL('../../../.local/ldweb/', import.meta.url));
+const directory = fileURLToPath(new URL('../../../../.local/linuxdo/', import.meta.url));
 const sdk = join(directory, 'sdk');
 const marker = join(sdk, '.revision');
 if (existsSync(marker)) {
   if (readFileSync(marker, 'utf8') !== revision) {
-    throw new Error('本地 SDK 版本不符，请移除 .local/ldweb/sdk 后重试。');
+    throw new Error('本地 SDK 版本不符，请移除 .local/linuxdo/sdk 后重试。');
   }
   process.exit(0);
 }

@@ -10,4 +10,4 @@ pnpm-lock.yaml
 apps/web/tests/fixtures/audio/*.ts
 apps/web/public/geography/land.json
 apps/web/public/geography/regions.json
-apps/ldWeb/data/catalog.json
+apps/web/linuxdo/data/catalog.json

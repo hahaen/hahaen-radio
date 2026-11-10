@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import type { PlayerController } from '../audio/controller';
 import { createLibrary } from './store';
 
-export function useListeningLibrary(player: PlayerController) {
-  const [library] = useState(() => createLibrary());
+export function useListeningLibrary(player: PlayerController, create = createLibrary) {
+  const [library] = useState(() => create());
   useEffect(() => {
     const detach = library.attach();
     player.seedHistory(library.store.getState().history.map((item) => item.id));

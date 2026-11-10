@@ -1,7 +1,7 @@
 import type { AccountController } from '../account/controller';
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { useStore } from 'zustand';
-import { Star, Play, Trash2, Download, Upload, History } from 'lucide-react';
+import { Star, Play, Trash2, Download, Upload, History, Radio } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { StationDetail } from '@haen/contracts';
 import { Modal } from '../app/Modal';
@@ -26,6 +26,7 @@ const definitelyUnavailable = (station: StationDetail | undefined) =>
   station?.availability === 'blocked' || station?.availability === 'unavailable';
 export function LibraryPanel({
   account,
+  localOnly = false,
   library,
   lookup,
   lookupError,
@@ -34,7 +35,8 @@ export function LibraryPanel({
   onOpen,
   onClose,
 }: {
-  account?: AccountController;
+  account?: AccountController | undefined;
+  localOnly?: boolean;
   library: Library;
   lookup: Lookup | undefined;
   lookupError: boolean;
@@ -63,7 +65,7 @@ export function LibraryPanel({
   const missing = new Set(lookup?.missing),
     favoriteIds = new Set(state.favorites.map((item) => item.id));
   const unavailable = state.favorites.filter(
-    (item) => missing.has(item.id) || definitelyUnavailable(known.get(item.id)),
+    (item) => missing.has(item.id) || (!localOnly && definitelyUnavailable(known.get(item.id))),
   );
   const canClean = !!lookup && !lookupError && !checking;
   const rows = view === 'favorites' ? state.favorites : state.history;
@@ -190,18 +192,24 @@ export function LibraryPanel({
                               timeStyle: 'short',
                             }).format(item.savedAt)
                           : t(
-                              detail?.availability === 'available'
+                              !localOnly && detail?.availability === 'available'
                                 ? 'savedAvailable'
                                 : 'savedUnknown',
                             )}
                     </span>
                   </div>
                   <button
-                    aria-label={t('listenStation', { name: displayName })}
-                    disabled={!!unavailable}
+                    aria-label={t(localOnly ? 'selectStation' : 'listenStation', {
+                      name: displayName,
+                    })}
+                    disabled={localOnly ? gone : !!unavailable}
                     onClick={() => onOpen(item.id)}
                   >
-                    <Play size={20} aria-hidden="true" />
+                    {localOnly ? (
+                      <Radio size={20} aria-hidden="true" />
+                    ) : (
+                      <Play size={20} aria-hidden="true" />
+                    )}
                   </button>
                   <button
                     aria-label={t(
@@ -247,73 +255,75 @@ export function LibraryPanel({
           </nav>
         )}
       </>
-      <section className={styles.transfer} aria-labelledby="transfer-heading">
-        <h3 id="transfer-heading">{t('transferFavorites')}</h3>
-        <p>{t('transferDescription')}</p>
-        {state.songs.length > 0 && <p>{t('retainedSongs', { count: state.songs.length })}</p>}
-        <div className={styles.actions}>
-          <button
-            onClick={() => {
-              const output = exportFavorites(state.favorites, state.songs);
-              setParts(output);
-              if (output.length === 1) download(output[0]!, 0);
-            }}
-          >
-            <Download size={18} aria-hidden="true" />
-            {t('exportFavorites')}
-          </button>
-          <button disabled={busy} onClick={() => upload.current?.click()}>
-            <Upload size={18} aria-hidden="true" />
-            {t(busy ? 'importingFavorites' : 'importFavorites')}
-          </button>
-        </div>
-        <input
-          ref={upload}
-          hidden
-          type="file"
-          accept="application/json,.json"
-          aria-label={t('importFavorites')}
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            event.target.value = '';
-            if (!file) return;
-            const token = ++task.current;
-            setBusy(true);
-            setMessage('');
-            void readTransfer(file)
-              .then((data) => {
-                if (token !== task.current) return;
-                const result = library.importFavorites(data);
-                setMessage(t('importResult', result));
-                setParts([]);
-              })
-              .catch((error: unknown) => {
-                if (token === task.current)
-                  setMessage(
-                    t(
-                      error instanceof LibraryError
-                        ? 'importError.' + error.code
-                        : 'importError.format',
-                    ),
-                  );
-              })
-              .finally(() => {
-                if (token === task.current) setBusy(false);
-              });
-          }}
-        />
-        {parts.length > 1 && (
-          <div className={styles.parts}>
-            <p>{t('exportParts', { count: parts.length })}</p>
-            {parts.map((body, index) => (
-              <button key={index} onClick={() => download(body, index)}>
-                {t('downloadPart', { number: index + 1 })}
-              </button>
-            ))}
+      {!localOnly && (
+        <section className={styles.transfer} aria-labelledby="transfer-heading">
+          <h3 id="transfer-heading">{t('transferFavorites')}</h3>
+          <p>{t('transferDescription')}</p>
+          {state.songs.length > 0 && <p>{t('retainedSongs', { count: state.songs.length })}</p>}
+          <div className={styles.actions}>
+            <button
+              onClick={() => {
+                const output = exportFavorites(state.favorites, state.songs);
+                setParts(output);
+                if (output.length === 1) download(output[0]!, 0);
+              }}
+            >
+              <Download size={18} aria-hidden="true" />
+              {t('exportFavorites')}
+            </button>
+            <button disabled={busy} onClick={() => upload.current?.click()}>
+              <Upload size={18} aria-hidden="true" />
+              {t(busy ? 'importingFavorites' : 'importFavorites')}
+            </button>
           </div>
-        )}
-        <p aria-live="polite">{message}</p>
-      </section>
+          <input
+            ref={upload}
+            hidden
+            type="file"
+            accept="application/json,.json"
+            aria-label={t('importFavorites')}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              if (!file) return;
+              const token = ++task.current;
+              setBusy(true);
+              setMessage('');
+              void readTransfer(file)
+                .then((data) => {
+                  if (token !== task.current) return;
+                  const result = library.importFavorites(data);
+                  setMessage(t('importResult', result));
+                  setParts([]);
+                })
+                .catch((error: unknown) => {
+                  if (token === task.current)
+                    setMessage(
+                      t(
+                        error instanceof LibraryError
+                          ? 'importError.' + error.code
+                          : 'importError.format',
+                      ),
+                    );
+                })
+                .finally(() => {
+                  if (token === task.current) setBusy(false);
+                });
+            }}
+          />
+          {parts.length > 1 && (
+            <div className={styles.parts}>
+              <p>{t('exportParts', { count: parts.length })}</p>
+              {parts.map((body, index) => (
+                <button key={index} onClick={() => download(body, index)}>
+                  {t('downloadPart', { number: index + 1 })}
+                </button>
+              ))}
+            </div>
+          )}
+          <p aria-live="polite">{message}</p>
+        </section>
+      )}
     </Modal>
   );
 }

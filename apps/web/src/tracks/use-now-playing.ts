@@ -2,10 +2,11 @@ import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PlayerState } from '../audio/controller';
 import { getNowPlaying } from '../services/tracks';
-export function useNowPlaying(state: PlayerState) {
+export function useNowPlaying(state: PlayerState, enabled = true) {
   const stationId = state.station?.id,
     streamId = state.playback.streamId;
   const active =
+    enabled &&
     !!stationId &&
     !!streamId &&
     !state.resolving &&

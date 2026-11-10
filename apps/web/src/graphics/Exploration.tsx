@@ -41,6 +41,7 @@ export function Exploration({
   onRetry,
   onSearch,
   onSelect,
+  localOnly = false,
   visible = true,
   welcome = false,
   showHints = true,
@@ -61,6 +62,7 @@ export function Exploration({
   progress: { loaded: number; total: number };
   onRetry(): void;
   onSearch(): void;
+  localOnly?: boolean;
   onSelect(station: StationPreview, reason: ExplorationChoice, expected?: SceneExpectation): void;
   visible?: boolean;
   welcome?: boolean;
@@ -204,7 +206,9 @@ export function Exploration({
                 {members.slice(pageOffset, pageOffset + 12).map((item) => (
                   <li key={item.id}>
                     <button
-                      aria-label={t('listenStation', { name: item.name })}
+                      aria-label={t(localOnly ? 'selectStation' : 'listenStation', {
+                        name: item.name,
+                      })}
                       aria-current={station?.id === item.id ? 'true' : undefined}
                       onClick={() => onSelect(item, 'listen')}
                     >

@@ -353,11 +353,21 @@ const resources = {
       unknownLanguage: '语言未知',
       nearby: '{{city}}附近',
       listenStation: '收听 {{name}}',
+      selectStation: '选择 {{name}}',
+      localPlaybackUnavailable: '此电台暂未开放站内播放。',
+      sameCityStations: '同城电台',
+      sameCityFilter: '同城：{{city}}',
+      nearbyCityStations: '附近城市的电台',
+      nearbyCityFilter: '附近城市：{{city}}',
+      playableOnly: '只看可播',
       selectedStation: '当前电台',
       selectionPinned: '已锁定',
       player: '电台播放器',
       play: '播放',
       pause: '暂停',
+      stopPlayback: '停止播放',
+      sandboxPlayback: '沙箱试播',
+      catalogSnapshotDate: '公开目录快照：{{date}}',
       previousStation: '上一站',
       nextStation: '随机下一站',
       pin: '固定当前电台',
@@ -783,11 +793,21 @@ const resources = {
       unknownLanguage: 'Unknown language',
       nearby: 'Near {{city}}',
       listenStation: 'Listen to {{name}}',
+      selectStation: 'Select {{name}}',
+      localPlaybackUnavailable: 'This station is not available for in-page listening yet.',
+      sameCityStations: 'Stations in this city',
+      sameCityFilter: 'City: {{city}}',
+      nearbyCityStations: 'Stations near this city',
+      nearbyCityFilter: 'Near: {{city}}',
+      playableOnly: 'Playable only',
       selectedStation: 'Current station',
       selectionPinned: 'Pinned',
       player: 'Radio player',
       play: 'Play',
       pause: 'Pause',
+      stopPlayback: 'Stop playback',
+      sandboxPlayback: 'Sandbox playback',
+      catalogSnapshotDate: 'Public catalog snapshot: {{date}}',
       previousStation: 'Previous station',
       nextStation: 'Next random station',
       pin: 'Pin current station',
@@ -847,10 +867,10 @@ function initialLanguage() {
   }
   return navigator.language.toLowerCase().startsWith('en') ? 'en' : 'zh';
 }
-async function applyLanguage(language: 'zh' | 'en') {
+export async function applyLanguage(language: 'zh' | 'en', title?: string) {
   await i18n.changeLanguage(language);
   document.documentElement.lang = language === 'en' ? 'en' : 'zh-CN';
-  document.title = i18n.t('pageTitle');
+  document.title = title ?? i18n.t('pageTitle');
 }
 export async function setLanguage(language: 'zh' | 'en') {
   await applyLanguage(language);
