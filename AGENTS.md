@@ -98,7 +98,7 @@ Android 由 Gradle 独立管理；具体工具链、库版本与 SDK 范围在�
 - 音频默认由浏览器直连电台服务器，后端提供数据和播放信息。不得未经专项评估将全部音频改为后端代理或转码。
 - `apps/web`：前端应用、浏览器测试、前端资源脚本及测试产物；`apps/server`：API、任务、表结构定义和迁移入口。
 - `apps/android`：独立 Gradle 原生客户端、播放服务和局部图形构建；技术文档位于 `docs/android`。不创建无职责的空模块或占位构建配置。
-- 官网与 LINUX DO 微应用使用 `apps/web` 的同一套界面和业务源码，分开构建。`apps/web/linuxdo` 只维护纯前端微应用入口、SDK 适配、目录快照和打包配置。目录和地图随包发布，搜索、筛选、同城、随机选台和收藏在本机完成。直播只走获准的官方 SDK 端点，在当前页播放。微应用不得依赖 `radio-api`、`radio-jobs`、MySQL、代理、云函数或其他自建后台。官网与其他应用继续按各自需求开发。
+- 官网与 LINUX DO 微应用使用 `apps/web` 的同一套界面和业务源码，分开构建。微应用通过官方 SDK 读取现有 `radio-api` 的公开电台目录和详情，地图随包发布，收藏和设置保存在 SDK 应用存储。直播在当前页面直连运营方允许第三方播放器使用、并已在 SDK 清单声明的音源。微应用接入范围限于现有公开目录 API 与获准音源。
 - `packages/contracts`：可公开共享的 DTO、Zod Schema 和错误码。
 - `packages/config`：共享工程配置；`apps/server/migrations`：数据库迁移及元数据。
 - `deploy/docker`、`deploy/compose`、`deploy/caddy`：容器与运行配置。

@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "stationId": "82b3d31f-0b79-445b-ad19-36395e8ed052",
+    "catalogUrl": "https://stream.radioparadise.com/aac-64",
+    "url": "https://stream-dc1.radioparadise.com/mp3-128",
+    "operator": "Radio Paradise",
+    "permission": "https://beta.radioparadise.com/rp3.php?file=links&name=Listen",
+    "verification": null
+  }
+]

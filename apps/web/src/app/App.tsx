@@ -298,7 +298,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const savedLookup = useQuery({
     queryKey: ['saved-stations', [...favoriteIds].sort()],
     queryFn: ({ signal }) =>
-      local ? local.lookup([...favoriteIds]) : lookupStations([...favoriteIds], signal),
+      local ? local.lookup([...favoriteIds], signal) : lookupStations([...favoriteIds], signal),
     enabled: favoriteIds.size > 0 && (libraryOpen || personal.filters.favoritesOnly),
     retry: 0,
     staleTime: 30000,
@@ -306,10 +306,10 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const [progress, setProgress] = useState({ loaded: 0, total: 0 });
   const scene = useQuery({
     queryKey: ['scene-catalog'],
-    enabled: !local,
-    initialData: local?.catalog,
-    queryFn: ({ signal }) =>
-      loadSceneCatalog(signal, (loaded, total) => setProgress({ loaded, total })),
+    queryFn: ({ signal }) => {
+      const onProgress = (loaded: number, total: number) => setProgress({ loaded, total });
+      return local ? local.loadCatalog(signal, onProgress) : loadSceneCatalog(signal, onProgress);
+    },
     retry: 0,
     staleTime: 60000,
     refetchInterval: 300000,
@@ -327,7 +327,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
       ...scene.data.manifest,
       stationCount: stations.length,
       playableCount: local
-        ? scene.data.manifest.playableCount
+        ? stations.filter((station) => local.canPlay(station)).length
         : stations.filter((station) => station.availability === 'available').length,
       countryCount: new Set(stations.map((station) => station.countryCode).filter(Boolean)).size,
       genres: scene.data.manifest.genres.filter((genre) => local || genre.id !== 'religious'),
@@ -349,7 +349,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
         .filter(
           (station) =>
             (!sameCity || stationCityKey(station) === sameCity.key) &&
-            (!playableOnly || local?.canPlay(station.id)),
+            (!playableOnly || local?.canPlay(station)),
         ),
     [
       collection,
@@ -429,20 +429,31 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
     ...results,
     isPending:
       candidates === undefined
-        ? results.isPending
+        ? local
+          ? scene.isPending
+          : results.isPending
         : !scene.data &&
           personal.filters.favoritesOnly &&
           favoriteIds.size > 0 &&
           savedLookup.isPending,
     isError:
       candidates === undefined
-        ? results.isError
+        ? local
+          ? scene.isError
+          : results.isError
         : !scene.data && personal.filters.favoritesOnly && savedLookup.isError,
     isFetching:
       candidates === undefined
-        ? results.isFetching
+        ? local
+          ? scene.isFetching
+          : results.isFetching
         : !scene.data && personal.filters.favoritesOnly && savedLookup.isFetching,
-    refetch: personal.filters.favoritesOnly && !scene.data ? savedLookup.refetch : results.refetch,
+    refetch:
+      personal.filters.favoritesOnly && !scene.data
+        ? savedLookup.refetch
+        : local
+          ? scene.refetch
+          : results.refetch,
   };
   const outsideFilter = !!(
     state.station &&
@@ -462,16 +473,19 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
   const active = state.resolving
     ? state.intent
     : ['playing', 'connecting', 'buffering'].includes(state.playback.status);
-  const stationCanPlay = !local || (!!state.station && local.canPlay(state.station.id));
+  const stationCanPlay =
+    !local || (!!state.station && !!state.detail && local.canPlay(state.station, state.detail));
   const candidate = !!(local && state.station && local.isCandidate(state.station.id));
+  const failed = state.requestFailure !== null || state.playback.status === 'failed';
+  const retryStation =
+    local && state.requestFailure && (state.station?.id ?? state.requestedStationId);
   const status = t(
     restoring
       ? 'loadingPaused'
-      : local && state.station && !state.resolving && !stationCanPlay
+      : local && state.station && !state.resolving && !failed && !stationCanPlay
         ? 'localPlaybackUnavailable'
         : statusKey(state),
   );
-  const failed = state.requestFailure !== null || state.playback.status === 'failed';
   const toggle = () => {
     if (active) player.pause();
     else if (!state.station) {
@@ -919,7 +933,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                         <span className={styles.stationKind}>{t('genre.' + station.genre)}</span>
                       </span>
                     </span>
-                    {(!local || local.canPlay(station.id)) && (
+                    {(!local || local.canPlay(station)) && (
                       <span className={styles.stationPlay} aria-hidden="true">
                         <Play size={16} />
                       </span>
@@ -938,11 +952,7 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
                 onLoad={results.loadMore}
               />
             )}
-            <p className={styles.source}>
-              {local
-                ? t('catalogSnapshotDate', { date: local.catalog.manifest.createdAt.slice(0, 10) })
-                : t('directorySource')}
-            </p>
+            <p className={styles.source}>{t(local ? 'liveDirectorySource' : 'directorySource')}</p>
             <p className={styles.source}>
               {t('geographySource')}{' '}
               {local ? (
@@ -1128,8 +1138,14 @@ export function App({ local }: { local?: LocalPlatform } = {}) {
           )}
 
           {outsideFilter && <p className={styles.note}>{t('outsideFilter')}</p>}
-          {failed && stationCanPlay && (
-            <button className={styles.textButton} onClick={() => player.retry()}>
+          {failed && (stationCanPlay || retryStation) && (
+            <button
+              className={styles.textButton}
+              onClick={() => {
+                if (retryStation) void player.open(retryStation, false);
+                else player.retry();
+              }}
+            >
               {t('retry')}
             </button>
           )}

@@ -1,8 +1,12 @@
+import type { StreamCandidate } from '@haen/contracts';
 import type { MiniAppSDK } from '@discourse-mini-app/sdk';
 import type { PlaybackSnapshot } from '../src/audio/engine';
 import { createPlayer } from './player';
 
-export function createEngine(sdk: MiniAppSDK, endpoint: (id: string) => string | undefined) {
+export function createEngine(
+  sdk: MiniAppSDK,
+  endpoint: (id: string, streams: StreamCandidate[]) => string | undefined,
+) {
   let snapshot: PlaybackSnapshot = {
     stationId: null,
     status: 'idle',
@@ -13,6 +17,7 @@ export function createEngine(sdk: MiniAppSDK, endpoint: (id: string) => string |
     muted: false,
     volumeControllable: true,
   };
+  let selectedEndpoint: string | undefined;
   const listeners = new Set<() => void>();
   const update = (patch: Partial<PlaybackSnapshot>) => {
     snapshot = { ...snapshot, ...patch };
@@ -39,13 +44,13 @@ export function createEngine(sdk: MiniAppSDK, endpoint: (id: string) => string |
         listeners.delete(listener);
       };
     },
-    select(stationId: string) {
+    select(stationId: string, streams: StreamCandidate[]) {
       player.stop();
+      selectedEndpoint = endpoint(stationId, streams);
       update({ stationId, status: 'paused', failure: null });
     },
     play() {
-      const name = snapshot.stationId && endpoint(snapshot.stationId);
-      if (name) player.play(name);
+      if (selectedEndpoint) player.play(selectedEndpoint);
     },
     pause,
     activateAudio() {},

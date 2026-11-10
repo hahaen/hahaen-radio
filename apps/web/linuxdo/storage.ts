@@ -1,5 +1,5 @@
 import type { MiniAppSDK } from '@discourse-mini-app/sdk';
-import type { StationDetail } from '@haen/contracts';
+import type { StationPreview } from '@haen/contracts';
 import { z } from 'zod';
 import { saveStation } from '../src/library/model';
 import { createLibrary, LIBRARY_PREFIX } from '../src/library/store';
@@ -11,7 +11,7 @@ const records = z.record(z.string().startsWith(LIBRARY_PREFIX), z.string());
 
 export async function loadStorage(
   sdk: MiniAppSDK,
-  station: (id: string) => StationDetail | undefined,
+  stations: (ids: string[]) => Promise<StationPreview[]>,
 ) {
   const events = new EventTarget();
   const get = (key: string) => sdk.localStorage.getItem(key);
@@ -26,15 +26,11 @@ export async function loadStorage(
         data = new Map(Object.entries(records.parse(JSON.parse(raw))));
       } else {
         const legacy = z.array(z.uuid()).parse(JSON.parse((await get(legacyKey)) ?? '[]'));
-        for (const id of new Set(legacy)) {
-          const detail = station(id);
-          if (detail) {
+        if (legacy.length) {
+          for (const detail of await stations([...new Set(legacy)])) {
             data.set(
-              LIBRARY_PREFIX + 'favorite:' + id,
-              JSON.stringify({
-                version: 1,
-                value: saveStation(detail, 0),
-              }),
+              LIBRARY_PREFIX + 'favorite:' + detail.id,
+              JSON.stringify({ version: 1, value: saveStation(detail, 0) }),
             );
           }
         }

@@ -20,6 +20,7 @@ import { registerTrackRoutes } from './modules/tracks/routes.js';
 import type { NowPlayingService } from './modules/tracks/now-playing.js';
 import type { LyricsService } from './modules/tracks/lyrics.js';
 import { registerCatalogRoutes } from './modules/catalog/routes.js';
+import { registerLinuxDoCatalogRoutes } from './modules/catalog/linuxdo-routes.js';
 import {
   CatalogNotFoundError,
   CatalogUnavailableError,
@@ -120,6 +121,7 @@ export function buildApp(
   void app.register(async (routes) => {
     registerAccountRoutes(routes, tracks?.accounts, config.mode === 'production');
     registerCatalogRoutes(routes, catalog);
+    registerLinuxDoCatalogRoutes(routes, catalog);
     registerTrackRoutes(routes, catalog, tracks);
     registerRecognitionRoutes(routes, tracks?.recognition);
     registerDiagnosticRoutes(routes, tracks?.diagnostics);

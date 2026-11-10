@@ -7,7 +7,7 @@
 | 目录 | 用途 |
 | --- | --- |
 | `src/app/` | 两种产物共用的界面、路由适配和前端业务 |
-| [`linuxdo/`](linuxdo/README.md) | LINUX DO 入口、SDK、静态快照与 ZIP |
+| [`linuxdo/`](linuxdo/README.md) | LINUX DO 入口、SDK、直播清单与 ZIP |
 | `src/components/` | 共用界面组件 |
 | `src/features/` | 后续按业务模块组织的代码 |
 | `src/graphics/` | 已实现的 Three.js 地球、流派、交互与资源生命周期 |
@@ -29,7 +29,7 @@
 
 ## 两种构建产物
 
-官网用 `pnpm --filter @haen/web build` 输出至 `apps/web/dist`；LINUX DO 用 `pnpm --filter @haen/web test:linuxdo` 构建并检查 ZIP，输出至 `apps/web/linuxdo/dist/check`。微应用仅从包内读取公开目录和地图，使用 SDK 存储和获准直播端点。实际沙箱和正式包见[微应用说明](linuxdo/README.md)。两套产物按变更影响分别构建。
+官网用 `pnpm --filter @haen/web build` 输出至 `apps/web/dist`；LINUX DO 用 `pnpm --filter @haen/web test:linuxdo` 构建并检查 ZIP，输出至 `apps/web/linuxdo/dist/check`。微应用通过 SDK 读取现有 `radio-api` 的公开目录和电台详情，地图从包内加载，收藏保存在 SDK 应用存储。实际沙箱和正式包见[微应用说明](linuxdo/README.md)。两套产物按变更影响分别构建。
 
 ## 测试与资源工具
 

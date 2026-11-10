@@ -15,8 +15,7 @@
     "package:linuxdo:check": "pnpm build:linuxdo && cd linuxdo && node tools/package.mjs --check",
     "package:linuxdo:sandbox": "cd linuxdo && node tools/package.mjs --sandbox && cd .. && pnpm build:linuxdo && cd linuxdo && node tools/package.mjs --sandbox --write",
     "package:linuxdo": "cd linuxdo && node tools/package.mjs && cd .. && pnpm build:linuxdo && cd linuxdo && node tools/package.mjs --write",
-    "test:linuxdo": "pnpm package:linuxdo:check && cd linuxdo && node tools/check-package.mjs",
-    "catalog:export:linuxdo": "node linuxdo/tools/export-catalog.mjs"
+    "test:linuxdo": "pnpm package:linuxdo:check && cd linuxdo && node tools/check-package.mjs"
   },
   "dependencies": {
     "@haen/contracts": "workspace:*",

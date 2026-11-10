@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { parseEnv } from 'node:util';
 import { z } from 'zod';
-import { snapshotSchema, streamIndexSchema } from '../schemas.ts';
+import { streamIndexSchema } from '../schemas.ts';
 
 const check = process.argv.includes('--check');
 const sandbox = process.argv.includes('--sandbox');
@@ -33,6 +33,7 @@ const httpsUrl = z.url({ protocol: /^https$/ }).refine((value) => {
 const streamConfig = z.array(
   z.strictObject({
     stationId: z.uuid(),
+    catalogUrl: httpsUrl,
     url: httpsUrl,
     operator: z.string().min(1),
     permission: httpsUrl,
@@ -49,30 +50,25 @@ const streamConfig = z.array(
 if (write) {
   const { pack } = await import('../../../../.local/linuxdo/sdk/pack.mjs');
   const version = JSON.parse(await readFile('../package.json', 'utf8')).version;
-  const catalog = await readFile('data/catalog.json');
-  const snapshot = snapshotSchema.parse(JSON.parse(catalog.toString('utf8')));
-  const stations = new Map(snapshot.stations.map((station) => [station[0], station]));
   const configured = streamConfig.parse(JSON.parse(await readFile('data/streams.json', 'utf8')));
   const ids = new Set();
   for (const { stationId } of configured) {
-    const station = stations.get(stationId);
-    if (!station || station[12] === 'blocked' || ids.has(stationId)) {
-      throw new Error(`直播源关联的目录记录无效：${stationId}`);
-    }
+    if (ids.has(stationId)) throw new Error(`直播源重复关联同一电台：${stationId}`);
     ids.add(stationId);
   }
-  const streams = check ? [] : configured.filter(({ verification }) => sandbox || verification);
+  const streams = configured.filter(({ verification }) => check || sandbox || verification);
   if (!check && !sandbox && !streams.length) {
     throw new Error('正式包需要至少一条已通过桌面和手机沙箱验收的直播源。');
   }
   const entries = streamIndexSchema.parse(
-    streams.map(({ stationId, verification }) => ({
+    streams.map(({ stationId, catalogUrl, verification }) => ({
       stationId,
+      catalogUrl,
       endpoint: `station-${stationId}`,
       candidate: !verification,
     })),
   );
-  const endpoints = Object.fromEntries(
+  const streamEndpoints = Object.fromEntries(
     entries.map(({ endpoint }, index) => [
       endpoint,
       {
@@ -82,6 +78,18 @@ if (write) {
       },
     ]),
   );
+  const apiBase = 'https://hahaen.xyz/radio/api/v1/linuxdo';
+  const endpoints = {
+    'radio-scene': { url: `${apiBase}/scene`, method: 'GET', auth: 'none' },
+    'radio-chunk': {
+      url: `${apiBase}/chunk`,
+      method: 'GET',
+      auth: 'none',
+      query: ['version', 'index'],
+    },
+    'radio-stations': { url: `${apiBase}/stations`, method: 'GET', auth: 'none', query: ['ids'] },
+    ...streamEndpoints,
+  };
   const geography = ['land.json', 'regions.json', 'relief.jpg', 'world.svg'];
   const manifest = {
     format: 1,
@@ -94,21 +102,17 @@ if (write) {
     permissions: [
       'storage.read',
       'storage.write',
-      ...(streams.length ? ['network.request', 'audio.webAudio'] : []),
+      'network.request',
+      ...(streams.length ? ['audio.webAudio'] : []),
     ],
-    assets: [
-      'data/catalog.json',
-      'data/streams.json',
-      ...geography.map((name) => 'geography/' + name),
-    ],
-    ...(streams.length ? { endpoints } : {}),
+    assets: ['data/streams.json', ...geography.map((name) => 'geography/' + name)],
+    endpoints,
   };
   const files = {
     'index.html': await readFile('template.html'),
     'app.js': await readFile('dist/bundle/app.js'),
     'app.css': await readFile('dist/bundle/app.css'),
     'strings.json': await readFile('strings.json'),
-    'data/catalog.json': catalog,
     'data/streams.json': JSON.stringify(entries),
     ...Object.fromEntries(
       await Promise.all(
@@ -122,6 +126,6 @@ if (write) {
   const folder = check ? 'check' : sandbox ? 'sandbox' : 'package';
   const result = await pack({ manifest, files, outputDirectory: `dist/${folder}` });
   console.log(
-    `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${result.file} (${result.size} bytes)，${snapshot.stationCount} 条目录，${streams.length} 条直播源`,
+    `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${result.file} (${result.size} bytes)，目录由 radio-api 提供，${streams.length} 条直播源`,
   );
 }
