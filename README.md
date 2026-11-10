@@ -15,6 +15,7 @@
 - [完整文档导航](docs/README.md)：按主题查找全部技术文档。
 - [技术选型](docs/overview/technology-stack.md)：已确定的技术组合与版本策略。
 - [Android 客户端](apps/android/README.md)：原生工程已实现，提供 Debug 与正式签名 Release APK，已有核心真机验收记录；[完整技术方案](docs/android/technical-design.md)与[验证状态](docs/android/verification.md)见专题文档，其余专项及商店发布按对应记录确认。
+- [LINUX DO 微应用](apps/ldWeb/README.md)：独立的纯前端电台目录与站内播放版本。
 - [系统架构](docs/architecture/system-design.md)：前后端边界、访问路径与部署关系。
 - [代码目录规划](docs/architecture/repository-layout.md)：后续应用工程的目录约定。
 - [本机上传部署](docs/deployment/local-upload.md)：本机编译、服务器 Docker 更新与最新产物保留。
@@ -40,6 +41,7 @@
 | [apps/web](apps/web/README.md) | 前端应用、图形与音频引擎 |
 | [apps/server](apps/server/README.md) | 后端 API、任务和数据库访问 |
 | [apps/android](apps/android/README.md) | Android 原生客户端、播放服务与局部图形，使用独立 Gradle 工程构建 |
+| [apps/ldWeb](apps/ldWeb/README.md) | LINUX DO 纯前端微应用、静态目录与 ZIP 打包 |
 | [packages/contracts](packages/contracts/README.md) | 前后端共享数据契约 |
 | [packages/config](packages/config/README.md) | 共享工程配置 |
 | [apps/server/migrations](apps/server/migrations/README.md) | 数据库迁移 |
