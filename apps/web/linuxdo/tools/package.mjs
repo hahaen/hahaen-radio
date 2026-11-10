@@ -1,14 +1,15 @@
-import { readFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rename, rm } from 'node:fs/promises';
 import { parseEnv } from 'node:util';
 import { decodeSceneEntry } from '@haen/contracts';
 import { z } from 'zod';
-import { snapshotSchema, streamIndexSchema } from '../schemas.ts';
+import { packSnapshot, snapshotSchema, streamIndexSchema } from '../schemas.ts';
 
 const check = process.argv.includes('--check');
 const sandbox = process.argv.includes('--sandbox');
 const write = check || process.argv.includes('--write');
 const uuidV7 = /^[a-f\d]{8}-[a-f\d]{4}-7[a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$/i;
 const checkId = '019a2a58-0000-7000-8000-000000000001';
+const maxUploadKiB = 4096;
 let id = checkId;
 if (!check) {
   const config = new URL('../../../../.env.local.linuxdo', import.meta.url);
@@ -59,8 +60,7 @@ const streamConfig = z.array(
 if (write) {
   const { pack } = await import('../../../../.local/linuxdo/sdk/pack.mjs');
   const version = JSON.parse(await readFile('../package.json', 'utf8')).version;
-  const catalog = await readFile('data/catalog.json');
-  const snapshot = snapshotSchema.parse(JSON.parse(catalog));
+  const snapshot = snapshotSchema.parse(JSON.parse(await readFile('data/catalog.json', 'utf8')));
   const available = new Set(
     snapshot.stations
       .map(decodeSceneEntry)
@@ -122,7 +122,7 @@ if (write) {
     'app.js': await readFile('dist/bundle/app.js'),
     'app.css': await readFile('dist/bundle/app.css'),
     'strings.json': await readFile('strings.json'),
-    'data/catalog.json': catalog,
+    'data/catalog.json': JSON.stringify(packSnapshot(snapshot)),
     'data/streams.json': JSON.stringify(entries),
     ...Object.fromEntries(
       await Promise.all(
@@ -134,8 +134,21 @@ if (write) {
     ),
   };
   const folder = check ? 'check' : sandbox ? 'sandbox' : 'package';
-  const result = await pack({ manifest, files, outputDirectory: `dist/${folder}` });
-  console.log(
-    `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${result.file} (${result.size} bytes)，${snapshot.manifest.stationCount} 条包内电台，${streams.length} 条直播源`,
-  );
+  const outputDirectory = `dist/${folder}`;
+  const temporary = await mkdtemp('dist/.linuxdo-package-');
+  try {
+    const result = await pack({ manifest, files, outputDirectory: temporary });
+    const sizeKiB = (result.size / 1024).toFixed(2);
+    if (result.size > maxUploadKiB * 1024) {
+      throw new Error(`微应用 ZIP 为 ${sizeKiB} KiB，超过 ${maxUploadKiB} KiB 上传上限。`);
+    }
+    await mkdir(outputDirectory, { recursive: true });
+    await rename(`${temporary}/package.json`, `${outputDirectory}/package.json`);
+    await rename(result.file, `${outputDirectory}/app.zip`);
+    console.log(
+      `${check ? '仅供本地核验' : sandbox ? '沙箱验证包' : '正式候选包'} ${outputDirectory}/app.zip (${sizeKiB} KiB)，${snapshot.manifest.stationCount} 条包内电台，${streams.length} 条直播源`,
+    );
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
 }

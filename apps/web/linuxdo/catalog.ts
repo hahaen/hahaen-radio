@@ -1,10 +1,10 @@
 import type { MiniAppSDK } from '@discourse-mini-app/sdk';
 import { decodeSceneEntry, type StationDetail } from '@haen/contracts';
 import { HttpError } from '../src/services/http';
-import { snapshotSchema } from './schemas';
+import { unpackSnapshot } from './schemas';
 
 export async function createCatalog(sdk: MiniAppSDK) {
-  const snapshot = snapshotSchema.parse(
+  const snapshot = unpackSnapshot(
     await sdk.assets.readJson('data/catalog.json', { timeoutMs: 30000 }),
   );
   const stations = snapshot.stations.map(decodeSceneEntry);

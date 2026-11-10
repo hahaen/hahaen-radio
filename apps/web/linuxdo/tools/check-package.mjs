@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { chromium, devices, expect, webkit } from '@playwright/test';
+import { snapshotSchema, unpackSnapshot } from '../schemas.ts';
 
 const archive = 'dist/check/app.zip';
+assert.ok(statSync(archive).size <= 4096 * 1024, 'ZIP must fit the LINUX DO upload limit');
 const files = execFileSync('unzip', ['-Z1', archive], { encoding: 'utf8' })
   .trim()
   .split('\n')
@@ -46,7 +48,12 @@ for (const endpoint of Object.values(manifest.endpoints ?? {})) {
 }
 const samplePath = process.env.HAEN_LINUXDO_AUDIO_SAMPLE;
 const audioSample = samplePath ? readFileSync(samplePath).toString('base64') : '';
-const { stations, manifest: scene } = JSON.parse(unpack('data/catalog.json'));
+const decoded = unpackSnapshot(JSON.parse(unpack('data/catalog.json')));
+assert.deepEqual(
+  decoded,
+  snapshotSchema.parse(JSON.parse(readFileSync('data/catalog.json', 'utf8'))),
+);
+const { stations, manifest: scene } = decoded;
 const stationCount = stations.length;
 assert.equal(stationCount, scene.stationCount);
 const sourceIds = new Set(sources.map(({ stationId }) => stationId));
