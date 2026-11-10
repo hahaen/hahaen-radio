@@ -10,13 +10,16 @@ const uuidV7 = /^[a-f\d]{8}-[a-f\d]{4}-7[a-f\d]{3}-[89ab][a-f\d]{3}-[a-f\d]{12}$
 const checkId = '019a2a58-0000-7000-8000-000000000001';
 let id = checkId;
 if (!check) {
-  const input = await readFile('../../.local/linuxdo/.env.local', 'utf8').catch((error) => {
+  const config = new URL('../../../../.env.local.linuxdo', import.meta.url);
+  const input = await readFile(config, 'utf8').catch((error) => {
     if (error.code === 'ENOENT') return '';
     throw error;
   });
   id = parseEnv(input).MINI_APP_ID?.trim() ?? '';
   if (!uuidV7.test(id) || id === checkId) {
-    throw new Error('请在 .local/linuxdo/.env.local 填写 LINUX DO 分配的 MINI_APP_ID（UUIDv7）。');
+    throw new Error(
+      '请在仓库根目录的 .env.local.linuxdo 填写 LINUX DO 分配的 MINI_APP_ID（UUIDv7）。',
+    );
   }
 }
 

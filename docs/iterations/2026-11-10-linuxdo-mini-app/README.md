@@ -19,7 +19,7 @@
 ## 官网与微应用共用源码
 
 - 官网和 LINUX DO 微应用在 `apps/web` 共用 React 界面、Three.js 地球、目录筛选、收藏和播放控制。微应用入口和 SDK 适配在 `apps/web/linuxdo`，旧独立应用目录已删除。原快照未重新导出，文件内容一致，仍为 72,088 条。该快照没有精确城市字段，微应用明确标示附近城市并支持按此筛选。
-- 官网产物位于 `apps/web/dist`。微应用 ZIP 位于 `apps/web/linuxdo/dist`，不随官网发布。应用 ID 的本地配置迁移到 Git 忽略的 `.local/linuxdo/.env.local`。
+- 官网产物位于 `apps/web/dist`。微应用 ZIP 位于 `apps/web/linuxdo/dist`，不随官网发布。打包脚本从仓库根目录的 `.env.local.linuxdo` 读取应用 ID。配置文件和 ZIP 均由 Git 忽略。已核对缺少 ID 时的打包提示及本地核验 ZIP。
 - 官网通过生产路径构建、资源预算和三个无声搜索回归检查。微应用 ZIP 通过官方 SDK 打包和隔离 iframe 检查，覆盖桌面 Chromium 和手机 WebKit 的目录、地图资源、搜索、筛选、附近城市、收藏迁移、随机选台及当前页面没有外部跳转。隔离检查屏蔽音频和外网请求。
 - 应用 ID 未填写、已验证直播名单为空。本次没有测试声音，没有进入真实沙箱或正式上架。网站使用前端独立发布；API、后台任务、Android 和数据库无需更新。根 README 的 LinuxDo 友情链接保留。
 

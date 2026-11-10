@@ -1,6 +1,6 @@
 # 声屿 HAEN
 
-LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、目录筛选、收藏和播放器控制。微应用由此目录的入口启动，使用包内数据和 SDK，运行时无需自建后台。
+LINUX DO 微应用与官网共用 `apps/web/src` 中的界面、地球、目录筛选、收藏和播放器控制。微应用由此目录的入口启动，使用包内数据和 SDK，运行时无需自建后台。生成的 ZIP 保存在本目录的 `dist/`，由 Git 忽略。
 
 ## 构建与目录快照
 
@@ -20,7 +20,7 @@ pnpm --filter @haen/web test:linuxdo
 
 ## 沙箱与正式打包
 
-1. 在仓库根的 `.local/linuxdo/.env.local` 填写应用管理页分配的 `MINI_APP_ID`（UUIDv7）。此文件被 Git 忽略，权限设为 `600`。
+1. 在仓库根的 `.env.local.linuxdo` 填写应用管理页分配的 `MINI_APP_ID`（UUIDv7）。此文件被 Git 忽略，权限设为 `600`。
 2. 若有获准的 MP3 直播，填写 `data/streams.json` 中的 `stationId`、HTTPS `url`、`operator` 和公开授权依据 `permission`。待验收候选填写 `verification: null`。端点需允许论坛来源跨域读取、返回 `audio/mpeg`，且运营方允许第三方使用。
 3. 运行 `pnpm --filter @haen/web package:linuxdo:sandbox`，用管理页上传 `apps/web/linuxdo/dist/sandbox/app.zip`。有候选的包申请 `network.request` 与 `audio.webAudio`；候选显示「沙箱试播」。无候选也可生成仅供目录验收的沙箱包。
 4. 在真实沙箱取得桌面和手机的播放、停止、切台验收结果后，再填写 `verification` 中的 `date`、`desktop` 和 `mobile`。运行 `pnpm --filter @haen/web package:linuxdo` 生成 `apps/web/linuxdo/dist/package/app.zip`。正式包只收录通过验收的电台，由用户上架。
