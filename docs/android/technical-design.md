@@ -34,7 +34,7 @@ Compose 承载原生界面，Media3 承载音频。地球与沉浸效果已通�
 | 单元与网络测试 | JUnit、kotlinx-coroutines-test、MockWebServer | 业务、状态流、超时、取消、重试与账号契约 |
 | 数据与界面测试 | Room migration testing、Compose UI Test、Espresso / UIAutomator | 数据升级、页面和必要系统交互 |
 | 构建 | Android Studio、Gradle Kotlin DSL、Gradle Wrapper、Version Catalog | 可复现的 Android 构建、统一依赖版本 |
-| 检查与交付 | Android Lint、按需 Kotlin 格式检查、APK / AAB | 已配置 Lint 与 Debug APK 构建；正式发布签名、AAB 与渠道另行接入 |
+| 检查与交付 | Android Lint、按需 Kotlin 格式检查、APK / AAB | 已配置 Lint 与 Debug APK 构建，支持正式签名 APK 和 GitHub Release；AAB 与商店另行接入 |
 
 ViewModel、分层和 Compose 的设计依据见 [Android 架构建议](https://developer.android.com/topic/architecture/recommendations)。导航采用面向 Compose 的 [Navigation 3](https://developer.android.com/guide/navigation/navigation-3)。
 
@@ -216,7 +216,7 @@ Room 保存收藏、历史、账号快照、待同步操作与必要的有界目
 
 先用可控 MP3/AAC/HLS 测试源区分引擎问题和外部线路问题，再验证真实电台。记录 Android 版本、设备、System WebView 版本、音源和测试范围；模拟器与网页手机视口不替代原生真机结果。
 
-Android CI 与既有 Web/API/Jenkins 任务分开管理，后续按实际需要接入，不新增自动发布触发器。图形产物构建应绑定源码与锁文件版本；有依赖时先构建图形，再打包 Android，并在干净环境验证资源完整性。
+Android 使用独立的 GitHub Actions 手动发布流程，见[正式包发布记录](../iterations/2026-11-15-android-github-release/README.md)。图形产物构建应绑定源码与锁文件版本；有依赖时先构建图形，再打包 Android，并在干净环境验证资源完整性。
 
 APK 用于设备安装，AAB 用于需要该格式的分发渠道。正式签名私钥与密码由受限本地配置或 CI 凭据注入，不提交、不嵌入客户端、不打印；SDK 路径、签名文件、私有配置及 Gradle/Android 产物在创建时配置忽略规则并核对未被跟踪。Debug 使用 Android debug key 并已有真机安装证据；Release 已接入独立本地正式签名，产物验证单独记录。尚无 Release 真机安装、AAB 上传或商店发布结果。
 

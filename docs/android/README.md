@@ -8,6 +8,8 @@ Android 客户端采用 Kotlin 原生路线，目标是延续声屿手机网页�
 
 搜索、用户名和密码输入框的软键盘处理见[键盘修复与检查记录](../iterations/2026-10-24-android-keyboard/README.md)。
 
+正式签名 APK 的 GitHub 手动发布入口和使用说明见 [Android 工程说明](../../apps/android/README.md#在-github-手动发布)。
+
 ## 当前状态
 
 | 内容 | 状态 |

@@ -1,5 +1,7 @@
 # 任务归档
 
+[Android GitHub 正式包发布](2026-11-15-android-github-release/README.md)
+
 [电台目录同步恢复](2026-11-10-catalog-sync-recovery/README.md)
 
 前端[版本检测与强制更新弹窗](2026-10-30-web-version-update/README.md)：生产构建自动生成版本标识，前台轮询与恢复补查，检测差异后要求刷新。
