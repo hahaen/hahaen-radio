@@ -23,7 +23,7 @@ Gradle `preBuild` 自动构建图形，不需要手工复制网页产物。公�
 
 Debug APK：`app/build/outputs/apk/debug/app-debug.apk`，使用本机 Android debug key。Release 使用独立正式签名，构建与私有配置见下节。保留各自签名材料和应用 ID，后续递增 versionCode 后覆盖安装；不能靠卸载来完成升级测试。
 
-本机执行 `assembleDebug` 后，Gradle 自动将最新安装包同步到仓库根目录的 `android-packages/debug/app-debug.apk`；其他构建变体使用各自子目录（如 `android-packages/release/`），Debug 保留原始文件名，Release 的主包命名为 `声屿HAEN.apk`。目录只保留对应变体的当前 APK，不收集测试 APK，也不受 Gradle `clean` 影响。`android-packages/` 已通过本机 `.git/info/exclude` 排除，安装包不进入 Git；归集与构建逻辑纳入版本管理。正式签名所需私有文件保存在本机，GitHub 构建通过发布环境的加密 Secret 读取，生成的 APK 可作为 GitHub Release 附件发布。说明与验证见 [本地安装包归集](../../docs/android/README.md#本地安装包归集)。
+本机执行 `assembleDebug` 后，Gradle 自动将最新安装包同步到仓库根目录的 `android-packages/debug/app-debug.apk`；其他构建变体使用各自子目录（如 `android-packages/release/`），Debug 保留原始文件名，Release 的主包命名为 `声屿HAEN.apk`。目录只保留对应变体的当前 APK，不收集测试 APK，也不受 Gradle `clean` 影响。`android-packages/` 已通过本机 `.git/info/exclude` 排除，安装包不进入 Git；归集与构建逻辑纳入版本管理。正式签名所需私有文件保存在本机，生成的 APK 可作为 GitHub Release 附件发布。说明与验证见 [本地安装包归集](../../docs/android/README.md#本地安装包归集)。
 
 ```sh
 adb install -r app/build/outputs/apk/debug/app-debug.apk
@@ -53,11 +53,9 @@ Gradle 显式读取仓库根目录 `.local/signing/release.properties`，必填�
 
 产物为 `app/build/outputs/apk/release/app-release.apk`，构建后自动同步到仓库根目录 `android-packages/release/声屿HAEN.apk`。Release 禁用调试，正式签名与 Debug 签名不同，不能直接覆盖已有 Debug 安装；本次不执行卸载、清除数据或手机安装。商店上传与 AAB 未执行。构建和验证记录见 [Android 本地 Release 交付](../../docs/android/README.md#正式-release-交付)。
 
-## 在 GitHub 手动发布
+## 在 GitHub 发布本机正式包
 
-在 [Actions → Android Release](https://github.com/hahaen/hahaen-radio/actions/workflows/android-release.yml) 选择 `main` 并点 **Run workflow**。保持 **Publish the signed APK to GitHub Releases** 勾选，构建成功后会用 APK 的 `versionName` 创建 `v<versionName>`，并将 `haen-radio-<versionName>.apk` 放到 [GitHub Releases](https://github.com/hahaen/hahaen-radio/releases)。取消勾选可在本次运行日志中核对构建及签名结果。
-
-每次更新 App 后按版本规则递增 `versionName` 和 `versionCode`。已有同版本 Release 时流程会停止，保留已发布文件。首次配置或恢复签名 Secret 见[发布流程记录](../../docs/iterations/2026-11-15-android-github-release/README.md)。
+本机打包并核对 APK 的版本与签名后，在 [GitHub Releases](https://github.com/hahaen/hahaen-radio/releases) 创建对应的 `v<versionName>`，将 `haen-radio-<versionName>.apk` 作为附件上传。每次更新 App 后按版本规则递增 `versionName` 和 `versionCode`。详见[发布记录](../../docs/iterations/2026-11-15-android-github-release/README.md)。
 
 ## 保留用户数据的设备测试
 

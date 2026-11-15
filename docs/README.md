@@ -12,7 +12,7 @@
 
 Android 搜索及账号输入框的[软键盘修复与检查](iterations/2026-10-24-android-keyboard/README.md)。
 
-[Android 正式包 GitHub 发布](iterations/2026-11-15-android-github-release/README.md)支持手动构建与上传。
+[Android 正式包 GitHub 发布](iterations/2026-11-15-android-github-release/README.md)使用本机正式签名 APK。
 
 Android 分发页介绍与兼容图标见[任务记录](iterations/2026-10-24-android-distribution/README.md)。
 
